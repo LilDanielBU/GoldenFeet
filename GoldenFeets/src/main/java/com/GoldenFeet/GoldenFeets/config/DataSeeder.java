@@ -33,6 +33,11 @@ public class DataSeeder implements CommandLineRunner {
         // 1. Crear roles si no existen
         Rol adminRole = createRoleIfNotFound("ROLE_ADMIN");
         Rol clientRole = createRoleIfNotFound("ROLE_CLIENTE");
+        Rol empleadoRole = createRoleIfNotFound("ROLE_EMPLEADO");
+        Rol distribuidorRole = createRoleIfNotFound("ROLE_DISTRIBUIDOR");
+        Rol gerenteEntregas = createRoleIfNotFound("ROLE_GERENTEENTREGAS");
+        Rol gerenteInventario = createRoleIfNotFound("ROLE_GERENTEINVENTARIO");
+
 
         // 2. Crear usuario administrador si no existe
         if (usuarioRepository.findByEmail(adminEmail).isEmpty()) {
