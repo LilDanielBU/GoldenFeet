@@ -27,6 +27,24 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
                 redirectUrl = "/admin/usuarios";
                 break;
             }
+            else if (role.equals("ROLE_EMPLEADO")){
+                redirectUrl = "/empleado";
+                break;
+            }
+            else if(role.equals("ROLE_CLIENTE")){
+                redirectUrl = "/cliente";
+            }
+            else if (role.equals("ROLE_DISTRIBUIDOR")) {
+            redirectUrl = "/distribuidor";
+
+            }
+            else if (role.equals("ROLE_GERENTEENTREGAS")){
+                redirectUrl ="/gerenteentregas";
+;            }
+            else if (role.equals("ROLE_GERENTEINVENTARIO")){
+                redirectUrl ="/gerenteinventario";
+            }
+
             // ... (puedes añadir otros roles aquí) ...
         }
 
