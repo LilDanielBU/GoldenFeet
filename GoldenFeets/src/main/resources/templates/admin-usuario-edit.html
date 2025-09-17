@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Editar Usuario</title>
+</head>
+<body>
+<header>
+</header>
+<div class="container-admin">
+    <div class="admin-header">
+        <h1><i class="fas fa-edit me-2"></i>Editar Usuario</h1>
+    </div>
+    <div class="admin-content">
+        <form th:action="@{/admin/usuarios/actualizar}" th:object="${usuario}" method="post">
+            <input type="hidden" th:field="*{idUsuario}"/>
+
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="nombre" th:field="*{nombre}">
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email (no se puede cambiar)</label>
+                <input type="email" class="form-control" id="email" th:field="*{email}" readonly>
+            </div>
+
+            <button type="submit" class="btn btn-golden">Actualizar Usuario</button>
+            <a th:href="@{/admin/usuarios}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
