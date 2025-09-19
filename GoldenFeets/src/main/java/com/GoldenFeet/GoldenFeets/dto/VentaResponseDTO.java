@@ -4,11 +4,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+// CORRECCIÓN: idVenta ahora es Long
 public record VentaResponseDTO(
-        Integer idVenta,
+        Long idVenta,
         LocalDate fechaVenta,
         BigDecimal total,
         String estado,
-        String emailCliente, // Campo aplanado del Usuario
-        List<DetalleVentaDTO> detalles // Lista anidada de productos
+        String clienteEmail,
+        List<DetalleVentaDTO> detalles
 ) {}

@@ -3,8 +3,8 @@ package com.GoldenFeet.GoldenFeets.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
 @Data
 @Entity
 @Table(name = "carrito_items")
@@ -15,7 +15,7 @@ public class CarritoItem {
     private Integer id;
 
     @Column(name = "session_id", nullable = false)
-    private String sessionId; // O podría ser el id del usuario
+    private String sessionId; // O el ID del usuario si ha iniciado sesión
 
     @Column(name = "cantidad", nullable = false)
     private int cantidad;
@@ -23,8 +23,9 @@ public class CarritoItem {
     @Column(name = "fecha_agregado")
     private LocalDateTime fechaAgregado;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "producto_id")
+    // --- RELACIÓN CORREGIDA Y MEJORADA ---
+    @ManyToOne(fetch = FetchType.LAZY) // Usamos LAZY para mejor rendimiento
+    @JoinColumn(name = "producto_id", referencedColumnName = "id", nullable = false)
     private Producto producto;
 
     @PrePersist
@@ -32,5 +33,4 @@ public class CarritoItem {
         this.fechaAgregado = LocalDateTime.now();
     }
 
-    // Getters y Setters
 }

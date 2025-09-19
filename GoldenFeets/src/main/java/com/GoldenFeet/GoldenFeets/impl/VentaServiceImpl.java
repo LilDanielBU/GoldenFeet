@@ -55,7 +55,7 @@ public class VentaServiceImpl implements VentaService {
             detalle.setPrecioUnitario(producto.getPrecio());
             BigDecimal subtotal = producto.getPrecio().multiply(new BigDecimal(itemDTO.cantidad()));
             detalle.setSubtotal(subtotal);
-            detalle.setVenta(nuevaVenta); // Asignar la venta al detalle
+            detalle.setVenta(nuevaVenta);
 
             detalles.add(detalle);
             totalVenta = totalVenta.add(subtotal);
@@ -69,7 +69,9 @@ public class VentaServiceImpl implements VentaService {
     }
 
     @Override
-    public List<VentaResponseDTO> buscarVentasPorCliente(Integer idCliente) {
+    public List<VentaResponseDTO> buscarVentasPorCliente(Integer idCliente) { // Cambiado a Integer
+        // --- LÍNEA CORREGIDA ---
+        // Usamos el nombre de método correcto que creamos en VentaRepository
         return ventaRepository.findByCliente_IdUsuario(idCliente).stream()
                 .map(this::convertirAVentaResponseDTO)
                 .collect(Collectors.toList());
@@ -78,7 +80,7 @@ public class VentaServiceImpl implements VentaService {
     private VentaResponseDTO convertirAVentaResponseDTO(Venta venta) {
         List<DetalleVentaDTO> detallesDTO = venta.getDetallesVenta().stream()
                 .map(detalle -> new DetalleVentaDTO(
-                        detalle.getProducto().getIdProducto(),
+                        detalle.getProducto().getId(),
                         detalle.getProducto().getNombre(),
                         detalle.getCantidad(),
                         detalle.getPrecioUnitario(),

@@ -9,6 +9,7 @@ import com.GoldenFeet.GoldenFeets.repository.ProductoRepository;
 import com.GoldenFeet.GoldenFeets.service.ProductoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,7 +29,7 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
-    public Optional<ProductoDTO> buscarPorId(Integer id) {
+    public Optional<ProductoDTO> buscarPorId(Long id) {
         return productoRepository.findById(id)
                 .map(this::convertirAProductoDTO);
     }
@@ -40,15 +41,27 @@ public class ProductoServiceImpl implements ProductoService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<ProductoDTO> listarDestacados() {
+        return productoRepository.findAll().stream()
+                // 👇 ESTA ES LA LÍNEA CORREGIDA
+                .filter(producto -> producto.isDestacado()) // Se usa una expresión lambda
+                .map(this::convertirAProductoDTO)
+                .collect(Collectors.toList());
+    }
+
     private ProductoDTO convertirAProductoDTO(Producto producto) {
         return new ProductoDTO(
-                producto.getIdProducto(),
+                producto.getId(),
                 producto.getNombre(),
                 producto.getDescripcion(),
                 producto.getPrecio(),
+                producto.getOriginalPrice(), // <-- Añadir este campo
                 producto.getStock(),
-                producto.getImagen(),
-                producto.getCategoria().getNombre()
+                producto.getImagenUrl(),
+                producto.getCategoria() != null ? producto.getCategoria().getNombre() : "Sin Categoría",
+                producto.isDestacado(),
+                producto.getRating()
         );
     }
 
@@ -56,7 +69,8 @@ public class ProductoServiceImpl implements ProductoService {
         return new CategoriaDTO(
                 categoria.getIdCategoria(),
                 categoria.getNombre(),
-                categoria.getDescripcion()
+                categoria.getDescripcion(),
+                categoria.getImagenUrl()
         );
     }
 }

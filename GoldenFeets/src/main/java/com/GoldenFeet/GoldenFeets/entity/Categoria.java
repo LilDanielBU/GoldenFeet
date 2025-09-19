@@ -2,24 +2,24 @@ package com.GoldenFeet.GoldenFeets.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.util.Set;
+import java.util.List;
 
 @Data
 @Entity
-@Table(name = "categoria")
+@Table(name = "categorias")
 public class Categoria {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_categoria")
     private Integer idCategoria;
 
-    @Column(name = "nombre", length = 255)
     private String nombre;
-
-    @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
 
-    @OneToMany(mappedBy = "categoria", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Producto> productos;
+    // --- ¡AQUÍ ESTÁ EL CAMPO QUE FALTABA! ---
+    @Column(name = "imagen_url") // Es buena práctica nombrar la columna en la base de datos
+    private String imagenUrl;
+
+    // Esta relación es correcta para el futuro, pero no soluciona el error actual.
+    @OneToMany(mappedBy = "categoria")
+    private List<Producto> productos;
 }

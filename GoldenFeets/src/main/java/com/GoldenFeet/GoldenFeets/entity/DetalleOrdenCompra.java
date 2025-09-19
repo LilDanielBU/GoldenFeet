@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+
 @Data
 @Entity
 @Table(name = "detalleordencompra")
@@ -25,8 +26,9 @@ public class DetalleOrdenCompra {
     private OrdenCompra ordenCompra;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_producto", referencedColumnName = "id_producto")
+    // --- LÍNEA CORREGIDA ---
+    @JoinColumn(name = "id_producto", referencedColumnName = "id", nullable = false)
     private Producto producto;
 
-    // Getters y Setters
+    // Getters y Setters...
 }

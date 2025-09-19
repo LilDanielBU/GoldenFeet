@@ -1,6 +1,7 @@
 package com.GoldenFeet.GoldenFeets.dto;
 
+// CORRECCIÓN: idProducto ahora es Long
 public record ItemVentaDTO(
-        Integer idProducto,
-        Integer cantidad
+        Long idProducto,
+        int cantidad
 ) {}

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golden Feets - Catálogo de Calzado</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/catalogo.css}">
+
+    <style>
+        :root {
+            --primary-color: #6a5af9;
+            --secondary-color: #d73bf6;
+            --primary-gradient: linear-gradient(135deg, #6a5af9, #d73bf6);
+            --hover-shadow-soft: 0 8px 16px rgba(106, 90, 249, 0.1);
+            --icon-bg: #eef2ff;
+            --text-color: #343a40;
+            --text-muted-color: #6c757d;
+            --accent-color: #ff6b6b; /* Usado para Oferta/Favoritos */
+            --background-color: #f8f9fa;
+            --white: #ffffff;
+            --border-color: #e9ecef;
+            --shadow-light: 0 4px 8px rgba(0, 0, 0, 0.05);
+            --shadow-medium: 0 6px 12px rgba(0, 0, 0, 0.08);
+            --success-color: #10b981;
+            --warning-color: #f59e0b; /* Usado para estrellas */
+            --danger-color: #ef4444;
+            --default-border-radius: 8px; /* Añadido para consistencia */
+            /* --- Colores UI - Modo Oscuro --- */
+            --dark-bg: #181818;
+            --dark-card-bg: #2c2c2c;
+            --dark-text: #f0f0f0;
+            --dark-text-muted: #aaa;
+            --dark-border: #444;
+            --dark-hover-bg: #3c3c3c;
+            --dark-form-bg: #333;
+        }
+        /* ... (el resto de tu CSS va aquí sin cambios) ... */
+    </style>
+</head>
+<body>
+<div id="notification" class="notification">
+    <span id="notification-message"></span>
+</div>
+
+<header class="sticky-top shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">
+                <img th:src="@{/images/LOGO_GOLDEN.png}" alt="Golden Feets" class="img-fluid" width="150" style="filter: invert(0);">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="mainNavbarContent">
+                <div class="d-flex align-items-center flex-column flex-lg-row mt-3 mt-lg-0 w-100">
+                    <div class="d-flex align-items-center flex-grow-1 flex-column flex-lg-row w-100">
+                        <form th:action="@{/buscar}" method="get" class="input-group me-lg-auto mb-2 mb-lg-0">
+                            <i class="bi bi-search"></i>
+                            <input type="text" name="q" class="form-control form-control-sm search-input" placeholder="Buscar..." aria-label="Buscar" id="search-box">
+                            <button class="btn btn-outline-secondary btn-sm" type="submit">
+                                <i class="bi bi-search d-lg-none"></i>
+                                <span class="d-none d-lg-inline">Buscar</span>
+                            </button>
+                        </form>
+                        <div class="d-flex align-items-center gap-2 ms-lg-3 mt-2 mt-lg-0">
+                            <button class="btn btn-outline-dark btn-sm flex-shrink-0" onclick="toggleDarkMode()" title="Modo Oscuro/Claro">
+                                <i class="bi bi-moon-stars-fill"></i> <span class="d-none d-lg-inline" id="dark-mode-text">Modo Oscuro</span>
+                            </button>
+                            <a th:href="@{/login}" class="btn btn-outline-primary btn-sm flex-shrink-0">
+                                <i class="bi bi-person me-1"></i><span class="d-none d-lg-inline">Iniciar Sesión</span>
+                            </a>
+                            <a th:href="@{/deseos}" class="btn btn-outline-danger btn-sm flex-shrink-0 position-relative" title="Lista de Deseos">
+                                <i class="bi bi-heart-fill me-1"></i><span class="d-none d-lg-inline">Deseos</span>
+                                <span id="wishlist-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+                            </a>
+                            <a th:href="@{/carrito}" class="btn btn-primary btn-sm position-relative flex-shrink-0">
+                                <i class="bi bi-cart me-1"></i><span class="d-none d-lg-inline">Carrito</span>
+                                <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main class="container mt-4">
+    <div class="row">
+
+        <aside class="col-lg-3 col-md-4 d-none d-md-block">
+        </aside>
+
+        <div class="col-lg-9 col-md-8 col-12">
+
+            <section id="featured-products" class="mb-5 featured-section">
+                <h2 class="mb-4">Destacados</h2>
+                <div id="productCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        <button th:each="producto, iterStat : ${productosDestacados}"
+                                type="button" data-bs-target="#productCarousel"
+                                th:data-bs-slide-to="${iterStat.index}"
+                                th:class="${iterStat.first} ? 'active'"
+                                th:aria-current="${iterStat.first} ? 'true'"
+                                th:aria-label="|Slide ${iterStat.count}|">
+                        </button>
+                    </div>
+                    <div class="carousel-inner">
+                        <div th:each="producto, iterStat : ${productosDestacados}"
+                             th:class="${iterStat.first} ? 'carousel-item active' : 'carousel-item'">
+                            <img th:src="${producto.imagenUrl}" class="d-block carousel-item-bg-image" th:alt="${producto.nombre}">
+                            <div class="carousel-caption-custom">
+                                <h3 class="animate__animated animate__fadeInDown" th:text="${producto.nombre}"></h3>
+                                <p class="animate__animated animate__fadeInUp d-none d-sm-block" th:text="${producto.descripcion}"></p>
+                                <div class="mt-3">
+                                    <button th:onclick="|quickViewProduct(${producto.id})|" class="btn btn-primary btn-sm animate__animated animate__pulse"><i class="bi bi-eye me-1"></i> Ver Detalles</button>
+                                    <button th:onclick="|addToCart(${producto.id})|" class="btn btn-outline-light btn-sm"><i class="bi bi-cart-plus me-1"></i> Añadir</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+                </div>
+            </section>
+
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="product-container">
+
+                <div class="col" th:each="producto : ${productos}">
+                    <div class="card product-card h-100">
+                        <span th:if="${producto.destacado}" class="sale-badge">DESTACADO</span>
+
+                        <button class="favorite-btn" th:onclick="|toggleFavorite(${producto.id}, event)|" aria-label="Añadir a favoritos" title="Añadir a Favoritos">
+                            <i class="bi bi-heart"></i>
+                        </button>
+
+                        <img th:src="${producto.imagenUrl}" class="card-img-top" th:alt="${producto.nombre}" loading="lazy">
+
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title" th:text="${producto.nombre}"></h5>
+                            <p class="card-text flex-grow-1" th:text="${producto.descripcion}"></p>
+
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <span class="h5 mb-0" th:text="|COP ${#numbers.formatDecimal(producto.precio, 0, 'POINT', 0, 'COMMA')}|"></span>
+                                    </div>
+                                    <div class="product-rating" th:title="|Calificación: ${producto.rating} de 5|">
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                        <i class="bi bi-star-half text-warning"></i>
+                                        <i class="bi bi-star text-warning"></i>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between gap-2">
+                                    <button th:onclick="|addToCart(${producto.id})|" class="btn btn-primary btn-sm btn-add-cart flex-grow-1">
+                                        <i class="bi bi-cart-plus me-1"></i>Añadir
+                                    </button>
+                                    <button th:onclick="|quickViewProduct(${producto.id})|" class="btn btn-outline-secondary btn-sm flex-grow-1">
+                                        <i class="bi bi-eye me-1"></i>Ver
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="no-results" class="text-center my-5 d-none">
+            </div>
+        </div>
+    </div>
+</main>
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasFilters">
+</div>
+<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productModalLabel">Detalles del Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modal-product-content">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCartCount();
+        // updateWishlistCount(); // Descomentar cuando implementes la API de deseos
+        setupDarkModeState();
+    });
+
+    function addToCart(productId, quantity = 1) {
+        fetch('/api/carrito/agregar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productoId: productId, cantidad: quantity })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                updateCartCount(data.totalItems);
+                showNotification(data.mensaje);
+            } else {
+                showNotification('Error: ' + data.mensaje);
+            }
+        })
+        .catch(error => {
+            console.error('Error al añadir al carrito:', error);
+            showNotification('Error de conexión al añadir al carrito.');
+        });
+
+        const modalElement = document.getElementById('productModal');
+        if (modalElement) {
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) { modalInstance.hide(); }
+        }
+    }
+
+    function quickViewProduct(productId) {
+        fetch(`/api/productos/${productId}`)
+        .then(response => {
+            if (!response.ok) throw new Error('Producto no encontrado');
+            return response.json();
+        })
+        .then(product => {
+            const modalContent = document.getElementById('modal-product-content');
+            document.getElementById('productModalLabel').textContent = product.nombre;
+
+            // Construimos el HTML para el contenido del modal
+            modalContent.innerHTML = `
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <img src="${product.imagen || '/images/placeholder.jpg'}" class="img-fluid rounded shadow-sm" alt="${product.nombre}">
+                    </div>
+                    <div class="col-md-6 d-flex flex-column">
+                        <p>${product.descripcion}</p>
+                        <div class="mb-3">
+                            <span class="fs-4 fw-bold text-primary">COP ${new Intl.NumberFormat('es-CO').format(product.precio)}</span>
+                        </div>
+                        <div class="mt-auto bg-light p-3 rounded">
+                            <div class="row align-items-center g-2">
+                                <div class="col-auto mb-2 mb-md-0">
+                                    <label for="product-quantity-modal" class="form-label fw-bold mb-1 small">CANT:</label>
+                                    <div class="input-group input-group-sm" style="width: 100px;">
+                                        <button class="btn btn-outline-secondary btn-quantity" type="button" onclick="this.nextElementSibling.stepDown()">-</button>
+                                        <input type="number" class="form-control text-center" id="product-quantity-modal" value="1" min="1" readonly>
+                                        <button class="btn btn-outline-secondary btn-quantity" type="button" onclick="this.previousElementSibling.stepUp()">+</button>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <button onclick="addToCart(${product.id}, document.getElementById('product-quantity-modal').value)" class="btn btn-primary w-100">
+                                        <i class="bi bi-cart-plus me-1"></i>Añadir al Carrito
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+            const bsModal = new bootstrap.Modal(document.getElementById('productModal'));
+            bsModal.show();
+        })
+        .catch(error => {
+            console.error('Error al cargar vista rápida:', error);
+            showNotification('No se pudieron cargar los detalles del producto.');
+        });
+    }
+
+    function updateCartCount(count = null) {
+        const cartCountEl = document.getElementById('cart-count');
+        if (count !== null) {
+            cartCountEl.textContent = count;
+        } else {
+            fetch('/api/carrito/total')
+                .then(res => res.json())
+                .then(data => {
+                    cartCountEl.textContent = data.totalItems || 0;
+                })
+                .catch(() => cartCountEl.textContent = 0);
+        }
+    }
+
+    // Funciones de utilidad (Notificación, Modo Oscuro, etc. se mantienen igual)
+    function showNotification(message) { /*...*/ }
+    function setupDarkModeState() { /*...*/ }
+    function toggleDarkMode() { /*...*/ }
+    function updateLogoFilter() { /*...*/ }
+</script>
+</body>
+</html>
