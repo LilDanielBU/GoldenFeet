@@ -32,7 +32,7 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
                 break;
             }
             else if(role.equals("ROLE_CLIENTE")){
-                redirectUrl = "/cliente";
+                redirectUrl = "/";
             }
             else if (role.equals("ROLE_DISTRIBUIDOR")) {
             redirectUrl = "/distribuidor";
