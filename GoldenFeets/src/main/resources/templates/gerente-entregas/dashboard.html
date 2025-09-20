@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entregas - Golden Feets</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #4D1C95; --secondary-color: #6C4AB6; --text-color: #2D2727; --light-bg: #F5F5F5;
+            --card-shadow: 0 10px 20px rgba(0,0,0,0.1); --success-color: #198754; --warning-color: #ffc107;
+            --info-color: #0dcaf0; --danger-color: #dc3545;
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); }
+        header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header-title { display: flex; align-items: center; gap: 15px; font-family: 'Playfair Display', serif; font-size: 1.5em; }
+        .container-main { max-width: 1400px; margin: 30px auto; background-color: white; box-shadow: var(--card-shadow); border-radius: 15px; overflow: hidden; }
+        .main-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 25px 30px; text-align: center; }
+        .main-header h1 { font-size: 28px; margin: 0; }
+        .content-padding { padding: 30px; }
+        .table thead { background-color: var(--primary-color); color: white; }
+        .status-badge { color: white; font-size: 0.9em; padding: 5px 12px; border-radius: 50px; font-weight: 500; }
+        .status-asignado { background-color: var(--info-color); }
+        .status-pendiente { background-color: var(--warning-color); color: var(--text-color); }
+        .status-entregado { background-color: var(--success-color); }
+        .status-cancelado { background-color: var(--danger-color); }
+        .modal-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; }
+    </style>
+</head>
+<body>
+<header>
+    <div class="header-title"><i class="fas fa-truck"></i><h2>Portal de Entregas</h2></div>
+    <div class="d-flex align-items-center">
+        <span class="me-3 fs-5" style="font-family: 'Playfair Display', serif;">Golden Feets</span>
+        <form th:action="@{/logout}" method="post" class="d-inline"><button type="submit" class="btn btn-danger"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</button></form>
+    </div>
+</header>
+
+<div class="container-main">
+    <div class="main-header"><h1><i class="fas fa-tasks me-2"></i>Gestión de Entregas</h1></div>
+    <div class="content-padding">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                <tr>
+                    <th>ID Entrega</th>
+                    <th>ID Venta</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Distribuidor</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${entregas.isEmpty()}"><td colspan="6" class="text-center">No hay entregas registradas.</td></tr>
+                <tr th:each="entrega : ${entregas}">
+                    <td th:text="${entrega.idEntrega}"></td>
+                    <td th:text="${entrega.venta.idVenta}"></td>
+                    <td th:text="${entrega.fechaEntrega}"></td>
+                    <td>
+                        <span class="status-badge" th:text="${entrega.estado}"
+                              th:classappend="${#strings.toLowerCase(entrega.estado) == 'asignado'} ? 'status-asignado' :
+                                             (${#strings.toLowerCase(entrega.estado) == 'pendiente'} ? 'status-pendiente' :
+                                             (${#strings.toLowerCase(entrega.estado) == 'entregado'} ? 'status-entregado' : 'status-cancelado'))"></span>
+                    </td>
+                    <td th:text="${entrega.distribuidor != null} ? ${entrega.distribuidor.nombre} : 'Sin asignar'"></td>
+                    <td>
+                        <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalAsignar"
+                                th:data-entrega-id="${entrega.idEntrega}" title="Asignar/Modificar Distribuidor">
+                            <i class="fas fa-user-plus"></i>
+                        </button>
+
+                        <a th:if="${entrega.distribuidor != null}" th:href="@{/gerente-entregas/desasignar/{id}(id=${entrega.idEntrega})}"
+                           class="btn btn-sm btn-warning" title="Desasignar Distribuidor"
+                           onclick="return confirm('¿Estás seguro de que quieres desasignar el distribuidor?')">
+                            <i class="fas fa-user-minus"></i>
+                        </a>
+
+                        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar"
+                                th:data-entrega-id="${entrega.idEntrega}" title="Cancelar Entrega">
+                            <i class="fas fa-ban"></i>
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAsignar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form th:action="@{/gerente-entregas/asignar}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Asignar Distribuidor</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="entregaId" id="asignarEntregaId">
+                    <div class="mb-3">
+                        <label for="distribuidor" class="form-label">Seleccione un Distribuidor:</label>
+                        <select id="distribuidor" name="distribuidorId" class="form-select" required>
+                            <option value="">-- Distribuidores Disponibles --</option>
+                            <option th:each="dist : ${distribuidores}" th:value="${dist.idUsuario}" th:text="${dist.nombre}"></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCancelar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form th:action="@{/gerente-entregas/cancelar}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cancelarModalLabel">Cancelar Entrega</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="entregaId" id="cancelarEntregaId">
+                    <p>Estás a punto de cancelar la entrega. Por favor, especifica el motivo.</p>
+                    <div class="mb-3">
+                        <label for="motivo" class="form-label">Motivo de la Cancelación:</label>
+                        <textarea id="motivo" name="motivo" class="form-control" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+                    <button type="submit" class="btn btn-danger">Confirmar Cancelación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalAsignar = document.getElementById('modalAsignar');
+        if (modalAsignar) {
+            modalAsignar.addEventListener('show.bs.modal', event => {
+                const button = event.relatedTarget;
+                const entregaId = button.getAttribute('data-entrega-id');
+                const modalInput = modalAsignar.querySelector('#asignarEntregaId');
+                modalInput.value = entregaId;
+            });
+        }
+
+        const modalCancelar = document.getElementById('modalCancelar');
+        if (modalCancelar) {
+            modalCancelar.addEventListener('show.bs.modal', event => {
+                const button = event.relatedTarget;
+                const entregaId = button.getAttribute('data-entrega-id');
+                const modalInputId = modalCancelar.querySelector('#cancelarEntregaId');
+                const modalTitle = modalCancelar.querySelector('#cancelarModalLabel');
+
+                modalInputId.value = entregaId;
+                modalTitle.textContent = 'Cancelar Entrega #' + entregaId;
+            });
+        }
+    });
+</script>
+</body>
+</html>

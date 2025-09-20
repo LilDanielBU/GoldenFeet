@@ -79,7 +79,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         return convertirAUsuarioResponseDTO(guardado);
     }
 
-    // --- MÉTODO FALTANTE AÑADIDO ---
     @Override
     public void eliminarUsuario(Integer idUsuario) {
         if (!usuarioRepository.existsById(idUsuario)) {
@@ -88,7 +87,6 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuarioRepository.deleteById(idUsuario);
     }
 
-    // --- MÉTODO FALTANTE AÑADIDO ---
     @Override
     @Transactional
     public void actualizarUsuarioAdmin(AdminUsuarioUpdateDTO dto) {
@@ -109,6 +107,11 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    // --- MÉTODO NUEVO IMPLEMENTADO ---
+    @Override
+    public List<Usuario> findByRol(String nombreRol) {
+        return usuarioRepository.findByRoles_Nombre(nombreRol);
+    }
 
     // --- MAPPERS ---
     private AdminUsuarioDTO convertirAAdminUsuarioDTO(Usuario usuario) {

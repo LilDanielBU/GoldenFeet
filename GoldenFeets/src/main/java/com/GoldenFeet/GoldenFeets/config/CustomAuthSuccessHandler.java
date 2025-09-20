@@ -17,35 +17,27 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
 
-        String redirectUrl = "/"; // URL por defecto para clientes
+        String redirectUrl = "/";
 
         for (GrantedAuthority authority : authentication.getAuthorities()) {
             String role = authority.getAuthority();
 
-            if (role.equals("ROLE_ADMIN")) {
-                // CAMBIO: Redirige directamente a la página funcional
-                redirectUrl = "/admin/usuarios";
-                break;
-            }
-            else if (role.equals("ROLE_EMPLEADO")){
-                redirectUrl = "/empleado";
-                break;
-            }
-            else if(role.equals("ROLE_CLIENTE")){
-                redirectUrl = "/";
-            }
-            else if (role.equals("ROLE_DISTRIBUIDOR")) {
-            redirectUrl = "/distribuidor";
+            switch (role) {
+                case "ROLE_ADMIN":
+                    redirectUrl = "/admin/usuarios";
+                    break;
+                case "ROLE_CLIENTE":
+                    redirectUrl = "/";
+                    break;
 
+                case "ROLE_GERENTEENTREGAS":
+                    redirectUrl = "/gerente-entregas/dashboard";
+                    break;
+                case "ROLE_DISTRIBUIDOR":
+                    redirectUrl = "/distribuidor/dashboard";
+                    break;
+                // ... otros roles
             }
-            else if (role.equals("ROLE_GERENTEENTREGAS")){
-                redirectUrl ="/gerenteentregas";
-;            }
-            else if (role.equals("ROLE_GERENTEINVENTARIO")){
-                redirectUrl ="/gerenteinventario";
-            }
-
-            // ... (puedes añadir otros roles aquí) ...
         }
 
         response.sendRedirect(redirectUrl);
