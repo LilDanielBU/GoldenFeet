@@ -1,9 +1,11 @@
 package com.GoldenFeet.GoldenFeets.entity;
 
 import jakarta.persistence.*;
-import lombok.Data; // <-- ¡IMPORTANTE AÑADIR ESTA ANOTACIÓN!
+import lombok.Getter;
+import lombok.Setter;
 
-@Data // <-- Genera getters, setters, toString, etc. automáticamente.
+@Getter
+@Setter
 @Entity
 @Table(name = "roles")
 public class Rol {

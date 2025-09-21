@@ -9,8 +9,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     Optional<Usuario> findByEmail(String email);
 
-    // --- AÑADE ESTE NUEVO MÉTODO ---
-    // Spring Data JPA creará una consulta que busca usuarios cuyo conjunto de roles
-    // contenga un rol con el nombre especificado.
     List<Usuario> findByRoles_Nombre(String nombreRol);
+
 }

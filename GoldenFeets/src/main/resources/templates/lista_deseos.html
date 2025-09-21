@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -135,38 +135,12 @@
         body.dark-mode .btn-outline-danger { color: var(--danger-color); border-color: var(--danger-color); }
         body.dark-mode .btn-outline-danger:hover { background-color: var(--danger-color); color: var(--white); }
         body.dark-mode .text-muted { color: var(--dark-text-muted) !important; }
-
     </style>
 </head>
 <body>
 <div id="notification" class="notification">
     <span id="notification-message"></span>
 </div>
-
-<header class="sticky-top shadow-sm">
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container">
-            <a class="navbar-brand" href="catalogo.html">
-                <img src="LOGO_GOLDEN.png" alt="Golden Feets" class="img-fluid" width="150" style="filter: invert(0);">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbarContent" aria-controls="mainNavbarContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end" id="mainNavbarContent">
-                <div class="d-flex align-items-center gap-2 ms-lg-3 mt-2 mt-lg-0">
-                    <a href="lista_deseos.html" class="btn btn-outline-danger btn-sm flex-shrink-0 position-relative active" title="Lista de Deseos">
-                        <i class="bi bi-heart-fill me-1"></i><span class="d-none d-lg-inline">Deseos</span>
-                        <span id="wishlist-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-                    </a>
-                    <button class="btn btn-primary btn-sm position-relative flex-shrink-0" onclick="window.location.href='carrito.html';">
-                        <i class="bi bi-cart me-1"></i><span class="d-none d-lg-inline">Carrito</span>
-                        <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </nav>
-</header>
 
 <main class="container mt-4 mb-5">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -180,21 +154,18 @@
         <i class="bi bi-heartbreak-fill text-muted" style="font-size: 3.5rem;"></i>
         <p class="mt-3 fs-5 mb-2">Tu lista de deseos está vacía.</p>
         <p class="text-muted small">Añade productos haciendo clic en el icono <i class="bi bi-heart text-danger"></i> en el catálogo.</p>
-        <a href="catalogo.html" class="btn btn-primary mt-3"> <i class="bi bi-arrow-left me-1"></i> Ir al Catálogo</a>
+        <a th:href="@{/catalogo}" class="btn btn-primary mt-3"> <i class="bi bi-arrow-left me-1"></i> Ir al Catálogo</a>
     </div>
 
     <div id="wishlist-items" class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4 mb-4">
         <div class="col"> <div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div></div>
-        <div class="col d-none d-sm-block"> <div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div></div>
-        <div class="col d-none d-lg-block"> <div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div></div>
     </div>
 
     <div class="text-center mt-4">
-        <a href="catalogo.html" class="btn btn-outline-secondary">
+        <a th:href="@{/catalogo}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i> Volver al Catálogo
         </a>
     </div>
-
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -203,76 +174,88 @@
     // LÓGICA JAVASCRIPT PARA lista_deseos.html
     // =============================================
 
-    // --- ¡IMPORTANTE! Copia/Mantén aquí el MISMO array 'products' de catalogo.html ---
-    // (Asegúrate de que los detalles necesarios como id, name, price, image estén aquí)
-    const products = [
-         { id: 1, name: 'Zapato Casual Oxford', price: 89.99, image: 'https://i.pinimg.com/736x/ca/28/fa/ca28fa99e8d2754c8b119d7d19852592.jpg' },
-         { id: 2, name: 'Zapatilla Running Pro', price: 129.99, image: 'https://i.pinimg.com/736x/93/67/f8/9367f8ff6181f322823cac9d7ef6eb06.jpg' },
-         { id: 3, name: 'Zapatilla Daily Comfort', price: 99.99, image: 'https://i.pinimg.com/736x/8a/37/f6/8a37f65d01bb8ae132411a19eb3c5cec.jpg' },
-         { id: 4, name: 'Tacón Elegante', price: 79.99, image: 'https://i.pinimg.com/736x/1b/04/05/1b040589e2335d668eeddb51a3c2173c.jpg' },
-         { id: 5, name: 'Zapato Infantil', price: 49.99, image: 'https://i.pinimg.com/736x/d0/8c/07/d08c071136d14f88c1e943d6fbaed59f.jpg' },
-         { id: 6, name: 'Deportiva Juvenil', price: 69.99, image: 'https://i.pinimg.com/736x/e1/92/50/e192502f5aad784df5e0597701a3a5e1.jpg' }
-    ];
+    // --- ¡IMPORTANTE! El array de productos se ha eliminado. ---
+    // --- Ahora los datos vienen del servidor. ---
 
     const wishlistContainer = document.getElementById('wishlist-items');
     const wishlistEmptyMessage = document.getElementById('wishlist-empty');
     const clearWishlistBtn = document.getElementById('clear-wishlist-btn');
 
-    // --- Renderizado de la Lista de Deseos ---
-    function renderWishlistItems() {
+    /**
+     * Función principal que se ejecuta al cargar la página.
+     * Carga los IDs de localStorage, pide los datos al backend y renderiza los productos.
+     */
+    async function renderWishlistItems() {
         const wishlistIds = loadWishlist();
-        updateWishlistCount(wishlistIds.length);
-        updateCartCount(); // Actualizar contador del carrito también
+        updateNavCounts(wishlistIds.length); // Actualiza contadores de nav
 
         if (!wishlistContainer || !wishlistEmptyMessage || !clearWishlistBtn) return;
 
-        // Limpiar contenedor y quitar spinner si existiera
-        wishlistContainer.innerHTML = '';
-
+        // Mostrar mensaje de vacío si no hay IDs y detener la ejecución
         if (wishlistIds.length === 0) {
+            wishlistContainer.innerHTML = ''; // Limpiar cualquier spinner
             wishlistEmptyMessage.classList.remove('d-none');
-            wishlistContainer.classList.add('d-none'); // Ocultar contenedor grid
-            clearWishlistBtn.classList.add('d-none'); // Ocultar botón limpiar
-        } else {
-            wishlistEmptyMessage.classList.add('d-none');
-            wishlistContainer.classList.remove('d-none'); // Mostrar contenedor grid
-            clearWishlistBtn.classList.remove('d-none'); // Mostrar botón limpiar
+            wishlistContainer.classList.add('d-none');
+            clearWishlistBtn.classList.add('d-none');
+            return;
+        }
 
-            wishlistIds.forEach(productId => {
-                const product = products.find(p => p.id === productId);
-                if (product) {
-                    const col = document.createElement('div');
-                    col.className = 'col fade-in'; // Usar columna de Bootstrap
+        // Si hay IDs, mostrar el contenedor y el botón de limpiar
+        wishlistEmptyMessage.classList.add('d-none');
+        wishlistContainer.classList.remove('d-none');
+        clearWishlistBtn.classList.remove('d-none');
+        wishlistContainer.innerHTML = '<div class="col"><div class="text-center p-5"><div class="spinner-border text-primary" role="status"></div></div></div>'; // Spinner
 
-                    // ** HTML de la Tarjeta Mejorada (con backticks `) **
-                    col.innerHTML = `
-                        <div class="card h-100 wishlist-card">
-                            <img src="${product.image || 'placeholder.jpg'}" class="card-img-top" alt="${product.name || 'Producto'}">
-                            <div class="card-body">
-                                <h5 class="card-title">${product.name || 'Nombre no disponible'}</h5>
-                                <p class="card-price">$${product.price?.toFixed(2) || 'N/A'}</p>
-                                </div>
-                            <div class="card-footer">
-                                <button onclick="addToCartFromWishlist(${product.id})" class="btn btn-sm btn-primary" title="Añadir al carrito">
-                                    <i class="bi bi-cart-plus"></i>
-                                </button>
-                                <button onclick="removeFromWishlist(${product.id})" class="btn btn-sm btn-outline-danger" title="Eliminar de la lista">
-                                    <i class="bi bi-trash3"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    wishlistContainer.appendChild(col);
-                } else {
-                    console.warn(`Producto ID ${productId} no encontrado.`);
-                }
+        try {
+            // --- LLAMADA AL BACKEND ---
+            const response = await fetch('/api/productos/by-ids', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(wishlistIds)
             });
+
+            if (!response.ok) {
+                throw new Error('Error al cargar los productos');
+            }
+
+            const products = await response.json();
+            wishlistContainer.innerHTML = ''; // Limpiar el spinner
+
+            products.forEach(product => {
+                const col = document.createElement('div');
+                col.className = 'col fade-in';
+                col.innerHTML = `
+                    <div class="card h-100 wishlist-card">
+                        <img src="${product.imagenUrl || '/images/placeholder.jpg'}" class="card-img-top" alt="${product.nombre || 'Producto'}">
+                        <div class="card-body">
+                            <h5 class="card-title">${product.nombre || 'Nombre no disponible'}</h5>
+                            <p class="card-price">$${product.precio?.toFixed(0) || 'N/A'}</p>
+                        </div>
+                        <div class="card-footer">
+                            <button data-product-id="${product.id}" data-product-name="${product.nombre}"
+                                    onclick="addToCartFromWishlist(this)" class="btn btn-sm btn-primary" title="Añadir al carrito">
+                                <i class="bi bi-cart-plus"></i>
+                            </button>
+                            <button onclick="removeFromWishlist(${product.id})" class="btn btn-sm btn-outline-danger" title="Eliminar de la lista">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                wishlistContainer.appendChild(col);
+            });
+
+        } catch (error) {
+            console.error("Error en fetch:", error);
+            wishlistContainer.innerHTML = '<p class="text-danger text-center">Error al cargar la lista de deseos. Inténtalo de nuevo más tarde.</p>';
         }
     }
 
-    // --- Funciones Lista de Deseos ---
+    // --- Funciones de Ayuda para Wishlist y Carrito ---
     function loadWishlist() { try { return JSON.parse(localStorage.getItem('goldenFeetsFavorites')) || []; } catch (e) { return []; } }
-    function saveWishlist(wishlistIds) { try { localStorage.setItem('goldenFeetsFavorites', JSON.stringify(wishlistIds)); } catch (e) {} }
+    function saveWishlist(wishlistIds) { try { localStorage.setItem('goldenFeetsFavorites', JSON.stringify(wishlistIds)); } catch (e) { console.error("Error guardando wishlist:", e); } }
 
     function removeFromWishlist(productId) {
         let ids = loadWishlist();
@@ -280,67 +263,64 @@
         ids = ids.filter(id => id !== productId);
         if (ids.length < initialLength) {
             saveWishlist(ids);
-            renderWishlistItems(); // Actualizar display
+            renderWishlistItems(); // Re-renderizar la lista
             showNotification('Eliminado de la lista de deseos');
         }
     }
 
-    // NUEVO: Función para limpiar toda la lista
     function clearWishlist() {
         if (confirm("¿Estás seguro de que quieres vaciar tu lista de deseos?")) {
-            saveWishlist([]); // Guardar un array vacío
-            renderWishlistItems(); // Actualizar display
+            saveWishlist([]);
+            renderWishlistItems();
             showNotification("Lista de deseos vaciada");
         }
     }
 
-    // --- Funciones Carrito (Duplicadas - Recomendación: Usar archivo JS común) ---
-    function addToCart(productId, quantity = 1) {
-         const product = products.find(p => p.id === productId); if (!product) return false;
-         let cart = {}; try { cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {}; } catch(e) { cart = {}; }
-         const cartItemId = `P${productId}`;
-         if (cart[cartItemId]) { cart[cartItemId].quantity = (cart[cartItemId].quantity || 0) + quantity; }
-         else { cart[cartItemId] = { quantity: quantity, variant: { color: "Predeterminado", size: "Única" } }; }
-         try { localStorage.setItem('goldenFeetsCart', JSON.stringify(cart)); } catch (e) { showNotification("Error al guardar el carrito"); return false; }
-         updateCartCount(); return true;
+    async function addToCartFromWishlist(buttonElement) {
+        const productId = parseInt(buttonElement.getAttribute('data-product-id'));
+        const productName = buttonElement.getAttribute('data-product-name');
+
+        let cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
+        const cartItemId = `P${productId}`;
+        cart[cartItemId] = { quantity: (cart[cartItemId]?.quantity || 0) + 1 };
+        localStorage.setItem('goldenFeetsCart', JSON.stringify(cart));
+
+        showNotification(`${productName} añadido al carrito`);
+        updateNavCounts();
+
+        // Opcional: eliminar de la lista de deseos después de añadir al carrito
+        // removeFromWishlist(productId);
     }
-    function updateCartCount() {
-         try { const cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {}; const count = Object.values(cart).reduce((sum, item) => sum + (item?.quantity || 0), 0); const el = document.getElementById('cart-count'); if (el) el.textContent = count; }
-         catch (e) { const el = document.getElementById('cart-count'); if (el) el.textContent = '0'; }
-    }
-    function updateWishlistCount(count = null) {
-         try { const finalCount = count ?? (JSON.parse(localStorage.getItem('goldenFeetsFavorites')) || []).length; const el = document.getElementById('wishlist-count'); if (el) el.textContent = finalCount; }
-         catch (e) { const el = document.getElementById('wishlist-count'); if (el) el.textContent = '0';}
-    }
-    function addToCartFromWishlist(productId) {
-         if(addToCart(productId, 1)) { showNotification('Añadido al carrito'); /* removeFromWishlist(productId); // Opcional */ }
-         else { showNotification('Error al añadir al carrito'); }
+
+    function updateNavCounts(wishlistCount = null) {
+         try {
+             const finalWishlistCount = wishlistCount ?? loadWishlist().length;
+             document.getElementById('wishlist-count').textContent = finalWishlistCount;
+
+             const cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
+             const cartCount = Object.values(cart).reduce((sum, item) => sum + (item.quantity || 0), 0);
+             document.getElementById('cart-count').textContent = cartCount;
+         }
+         catch (e) {
+             console.error("Error actualizando contadores:", e);
+         }
     }
 
     // --- Notificaciones ---
     function showNotification(message) {
-        const notification = document.getElementById('notification'); const notificationMessage = document.getElementById('notification-message');
-        if (notification && notificationMessage) { notificationMessage.textContent = message; notification.classList.add('show'); setTimeout(() => { notification.classList.remove('show'); }, 3000); }
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notification-message');
+        if (notification && notificationMessage) {
+            notificationMessage.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => { notification.classList.remove('show'); }, 3000);
+        }
     }
-
-    // --- Modo Oscuro ---
-     function setupDarkModeState() {
-         try { const darkModeEnabled = localStorage.getItem('darkModeEnabled') === 'true'; if (darkModeEnabled) { document.body.classList.add('dark-mode'); } } catch (e) {}
-         updateLogoFilter();
-     }
-     function updateLogoFilter() {
-        const isDarkMode = document.body.classList.contains('dark-mode');
-        const logoImg = document.querySelector('.navbar-brand img');
-        if (logoImg) { logoImg.style.filter = isDarkMode ? 'invert(1) hue-rotate(180deg) contrast(0.9)' : 'none'; }
-    }
-     // Añade toggleDarkMode() si incluyes el botón en el header
 
     // --- Inicialización ---
     document.addEventListener('DOMContentLoaded', () => {
-         setupDarkModeState();
          renderWishlistItems();
     });
-
 </script>
 </body>
 </html>

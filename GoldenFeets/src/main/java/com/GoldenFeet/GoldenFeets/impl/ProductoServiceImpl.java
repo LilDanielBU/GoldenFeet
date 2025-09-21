@@ -43,23 +43,68 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     public List<ProductoDTO> listarDestacados() {
-        return productoRepository.findAll().stream()
-                // 👇 ESTA ES LA LÍNEA CORREGIDA
-                .filter(producto -> producto.isDestacado()) // Se usa una expresión lambda
+        return productoRepository.findByDestacado(true).stream()
                 .map(this::convertirAProductoDTO)
                 .collect(Collectors.toList());
     }
 
+    // --- NUEVOS MÉTODOS IMPLEMENTADOS ---
+
+    @Override
+    public List<ProductoDTO> buscarPorNombre(String nombre) {
+        // Llama al método del repositorio y convierte los resultados
+        return productoRepository.findByNombreContainingIgnoreCase(nombre).stream()
+                .map(this::convertirAProductoDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProductoDTO> listarPorCategoria(String nombreCategoria) {
+        // Llama al método del repositorio y convierte los resultados
+        return productoRepository.findByCategoria_Nombre(nombreCategoria).stream()
+                .map(this::convertirAProductoDTO)
+                .collect(Collectors.toList());
+    }
+    @Override
+    public List<String> listarMarcasDistintas() {
+        return productoRepository.findDistinctMarcas();
+    }
+    @Override
+    public List<ProductoDTO> listarPorIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of(); // Devuelve una lista vacía si no hay IDs
+        }
+        return productoRepository.findByIdIn(ids).stream()
+                .map(this::convertirAProductoDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProductoDTO> filtrarProductos(String categoria, Double precioMax, List<String> marcas) {
+        // Si la lista de marcas está vacía, la tratamos como nula para que la consulta funcione
+        List<String> marcasFiltradas = (marcas != null && marcas.isEmpty()) ? null : marcas;
+
+        return productoRepository.filtrarProductos(categoria, precioMax, marcasFiltradas)
+                .stream()
+                .map(this::convertirAProductoDTO)
+                .collect(Collectors.toList());
+    }
+
+
+
+    // --- MÉTODOS PRIVADOS DE CONVERSIÓN (sin cambios) ---
+
     private ProductoDTO convertirAProductoDTO(Producto producto) {
+        String nombreCategoria = (producto.getCategoria() != null) ? producto.getCategoria().getNombre() : "Sin Categoría";
         return new ProductoDTO(
                 producto.getId(),
                 producto.getNombre(),
                 producto.getDescripcion(),
                 producto.getPrecio(),
-                producto.getOriginalPrice(), // <-- Añadir este campo
+                producto.getOriginalPrice(),
                 producto.getStock(),
                 producto.getImagenUrl(),
-                producto.getCategoria() != null ? producto.getCategoria().getNombre() : "Sin Categoría",
+                nombreCategoria,
                 producto.isDestacado(),
                 producto.getRating()
         );

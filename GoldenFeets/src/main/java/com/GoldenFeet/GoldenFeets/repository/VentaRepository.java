@@ -8,7 +8,6 @@ import java.util.List;
 @Repository
 public interface VentaRepository extends JpaRepository<Venta, Long> {
 
-    // --- LÍNEA CORREGIDA ---
-    List<Venta> findByCliente_IdUsuario(Integer idUsuario);
+    List<Venta> findByCliente_IdUsuario(Integer idCliente);
 
 }

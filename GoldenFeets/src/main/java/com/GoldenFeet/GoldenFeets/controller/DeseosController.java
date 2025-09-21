@@ -20,7 +20,7 @@ public class DeseosController {
 
     private final ProductoService productoService;
 
-    @GetMapping("/deseos")
+    @GetMapping("/lista_deseos")
     public String verListaDeseos(HttpSession session, Model model) {
         @SuppressWarnings("unchecked")
         Set<Long> deseosIds = (Set<Long>) session.getAttribute("deseos");

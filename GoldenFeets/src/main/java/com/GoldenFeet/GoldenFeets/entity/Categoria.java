@@ -8,18 +8,19 @@ import java.util.List;
 @Entity
 @Table(name = "categorias")
 public class Categoria {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idCategoria;
+    private Long idCategoria; // CORRECCIÓN: Cambiado de Integer a Long
 
     private String nombre;
+
     private String descripcion;
 
-    // --- ¡AQUÍ ESTÁ EL CAMPO QUE FALTABA! ---
-    @Column(name = "imagen_url") // Es buena práctica nombrar la columna en la base de datos
+    @Column(name = "imagen_url")
     private String imagenUrl;
 
-    // Esta relación es correcta para el futuro, pero no soluciona el error actual.
-    @OneToMany(mappedBy = "categoria")
+    // Relación bidireccional: Una categoría tiene muchos productos
+    @OneToMany(mappedBy = "categoria", fetch = FetchType.LAZY)
     private List<Producto> productos;
 }

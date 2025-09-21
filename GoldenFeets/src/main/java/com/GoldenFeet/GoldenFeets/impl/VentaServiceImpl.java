@@ -7,7 +7,7 @@ import com.GoldenFeet.GoldenFeets.repository.UsuarioRepository;
 import com.GoldenFeet.GoldenFeets.repository.VentaRepository;
 import com.GoldenFeet.GoldenFeets.service.VentaService;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,21 +28,27 @@ public class VentaServiceImpl implements VentaService {
 
     @Override
     @Transactional
-    public VentaResponseDTO crearVenta(CrearVentaRequestDTO request) {
-        Usuario cliente = usuarioRepository.findById(request.idCliente())
-                .orElseThrow(() -> new EntityNotFoundException("Cliente no encontrado."));
+    public VentaResponseDTO crearVenta(CrearVentaRequestDTO request, String clienteEmail) {
+        Usuario cliente = usuarioRepository.findByEmail(clienteEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Cliente no encontrado con email: " + clienteEmail));
 
         Venta nuevaVenta = new Venta();
         nuevaVenta.setCliente(cliente);
         nuevaVenta.setFechaVenta(LocalDate.now());
         nuevaVenta.setEstado("COMPLETADA");
 
+        // --- ¡NUEVO! Guardamos los datos de envío y pago en la entidad ---
+        nuevaVenta.setDireccionEnvio(request.direccion());
+        nuevaVenta.setCiudadEnvio(request.ciudad() + ", " + request.departamento());
+        nuevaVenta.setMetodoPago(request.metodoPago());
+        // --- FIN DE LA SECCIÓN NUEVA ---
+
         Set<DetalleVenta> detalles = new HashSet<>();
         BigDecimal totalVenta = BigDecimal.ZERO;
 
         for (ItemVentaDTO itemDTO : request.items()) {
-            Producto producto = productoRepository.findById(itemDTO.idProducto())
-                    .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado: " + itemDTO.idProducto()));
+            Producto producto = productoRepository.findById(itemDTO.productoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado: " + itemDTO.productoId()));
 
             if (producto.getStock() < itemDTO.cantidad()) {
                 throw new IllegalStateException("Stock insuficiente para: " + producto.getNombre());
@@ -56,7 +62,6 @@ public class VentaServiceImpl implements VentaService {
             BigDecimal subtotal = producto.getPrecio().multiply(new BigDecimal(itemDTO.cantidad()));
             detalle.setSubtotal(subtotal);
             detalle.setVenta(nuevaVenta);
-
             detalles.add(detalle);
             totalVenta = totalVenta.add(subtotal);
         }
@@ -69,9 +74,7 @@ public class VentaServiceImpl implements VentaService {
     }
 
     @Override
-    public List<VentaResponseDTO> buscarVentasPorCliente(Integer idCliente) { // Cambiado a Integer
-        // --- LÍNEA CORREGIDA ---
-        // Usamos el nombre de método correcto que creamos en VentaRepository
+    public List<VentaResponseDTO> buscarVentasPorCliente(Integer idCliente) {
         return ventaRepository.findByCliente_IdUsuario(idCliente).stream()
                 .map(this::convertirAVentaResponseDTO)
                 .collect(Collectors.toList());

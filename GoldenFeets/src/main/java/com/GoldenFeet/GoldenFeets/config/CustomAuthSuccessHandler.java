@@ -1,6 +1,5 @@
 package com.GoldenFeet.GoldenFeets.config;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
@@ -15,31 +14,33 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+                                        Authentication authentication) throws IOException {
 
-        String redirectUrl = "/";
 
-        for (GrantedAuthority authority : authentication.getAuthorities()) {
-            String role = authority.getAuthority();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
-            switch (role) {
-                case "ROLE_ADMIN":
-                    redirectUrl = "/admin/usuarios";
-                    break;
-                case "ROLE_CLIENTE":
-                    redirectUrl = "/";
-                    break;
+        boolean isGerente = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_GERENTEENTREGAS"));
 
-                case "ROLE_GERENTEENTREGAS":
-                    redirectUrl = "/gerente-entregas/dashboard";
-                    break;
-                case "ROLE_DISTRIBUIDOR":
-                    redirectUrl = "/distribuidor/dashboard";
-                    break;
-                // ... otros roles
-            }
+        boolean isDistribuidor = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_DISTRIBUIDOR"));
+
+        boolean isCliente = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_CLIENTE"));
+
+        // Lógica de redirección con prioridad
+        if (isAdmin) {
+            response.sendRedirect("/admin/usuarios");
+        } else if (isGerente) {
+            response.sendRedirect("/gerente-entregas/dashboard");
+        } else if (isDistribuidor) {
+            response.sendRedirect("/distribuidor/dashboard");
+        } else if (isCliente) {
+            response.sendRedirect("/");
+        } else {
+            // Un fallback por si el usuario no tiene ninguno de los roles esperados
+            response.sendRedirect("/login?error");
         }
-
-        response.sendRedirect(redirectUrl);
     }
 }

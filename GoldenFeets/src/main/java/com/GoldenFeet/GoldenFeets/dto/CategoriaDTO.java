@@ -9,13 +9,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CategoriaDTO {
 
-    // Corresponde a categoria.getIdCategoria()
-    private Integer idCategoria;
+    private Long idCategoria; // <-- CORRECCIÓN AQUÍ
 
-    // Corresponde a categoria.getNombre()
     private String nombre;
 
-    // Corresponde a categoria.getDescripcion()
     private String descripcion;
 
     private String imagenUrl;

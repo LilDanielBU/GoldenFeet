@@ -1,15 +1,11 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.w3.org/1999/xhtml">
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Golden Feets - Catálogo de Calzado</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         /* ================================== */
@@ -242,13 +238,9 @@
              #productCarousel .carousel-caption-custom p { font-size: 0.9rem; }
              #productCarousel .carousel-caption-custom .btn { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
         }
-
     </style>
 </head>
 <body>
-<div id="notification" class="notification">
-    <span id="notification-message"></span>
-</div>
 
 <header class="sticky-top shadow-sm">
     <nav class="navbar navbar-expand-lg navbar-light">
@@ -262,25 +254,21 @@
             <div class="collapse navbar-collapse justify-content-end" id="mainNavbarContent">
                 <div class="d-flex align-items-center flex-column flex-lg-row mt-3 mt-lg-0 w-100">
                     <div class="d-flex align-items-center flex-grow-1 flex-column flex-lg-row w-100">
-                        <div class="input-group me-lg-auto mb-2 mb-lg-0">
+
+                        <form th:action="@{/catalogo}" method="get" class="input-group me-lg-auto mb-2 mb-lg-0">
                             <i class="bi bi-search"></i>
-                            <input type="text" class="form-control form-control-sm search-input" placeholder="Buscar..." aria-label="Buscar" id="search-box">
-                            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="searchProducts()">
+                            <input type="text" name="busqueda" class="form-control form-control-sm search-input" placeholder="Buscar por nombre..."
+                                   th:value="${param.busqueda}" aria-label="Buscar">
+                            <button class="btn btn-outline-secondary btn-sm" type="submit">
                                 <i class="bi bi-search d-lg-none"></i>
                                 <span class="d-none d-lg-inline">Buscar</span>
                             </button>
-                        </div>
+                        </form>
                         <div class="d-flex align-items-center gap-2 ms-lg-3 mt-2 mt-lg-0">
-                            <button class="btn btn-outline-dark btn-sm flex-shrink-0" onclick="toggleDarkMode()" title="Modo Oscuro/Claro">
-                                <i class="bi bi-moon-stars-fill"></i> <span class="d-none d-lg-inline" id="dark-mode-text">Modo Oscuro</span>
-                            </button>
-                            <!-- Lista de deseos -->
-                            <a th:href="@{/lista-deseos}" class="btn btn-outline-danger btn-sm flex-shrink-0 position-relative" title="Lista de Deseos">
+                            <a th:href="@{/lista_deseos}" class="btn btn-outline-danger btn-sm flex-shrink-0 position-relative" title="Lista de Deseos">
                                 <i class="bi bi-heart-fill me-1"></i><span class="d-none d-lg-inline">Deseos</span>
                                 <span id="wishlist-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
                             </a>
-
-                            <!-- Carrito corregido -->
                             <a th:href="@{/carrito}" class="btn btn-primary btn-sm position-relative flex-shrink-0">
                                 <i class="bi bi-cart me-1"></i><span class="d-none d-lg-inline">Carrito</span>
                                 <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
@@ -292,75 +280,128 @@
         </div>
     </nav>
 </header>
-
 <main class="container mt-4">
     <div class="row">
 
         <aside class="col-lg-3 col-md-4 d-none d-md-block">
-            <div class="filter-container p-3 rounded shadow-sm mb-4">
+            <form th:action="@{/catalogo}" method="get" class="filter-container p-3 rounded shadow-sm mb-4">
+
                 <div class="filter-section category-list">
                     <h5 class="mb-3">Categorías</h5>
                     <div class="list-group list-group-flush">
-                        <a href="#" class="list-group-item list-group-item-action" data-category="all">Todos</a>
-                        <a href="#" class="list-group-item list-group-item-action" data-category="Hombre">Hombre</a>
-                        <a href="#" class="list-group-item list-group-item-action" data-category="Mujer">Mujer</a>
-                        <a href="#" class="list-group-item list-group-item-action" data-category="Niños">Niños</a>
-                        <a href="#" class="list-group-item list-group-item-action" data-category="Deportivos">Deportivos</a>
-                        <a href="#" class="list-group-item list-group-item-action" data-category="Casuales">Casuales</a>
+                        <a th:href="@{/catalogo}" class="list-group-item list-group-item-action" th:classappend="${param.categoria == null} ? 'active'">Todos</a>
+                        <a th:each="cat : ${categorias}"
+                           th:href="@{/catalogo(categoria=${cat.nombre})}"
+                           th:text="${cat.nombre}"
+                           class="list-group-item list-group-item-action"
+                           th:classappend="${param.categoria == cat.nombre} ? 'active'">
+                        </a>
                     </div>
                 </div>
+
                 <div class="filter-section">
                     <h5 class="mb-3">Filtros</h5>
-                    <div class="mb-3">
-                        <label for="price-range-desktop" class="form-label">Precio: <span id="price-range-value-desktop">$0 - $500</span></label>
-                        <input type="range" class="form-range" id="price-range-desktop" min="0" max="500" step="10" value="500">
+
+                    <div class="mb-4">
+                        <label for="price-range-desktop" class="form-label">
+                            Precio Máximo: <span id="price-range-value-desktop" th:text="${param.precioMax != null ? '$' + #numbers.formatDecimal(param.precioMax, 1, 'POINT', 0, 'COMMA') : '$500,000'}"></span>
+                        </label>
+                        <input type="range" class="form-range" id="price-range-desktop" name="precioMax"
+                               min="50000" max="500000" step="10000"
+                               th:value="${param.precioMax != null ? param.precioMax : 500000}">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tallas</label>
-                        <div id="size-selector-desktop" class="d-flex flex-wrap gap-1"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Marca</label>
-                        <div class="form-check"> <input class="form-check-input" type="checkbox" value="Nike" id="brand-nike-desktop"><label class="form-check-label" for="brand-nike-desktop">Nike</label> </div>
-                        <div class="form-check"> <input class="form-check-input" type="checkbox" value="Adidas" id="brand-adidas-desktop"><label class="form-check-label" for="brand-adidas-desktop">Adidas</label> </div>
-                        <div class="form-check"> <input class="form-check-input" type="checkbox" value="Golden" id="brand-golden-desktop"><label class="form-check-label" for="brand-golden-desktop">Golden</label> </div>
-                        <div class="form-check"> <input class="form-check-input" type="checkbox" value="Puma" id="brand-puma-desktop"><label class="form-check-label" for="brand-puma-desktop">Puma</label> </div>
-                    </div>
-                    <button class="btn btn-primary w-100 btn-sm" onclick="applyFilters()">Aplicar Filtros</button>
+
+                    <button type="submit" class="btn btn-primary w-100 btn-sm">Aplicar Filtros</button>
                 </div>
-            </div>
+
+            </form>
         </aside>
 
         <div class="col-lg-9 col-md-8 col-12">
-
-            <button class="btn btn-outline-secondary d-md-none mb-3 w-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasFilters" aria-controls="offcanvasFilters">
-                <i class="bi bi-filter me-1"></i> Mostrar Filtros y Categorías
-            </button>
-
-            <section id="featured-products" class="mb-5 featured-section">
+            <section id="featured-products" class="mb-5 featured-section"
+                     th:if="${!productosDestacados.isEmpty() and param.categoria == null and param.busqueda == null}">
                 <h2 class="mb-4">Destacados</h2>
                 <div id="productCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
-                    <div class="carousel-indicators"></div>
+                    <div class="carousel-indicators">
+                        <button th:each="producto, iterStat : ${productosDestacados}"
+                                type="button" data-bs-target="#productCarousel"
+                                th:attr="data-bs-slide-to=${iterStat.index}"
+                                th:classappend="${iterStat.index == 0} ? 'active'"
+                                th:aria-current="${iterStat.index == 0} ? 'true'"></button>
+                    </div>
                     <div class="carousel-inner">
-                        <div class="carousel-item active"><div class="d-flex align-items-center justify-content-center" style="min-height: 380px; background-color: #eee;"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div></div>
+                        <div class="carousel-item" th:each="producto, iterStat : ${productosDestacados}" th:classappend="${iterStat.index == 0} ? 'active'">
+                            <img th:src="${producto.imagenUrl}" class="d-block carousel-item-bg-image" th:alt="${producto.nombre}">
+                            <div class="carousel-caption-custom">
+                                <h3 class="animate__animated animate__fadeInDown" th:text="${producto.nombre}"></h3>
+                                <p class="animate__animated animate__fadeInUp d-none d-sm-block" th:text="${producto.descripcion}"></p>
+                                <div class="mt-3">
+                                    <button th:onclick="|quickViewProduct(${producto.id})|" class="btn btn-primary btn-sm animate__animated animate__pulse">
+                                        <i class="bi bi-eye me-1"></i> Ver Detalles
+                                    </button>
+                                    <button th:data-product-name="${producto.nombre}"
+                                            th:onclick="|addToCart(this, ${producto.id}, 1)|"
+                                            class="btn btn-outline-light btn-sm">
+                                        <i class="bi bi-cart-plus me-1"></i>Añadir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Anterior</span></button>
                     <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Siguiente</span></button>
                 </div>
             </section>
 
+            <h2 class="mb-4" th:text="${tituloCatalogo}">Nuestro Catálogo</h2>
             <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="product-container">
-                <div class="col"> <div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div></div>
-                <div class="col d-none d-sm-block"> <div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div></div>
-                <div class="col d-none d-lg-block"> <div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div></div>
+                <div class="col" th:each="producto : ${productos}">
+                    <div class="card product-card h-100">
+                        <button class="favorite-btn"
+                                th:data-product-id="${producto.id}"
+                                th:onclick="|toggleFavorite(this, ${producto.id})|"
+                                aria-label="Añadir a favoritos" title="Añadir a Favoritos">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                        <img th:src="${producto.imagenUrl}" class="card-img-top" th:alt="${producto.nombre}" loading="lazy">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title" th:text="${producto.nombre}"></h5>
+                            <p class="card-text flex-grow-1" th:text="${producto.descripcion}"></p>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <span th:if="${producto.originalPrice != null and producto.originalPrice > producto.precio}" class="text-decoration-line-through text-muted me-2" th:text="'$' + ${#numbers.formatDecimal(producto.originalPrice, 1, 'POINT', 0, 'COMMA')}"></span>
+                                        <span class="h5 mb-0" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 1, 'POINT', 0, 'COMMA')}"></span>
+                                    </div>
+                                    <div class="product-rating" th:title="'Calificación: ' + ${producto.rating} + ' de 5'">
+                                        <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                                            <i th:if="${producto.rating >= i}" class="bi bi-star-fill text-warning"></i>
+                                            <i th:if="${producto.rating < i and producto.rating > i-1}" class="bi bi-star-half text-warning"></i>
+                                            <i th:if="${producto.rating < i-0.5}" class="bi bi-star text-warning"></i>
+                                        </th:block>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between gap-2">
+                                    <button th:data-product-name="${producto.nombre}"
+                                            th:onclick="|addToCart(this, ${producto.id}, 1)|"
+                                            class="btn btn-primary btn-sm btn-add-cart flex-grow-1">
+                                        <i class="bi bi-cart-plus me-1"></i>Añadir
+                                    </button>
+                                    <button th:onclick="|quickViewProduct(${producto.id})|" class="btn btn-outline-secondary btn-sm flex-grow-1">
+                                        <i class="bi bi-eye me-1"></i>Ver
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div id="no-results" class="text-center my-5 d-none">
+            <div id="no-results" class="text-center my-5" th:if="${productos.isEmpty()}">
                 <i class="bi bi-emoji-frown display-1 text-muted"></i>
                 <h3 class="mt-3">¡Oops! No encontramos productos</h3>
-                <p class="text-muted">Intenta ajustar tus filtros o búsqueda.</p>
+                <p class="text-muted">Intenta con otra búsqueda o categoría.</p>
             </div>
-
         </div>
     </div>
 </main>
@@ -381,316 +422,213 @@
         </div>
     </div>
 </div>
-
-<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasFilters" aria-labelledby="offcanvasFiltersLabel">
-    <div class="offcanvas-header border-bottom">
-        <h5 class="offcanvas-title" id="offcanvasFiltersLabel">Filtros y Categorías</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-    <div class="offcanvas-body">
-        <div id="mobile-filter-container">
-            <p class="text-center text-muted">Cargando filtros...</p>
-        </div>
-        <button class="btn btn-primary w-100 mt-3" onclick="applyFiltersAndCloseOffcanvas()">Aplicar Filtros</button>
-    </div>
-</div>
-
-<a href="https://wa.me/573002997648?text=Hola%2C%20quiero%20más%20información%20sobre%20los%20zapatos%20de%20Golden%20Feets"
-   target="_blank"
-   class="btn btn-success position-fixed d-flex align-items-center gap-2 shadow p-2 animate-in"
-   style="bottom: 20px; right: 20px; z-index: 1030; border-radius: 50px;"
-   title="Chatea con nosotros en WhatsApp">
-    <i class="bi bi-whatsapp fs-4"></i>
-    <span class="d-none d-md-inline">Chatea con nosotros</span>
-</a>
-
-<footer class="bg-dark text-light mt-5 py-4">
-    <div class="container text-center">
-        <p class="mb-1">&copy; 2025 Golden Feets. Todos los derechos reservados.</p>
-        <p class="mb-0"><a href="#" class="text-light">Política de Privacidad</a> | <a href="#" class="text-light">Términos de Servicio</a></p>
-    </div>
-</footer>
-
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-    // ==========================================
-    //    LÓGICA JAVASCRIPT PARA catalogo.html
-    // ==========================================
+    // =======================================================
+    // == SCRIPT UNIFICADO Y CORREGIDO PARA catalogo.html ==
+    // =======================================================
 
-    // --- Datos de Productos (Asegúrate que esta lista esté completa y actualizada) ---
-    const products = [
-         { id: 1, name: 'Zapato Casual Oxford', description: 'Zapato elegante de cuero para hombre.', price: 89.99, originalPrice: 119.99, discount: true, category: 'Hombre', brand: 'Golden', sizes: [39, 40, 41, 42, 43, 44], rating: 4.5, featured: true, image: 'https://i.pinimg.com/736x/de/70/b5/de70b5917ab1ddb0b0de8ba0d4974abe.jpg' },
-         { id: 2, name: 'Zapatilla Running Pro', description: 'Zapatilla profesional para running.', price: 129.99, originalPrice: 129.99, discount: false, category: 'Deportivos', brand: 'Adidas', sizes: [38, 39, 40, 41, 42, 43, 44], rating: 4.8, featured: true, image: 'https://i.pinimg.com/736x/91/64/db/9164db9be79f3cfb9ce97854d09455ae.jpg' },
-         { id: 3, name: 'Zapatilla Daily Comfort', description: 'Zapatilla cómoda para uso diario.', price: 99.99, originalPrice: 124.99, discount: true, category: 'Casuales', brand: 'Adidas', sizes: [36, 37, 38, 39, 40, 41, 42], rating: 4.3, featured: false, image: 'https://i.pinimg.com/736x/8a/37/f6/8a37f65d01bb8ae132411a19eb3c5cec.jpg' },
-         { id: 4, name: 'Tacón Elegante', description: 'Tacón elegante para mujer.', price: 79.99, originalPrice: 99.99, discount: true, category: 'Mujer', brand: 'Golden', sizes: [35, 36, 37, 38, 39], rating: 4.6, featured: true, image: 'https://i.pinimg.com/736x/1b/04/05/1b040589e2335d668eeddb51a3c2173c.jpg' },
-         { id: 5, name: 'Zapato Infantil', description: 'Zapato cómodo para niños.', price: 49.99, originalPrice: 49.99, discount: false, category: 'Niños', brand: 'Puma', sizes: [28, 29, 30, 31, 32], rating: 4.2, featured: false, image: 'https://i.pinimg.com/736x/d0/8c/07/d08c071136d14f88c1e943d6fbaed59f.jpg' },
-         { id: 6, name: 'Deportiva Juvenil', description: 'Calzado deportivo para jóvenes.', price: 69.99, originalPrice: 89.99, discount: true, category: 'Deportivos', brand: 'Nike', sizes: [36, 37, 38, 39, 40], rating: 4.7, featured: true, image: 'https://i.pinimg.com/736x/e1/92/50/e192502f5aad784df5e0597701a3a5e1.jpg' }
-    ];
+    // --- 1. ESTADO GLOBAL Y CARGA INICIAL ---
 
-    // --- Estado de la Aplicación ---
+    // Carga los favoritos desde el navegador al iniciar la página
     let favorites = JSON.parse(localStorage.getItem('goldenFeetsFavorites')) || [];
-    let selectedCategory = 'all';
-    let selectedSizes = [];
-    let selectedBrands = [];
-    let maxPrice = 500;
-    const desktopFilterContainer = document.querySelector('aside .filter-container');
-    const mobileFilterContainer = document.getElementById('mobile-filter-container');
-    let mobileOffcanvasInstance = null;
 
-    // --- Inicialización ---
+    /**
+     * Se ejecuta cuando la página ha cargado completamente.
+     * Llama a todas las funciones de inicialización.
+     */
     document.addEventListener('DOMContentLoaded', function() {
-        mobileOffcanvasInstance = bootstrap.Offcanvas.getOrCreateInstance('#offcanvasFilters');
-        if (desktopFilterContainer && mobileFilterContainer) {
-             cloneFiltersToMobile();
-             setupFilterListeners();
-        } else { console.warn("Contenedores de filtros no encontrados."); }
-        renderProducts();
         updateCartCount();
-        updateWishlistCount(); // Actualizar contador de deseos al cargar
-        setupFeaturedProducts();
-        setupDarkModeState();
+        updateWishlistCount();
+        initializeFavoriteButtons();
+        setupPriceSlider();
     });
 
-     // --- Clonar y Configurar Filtros ---
-     function cloneFiltersToMobile() {
-         mobileFilterContainer.innerHTML = desktopFilterContainer.innerHTML;
-         mobileFilterContainer.querySelectorAll('[id]').forEach(el => {
-             const originalId = el.id;
-             el.id = originalId.replace('-desktop', '') + '-mobile'; // Crear ID móvil consistente
-             if (el.tagName === 'INPUT' && el.type !== 'range') {
-                 const label = mobileFilterContainer.querySelector(`label[for="${originalId}"]`);
-                 if (label) { label.setAttribute('for', el.id); }
-             } else if (el.id === 'size-selector-desktop-mobile') { // Corregir ID si se genera mal
-                 el.id = 'size-selector-mobile';
-             } else if (el.id === 'price-range-value-desktop-mobile') { // Corregir ID si se genera mal
-                 el.id = 'price-range-value-mobile';
-             }
-         });
-     }
-    function setupFilterListeners() {
-        document.querySelectorAll('.category-list .list-group-item').forEach(item => { item.addEventListener('click', handleCategoryClick); });
-        document.querySelectorAll('[id^="size-selector"] .size-btn').forEach(btn => { btn.addEventListener('click', handleSizeClick); }); // Seleccionar en ambos
-        document.querySelectorAll('input[type="checkbox"][id^="brand-"]').forEach(checkbox => { checkbox.addEventListener('change', handleBrandChange); });
-        document.querySelectorAll('input[type="range"][id^="price-range"]').forEach(rangeInput => { rangeInput.addEventListener('input', handlePriceChange); });
-        document.querySelectorAll('[data-category="all"]').forEach(el => el.classList.add('active'));
-        document.querySelectorAll('input[type="range"][id^="price-range"]').forEach(el => el.value = maxPrice);
-        updatePriceRangeDisplay(maxPrice);
+    // --- 2. FUNCIONES PARA FILTROS ---
+    function setupPriceSlider() {
+        const priceSlider = document.getElementById('price-range-desktop');
+        const priceValueDisplay = document.getElementById('price-range-value-desktop');
+        if (priceSlider && priceValueDisplay) {
+            priceSlider.addEventListener('input', function() {
+                const formattedValue = new Intl.NumberFormat('es-CO').format(this.value);
+                priceValueDisplay.textContent = `$${formattedValue}`;
+            });
+        }
     }
 
-     // --- Manejadores de Eventos de Filtros ---
-     function handleCategoryClick(e) {
-         e.preventDefault();
-         const category = this.getAttribute('data-category'); selectedCategory = category;
-         document.querySelectorAll('.category-list .list-group-item').forEach(i => { i.classList.toggle('active', i.getAttribute('data-category') === category); });
-         if (!this.closest('#mobile-filter-container')) { applyFilters(); }
-     }
-     function handleSizeClick() {
-         this.classList.toggle('active'); const isActive = this.classList.contains('active');
-         const size = parseInt(this.textContent); this.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-         if (isActive) { if (!selectedSizes.includes(size)) selectedSizes.push(size); }
-         else { selectedSizes = selectedSizes.filter(s => s !== size); }
-         syncSizeSelection(size, isActive);
-     }
-     function handleBrandChange() {
-         const brand = this.value; const isChecked = this.checked;
-         if (isChecked) { if (!selectedBrands.includes(brand)) selectedBrands.push(brand); }
-         else { selectedBrands = selectedBrands.filter(b => b !== brand); }
-         syncBrandSelection(brand, isChecked);
-     }
-     function handlePriceChange() {
-         const value = parseInt(this.value); maxPrice = value;
-         updatePriceRangeDisplay(value); syncPriceRange(value);
-     }
+    // --- 3. FUNCIONES PARA LISTA DE DESEOS (FAVORITOS) ---
 
-    // --- Funciones de Sincronización ---
-    function syncSizeSelection(size, isActive) {
-       document.querySelectorAll('.size-btn').forEach(btn => { if (parseInt(btn.textContent) === size) { btn.classList.toggle('active', isActive); btn.setAttribute('aria-pressed', isActive ? 'true' : 'false'); } });
-    }
-    function syncBrandSelection(brand, isChecked) {
-       document.querySelectorAll(`input[type="checkbox"][value="${brand}"][id^="brand-"]`).forEach(checkbox => { checkbox.checked = isChecked; });
-    }
-    function syncPriceRange(value) {
-       document.querySelectorAll('input[type="range"][id^="price-range"]').forEach(rangeInput => { if (parseInt(rangeInput.value) !== value) { rangeInput.value = value; } });
-       updatePriceRangeDisplay(value);
-    }
-    function updatePriceRangeDisplay(value) {
-        document.querySelectorAll('[id^="price-range-value"]').forEach(span => { if(span) span.textContent = `$0 - $${value}`; });
+    /**
+     * Pinta los corazones de rojo para los productos que ya están en la lista.
+     */
+    function initializeFavoriteButtons() {
+        document.querySelectorAll('.favorite-btn').forEach(button => {
+            const productId = parseInt(button.getAttribute('data-product-id'));
+            if (favorites.includes(productId)) {
+                button.classList.add('active');
+                const icon = button.querySelector('i');
+                if (icon) {
+                    icon.classList.replace('bi-heart', 'bi-heart-fill');
+                }
+            }
+        });
     }
 
-    // --- Lógica Principal de Filtros y Búsqueda ---
-    function applyFilters() {
-        let filteredProducts = [...products];
-        if (selectedCategory !== 'all') { filteredProducts = filteredProducts.filter(p => p.category === selectedCategory); }
-        filteredProducts = filteredProducts.filter(p => p.price <= maxPrice);
-        if (selectedSizes.length > 0) { filteredProducts = filteredProducts.filter(p => p.sizes?.some(size => selectedSizes.includes(size))); }
-        if (selectedBrands.length > 0) { filteredProducts = filteredProducts.filter(p => selectedBrands.includes(p.brand)); }
-        renderProducts(filteredProducts);
-    }
-    function applyFiltersAndCloseOffcanvas() {
-        applyFilters();
-        if (mobileOffcanvasInstance) { mobileOffcanvasInstance.hide(); }
-    }
-    function searchProducts() {
-        const searchTerm = document.getElementById('search-box')?.value.toLowerCase().trim() || '';
-        if (!searchTerm) { renderProducts(); return; }
-        const filteredProducts = products.filter(p =>
-            p.name?.toLowerCase().includes(searchTerm) || p.description?.toLowerCase().includes(searchTerm) ||
-            p.category?.toLowerCase().includes(searchTerm) || p.brand?.toLowerCase().includes(searchTerm)
-        );
-        renderProducts(filteredProducts);
+    /**
+     * Añade o elimina un producto de la lista de deseos al hacer clic en el corazón.
+     */
+    function toggleFavorite(buttonElement, productId) {
+        const icon = buttonElement.querySelector('i');
+        if (!icon) return;
+
+        const isFavorite = favorites.includes(productId);
+
+        if (isFavorite) {
+            favorites = favorites.filter(id => id !== productId);
+            buttonElement.classList.remove('active');
+            icon.classList.replace('bi-heart-fill', 'bi-heart');
+            showNotification('Eliminado de la lista de deseos');
+        } else {
+            favorites.push(productId);
+            buttonElement.classList.add('active');
+            icon.classList.replace('bi-heart', 'bi-heart-fill');
+            showNotification('Añadido a la lista de deseos');
+        }
+        localStorage.setItem('goldenFeetsFavorites', JSON.stringify(favorites));
+        updateWishlistCount();
     }
 
-    // --- Renderizado de Productos ---
-    function renderProducts(productList = products) {
-        const container = document.getElementById('product-container');
-        const noResults = document.getElementById('no-results');
-        if (!container || !noResults) { console.error("Contenedor de productos o mensaje 'sin resultados' no encontrado."); return; }
-        container.innerHTML = '';
-        if (!productList || productList.length === 0) { noResults.classList.remove('d-none'); container.classList.add('d-none'); return; }
-        noResults.classList.add('d-none'); container.classList.remove('d-none');
+    /**
+     * Actualiza el contador de "Deseos" en el header.
+     */
+    function updateWishlistCount() {
+        const wishlistCountElement = document.getElementById('wishlist-count');
+        if (wishlistCountElement) {
+            wishlistCountElement.textContent = favorites.length;
+        }
+    }
 
-        productList.forEach(product => {
-            if (!product) return;
-            const isFavorite = favorites.includes(product.id);
-            const ratingValue = product.rating || 0; const fullStars = Math.floor(ratingValue); const halfStar = ratingValue % 1 >= 0.5 ? 1 : 0; const emptyStars = 5 - fullStars - halfStar;
-            let ratingStars = Array(fullStars).fill('<i class="bi bi-star-fill text-warning"></i>').join('') + (halfStar ? '<i class="bi bi-star-half text-warning"></i>' : '') + Array(emptyStars).fill('<i class="bi bi-star text-warning"></i>').join('');
+    // --- 4. FUNCIONES PARA VISTA RÁPIDA (MODAL) ---
 
-            container.innerHTML += `
-                <div class="col">
-                    <div class="card product-card h-100">
-                        ${product.discount ? `<span class="sale-badge">OFERTA</span>` : ''}
-                        <button class="favorite-btn ${isFavorite ? 'active' : ''}" onclick="toggleFavorite(${product.id}, event)" aria-label="Añadir a favoritos" title="Añadir a Favoritos">
-                            <i class="bi ${isFavorite ? 'bi-heart-fill' : 'bi-heart'}"></i>
-                        </button>
-                        <img src="${product.image || 'placeholder.jpg'}" class="card-img-top" alt="${product.name || 'Producto'}" loading="lazy">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">${product.name || 'Nombre no disponible'}</h5>
-                            <p class="card-text flex-grow-1">${product.description || ''}</p>
-                            <div class="mt-auto">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div>
-                                        ${product.discount && product.originalPrice ? `<span class="text-decoration-line-through text-muted me-2">$${product.originalPrice.toFixed(2)}</span>` : ''}
-                                        <span class="h5 mb-0">$${product.price?.toFixed(2) || 'N/A'}</span>
-                                    </div>
-                                    <div class="product-rating" title="Calificación: ${ratingValue} de 5">
-                                        ${ratingStars}
+    /**
+     * Carga y muestra los detalles de un producto en una ventana modal.
+     */
+    async function quickViewProduct(productId) {
+        const modalElement = document.getElementById('productModal');
+        const modalTitle = modalElement.querySelector('.modal-title');
+        const modalContent = modalElement.querySelector('.modal-body');
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+        modalTitle.textContent = 'Cargando...';
+        modalContent.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>';
+        bsModal.show();
+
+        try {
+            const response = await fetch(`/api/productos/${productId}`);
+            if (!response.ok) throw new Error('Producto no encontrado');
+            const product = await response.json();
+
+            let ratingStars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (product.rating >= i) ratingStars += '<i class="bi bi-star-fill text-warning"></i>';
+                else if (product.rating > i - 1) ratingStars += '<i class="bi bi-star-half text-warning"></i>';
+                else ratingStars += '<i class="bi bi-star text-warning"></i>';
+            }
+
+            modalTitle.textContent = product.nombre;
+            modalContent.innerHTML = `
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <img src="${product.imagenUrl}" class="img-fluid rounded shadow-sm" alt="${product.nombre}">
+                    </div>
+                    <div class="col-md-6 d-flex flex-column">
+                        <p>${product.descripcion}</p>
+                        <div class="mb-3"><span class="fs-4 fw-bold text-primary">$${product.precio.toFixed(0)}</span></div>
+                        <div class="mb-3"><p class="mb-1 fw-bold small text-muted">Stock: ${product.stock} unidades</p></div>
+                        <div class="mb-3"><p class="mb-0"><span class="fw-bold small text-muted">Calificación:</span> ${ratingStars}</p></div>
+                        <div class="mt-auto bg-light p-3 rounded">
+                            <div class="row align-items-center g-2">
+                                <div class="col-auto">
+                                    <label class="form-label fw-bold small">CANT:</label>
+                                    <div class="input-group input-group-sm" style="width: 100px;">
+                                        <button class="btn btn-outline-secondary btn-quantity" type="button" onclick="changeQuantityModal(-1)">-</button>
+                                        <input type="text" class="form-control text-center" id="product-quantity-modal" value="1" readonly>
+                                        <button class="btn btn-outline-secondary btn-quantity" type="button" onclick="changeQuantityModal(1)">+</button>
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between gap-2">
-                                    <button onclick="addToCart(${product.id})" class="btn btn-primary btn-sm btn-add-cart flex-grow-1">
-                                        <i class="bi bi-cart-plus me-1"></i>Añadir
-                                    </button>
-                                    <button onclick="quickViewProduct(${product.id})" class="btn btn-outline-secondary btn-sm flex-grow-1">
-                                        <i class="bi bi-eye me-1"></i>Ver
+                                <div class="col">
+                                    <button data-product-name="${product.nombre}"
+                                            onclick="addToCart(this, ${product.id}, getQuantityModal())"
+                                            class="btn btn-primary w-100">
+                                        <i class="bi bi-cart-plus me-1"></i>Añadir al Carrito
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
-        });
-    }
-
-    // --- Carrusel de Destacados ---
-    function setupFeaturedProducts() {
-        const featuredProducts = products.filter(p => p.featured);
-        const carouselInner = document.querySelector('#productCarousel .carousel-inner');
-        const carouselIndicators = document.querySelector('#productCarousel .carousel-indicators');
-        if (!carouselInner || !carouselIndicators) { console.warn("Elementos del carrusel no encontrados."); const fs = document.getElementById('featured-products'); if (fs) fs.style.display = 'none'; return; }
-        carouselInner.innerHTML = ''; carouselIndicators.innerHTML = '';
-        if (featuredProducts.length === 0) { const fs = document.getElementById('featured-products'); if (fs) fs.style.display = 'none'; return; }
-
-        featuredProducts.forEach((product, index) => {
-            const indicatorButton = document.createElement('button'); indicatorButton.type = 'button'; indicatorButton.dataset.bsTarget = '#productCarousel'; indicatorButton.dataset.bsSlideTo = index.toString();
-            if (index === 0) { indicatorButton.classList.add('active'); indicatorButton.setAttribute('aria-current', 'true'); }
-            indicatorButton.setAttribute('aria-label', `Slide ${index + 1}`); carouselIndicators.appendChild(indicatorButton);
-            const carouselItem = document.createElement('div'); carouselItem.className = `carousel-item ${index === 0 ? 'active' : ''}`; carouselItem.dataset.productId = product.id;
-            carouselItem.innerHTML = `
-                <img src="${product.image || 'placeholder.jpg'}" class="d-block carousel-item-bg-image" alt="${product.name || 'Producto destacado'}">
-                <div class="carousel-caption-custom">
-                    <h3 class="animate__animated animate__fadeInDown">${product.name || 'Nombre no disponible'}</h3>
-                    <p class="animate__animated animate__fadeInUp d-none d-sm-block">${product.description || ''}</p>
-                    <div class="mt-3">
-                        <button onclick="quickViewProduct(${product.id})" class="btn btn-primary btn-sm animate__animated animate__pulse"> <i class="bi bi-eye me-1"></i> Ver Detalles </button>
-                        <button onclick="addToCart(${product.id})" class="btn btn-outline-light btn-sm"> <i class="bi bi-cart-plus me-1"></i> Añadir </button>
-                        ${product.discount ? `<span class="badge bg-danger ms-2 fs-6 animate__animated animate__flash">OFERTA</span>` : ''}
-                    </div>
                 </div>`;
-            carouselInner.appendChild(carouselItem);
-        });
-        const carouselElement = document.getElementById('productCarousel');
-        if (carouselElement) { const ei = bootstrap.Carousel.getInstance(carouselElement); if (ei) { ei.dispose(); } new bootstrap.Carousel(carouselElement); }
+        } catch (error) {
+            modalContent.innerHTML = '<p class="text-center text-danger">No se pudo cargar la información del producto.</p>';
+        }
     }
 
-    // --- Vista Rápida (Modal) ---
-    function quickViewProduct(productId) {
-        const product = products.find(p => p.id === productId); if (!product) return;
-        const modalElement = document.getElementById('productModal'); if (!modalElement) return;
-        const modalTitle = modalElement.querySelector('.modal-title'); const modalContent = modalElement.querySelector('.modal-body');
-        if (!modalTitle || !modalContent) return;
-        const ratingValue = product.rating || 0; const fullStars = Math.floor(ratingValue); const halfStar = ratingValue % 1 >= 0.5 ? 1 : 0; const emptyStars = 5 - fullStars - halfStar;
-        let ratingStars = Array(fullStars).fill('<i class="bi bi-star-fill text-warning"></i>').join('') + (halfStar ? '<i class="bi bi-star-half text-warning"></i>' : '') + Array(emptyStars).fill('<i class="bi bi-star text-warning"></i>').join('');
-        modalTitle.textContent = product.name || 'Detalles';
-        modalContent.innerHTML = `
-            <div class="row g-4"> <div class="col-md-6"> <img src="${product.image || 'placeholder.jpg'}" class="img-fluid rounded shadow-sm mb-3 mb-md-0" alt="${product.name || 'Producto'}"> </div> <div class="col-md-6 d-flex flex-column"> <p>${product.description || ''}</p> <div class="mb-3"> ${product.discount && product.originalPrice ? `<span class="text-decoration-line-through text-muted me-2">$${product.originalPrice.toFixed(2)}</span>` : ''} <span class="fs-4 fw-bold text-primary">$${product.price?.toFixed(2) || 'N/A'}</span> </div> <div class="mb-3"> <p class="mb-1 fw-bold small text-muted text-uppercase">Tallas disponibles:</p> <div class="d-flex flex-wrap gap-1"> ${product.sizes?.map(size => `<div class="size-btn">${size}</div>`).join('') || '<span class="text-muted small">No especificadas</span>'} </div> </div> <div class="mb-3"> <p><span class="fw-bold small text-muted text-uppercase">Marca:</span> ${product.brand || 'N/A'}</p> </div> <div class="mb-3"> <p class="mb-0"> <span class="fw-bold small text-muted text-uppercase">Calificación:</span> <span class="ms-1" title="${ratingValue} de 5">${ratingStars}</span> <span class="ms-1 text-muted small">(${ratingValue})</span> </p> </div> <div class="mt-auto bg-light p-3 rounded"> <div class="row align-items-center g-2"> <div class="col-auto mb-2 mb-md-0"> <label for="product-quantity-modal-${product.id}" class="form-label fw-bold mb-1 small">CANT:</label> <div class="input-group input-group-sm" style="width: 100px;"> <button class="btn btn-outline-secondary btn-quantity" type="button" onclick="decrementQuantityModal(${product.id})">-</button> <input type="text" class="form-control text-center" id="product-quantity-modal-${product.id}" value="1" readonly aria-label="Cantidad"> <button class="btn btn-outline-secondary btn-quantity" type="button" onclick="incrementQuantityModal(${product.id})">+</button> </div> </div> <div class="col"> <button onclick="addToCart(${product.id}, getQuantityModal(${product.id}))" class="btn btn-primary w-100"> <i class="bi bi-cart-plus me-1"></i>Añadir al Carrito </button> </div> </div> </div> </div> </div>`;
-        const bsModal = bootstrap.Modal.getOrCreateInstance(modalElement); bsModal.show();
+    function changeQuantityModal(amount) {
+        const input = document.getElementById('product-quantity-modal');
+        let currentValue = parseInt(input.value);
+        if (currentValue + amount >= 1) input.value = currentValue + amount;
     }
-    function incrementQuantityModal(productId) { const input = document.getElementById(`product-quantity-modal-${productId}`); if (input) input.value = parseInt(input.value) + 1; }
-    function decrementQuantityModal(productId) { const input = document.getElementById(`product-quantity-modal-${productId}`); if (input && parseInt(input.value) > 1) { input.value = parseInt(input.value) - 1; } }
-    function getQuantityModal(productId) { const input = document.getElementById(`product-quantity-modal-${productId}`); return input ? parseInt(input.value) : 1; }
 
-    // --- Lógica del Carrito (LocalStorage) ---
-    function addToCart(productId, quantity = 1) {
-        const product = products.find(p => p.id === productId); if (!product) return;
-        let cart = {}; try { cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {}; } catch(e) { console.error("Error reading cart from localStorage", e); cart = {}; }
+    function getQuantityModal() {
+        return parseInt(document.getElementById('product-quantity-modal').value);
+    }
+
+    // --- 5. FUNCIONES PARA CARRITO DE COMPRAS ---
+
+    /**
+     * Añade un producto al carrito de compras.
+     */
+    function addToCart(buttonElement, productId, quantity = 1) {
+        const productName = buttonElement.getAttribute('data-product-name') || 'Producto';
+        let cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
         const cartItemId = `P${productId}`;
-        if (cart[cartItemId]) { cart[cartItemId].quantity = (cart[cartItemId].quantity || 0) + quantity; }
-        else { cart[cartItemId] = { quantity: quantity, variant: { color: "Predeterminado", size: "Única" } }; }
-        try { localStorage.setItem('goldenFeetsCart', JSON.stringify(cart)); } catch (e) { console.error("Error saving cart to localStorage", e); showNotification("Error al guardar el carrito"); return; }
-        updateCartCount(); showNotification(`${product.name} añadido al carrito`);
+        cart[cartItemId] = { quantity: (cart[cartItemId]?.quantity || 0) + quantity };
+        localStorage.setItem('goldenFeetsCart', JSON.stringify(cart));
+        updateCartCount();
+        showNotification(`${productName} añadido al carrito`);
+
         const modalElement = document.getElementById('productModal');
-        if (modalElement) { const modalInstance = bootstrap.Modal.getInstance(modalElement); if (modalInstance) { modalInstance.hide(); } }
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance && modalInstance._isShown) {
+            modalInstance.hide();
+        }
     }
+
+    /**
+     * Actualiza el contador de "Carrito" en el header.
+     */
     function updateCartCount() {
-        try { const cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {}; const count = Object.values(cart).reduce((sum, item) => sum + (item?.quantity || 0), 0); const el = document.getElementById('cart-count'); if (el) el.textContent = count; }
-        catch (e) { console.error("Error updating cart count:", e); const el = document.getElementById('cart-count'); if (el) el.textContent = '0'; }
+        const cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
+        const count = Object.values(cart).reduce((sum, item) => sum + (item.quantity || 0), 0);
+        const cartCountElement = document.getElementById('cart-count');
+        if(cartCountElement) cartCountElement.textContent = count;
     }
 
-    // --- Lógica de Lista de Deseos (Favoritos) ---
-    function toggleFavorite(productId, event) {
-        event.stopPropagation(); const button = event.currentTarget; const icon = button.querySelector('i'); if (!icon) return;
-        const index = favorites.indexOf(productId);
-        if (index === -1) { favorites.push(productId); button.classList.add('active'); icon.classList.replace('bi-heart', 'bi-heart-fill'); showNotification('Añadido a Lista de Deseos'); }
-        else { favorites.splice(index, 1); button.classList.remove('active'); icon.classList.replace('bi-heart-fill', 'bi-heart'); showNotification('Eliminado de Lista de Deseos'); }
-        try { localStorage.setItem('goldenFeetsFavorites', JSON.stringify(favorites)); } catch(e) { console.error("Error saving favorites:", e); }
-        updateWishlistCount(); // Actualizar contador
-    }
-    function updateWishlistCount() {
-        try { const count = (JSON.parse(localStorage.getItem('goldenFeetsFavorites')) || []).length; const el = document.getElementById('wishlist-count'); if (el) el.textContent = count; }
-        catch (e) { console.error("Error updating wishlist count:", e); const el = document.getElementById('wishlist-count'); if (el) el.textContent = '0'; }
-    }
+    // --- 6. FUNCIONES DE UTILIDAD (NOTIFICACIONES) ---
 
-    // --- Notificaciones ---
+    /**
+     * Muestra una notificación emergente en la esquina de la pantalla.
+     */
     function showNotification(message) {
-        const notification = document.getElementById('notification'); const notificationMessage = document.getElementById('notification-message');
-        if (notification && notificationMessage) { notificationMessage.textContent = message; notification.classList.add('show'); setTimeout(() => { notification.classList.remove('show'); }, 3000); }
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notification-message');
+        if (notification && notificationMessage) {
+            notificationMessage.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => { notification.classList.remove('show'); }, 3000);
+        }
     }
-
-    // --- Modo Oscuro ---
-    function setupDarkModeState() {
-        try { const darkModeEnabled = localStorage.getItem('darkModeEnabled') === 'true'; if (darkModeEnabled) { document.body.classList.add('dark-mode'); } } catch (e) {}
-        updateDarkModeButtonText(); updateLogoFilter();
-    }
-    function toggleDarkMode() {
-        document.body.classList.toggle('dark-mode'); const isDarkMode = document.body.classList.contains('dark-mode');
-        try { localStorage.setItem('darkModeEnabled', isDarkMode); } catch (e) {}
-        updateDarkModeButtonText(); updateLogoFilter();
-    }
-    function updateDarkModeButtonText() { const el = document.getElementById('dark-mode-text'); if (el) { el.textContent = document.body.classList.contains('dark-mode') ? 'Modo Claro' : 'Modo Oscuro'; } }
-    function updateLogoFilter() { const isDarkMode = document.body.classList.contains('dark-mode'); const logo = document.querySelector('.navbar-brand img'); if (logo) { logo.style.filter = isDarkMode ? 'invert(1) hue-rotate(180deg) contrast(0.9)' : 'none'; } }
-
 </script>
+
 </body>
 </html>

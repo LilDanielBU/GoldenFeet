@@ -42,8 +42,8 @@ public class DataLoader implements CommandLineRunner {
 
             // --- Crear Productos ---
             Producto p1 = new Producto();
-            p1.setNombre("Zapato Casual Oxford");
-            p1.setDescripcion("Zapato elegante de cuero para hombre, perfecto para la oficina o eventos casuales.");
+            p1.setNombre("Zapato Casual ");
+            p1.setDescripcion("Zapato casual para hombre, perfecto para eventos casuales.");
             p1.setPrecio(new BigDecimal("299900"));
             p1.setStock(50);
             p1.setCategoria(hombre);
@@ -52,8 +52,8 @@ public class DataLoader implements CommandLineRunner {
             p1.setRating(4.5);
 
             Producto p2 = new Producto();
-            p2.setNombre("Zapatilla Running Pro");
-            p2.setDescripcion("Zapatilla profesional para running con máxima amortiguación.");
+            p2.setNombre("Zapatilla Dunk");
+            p2.setDescripcion("Zapatilla para hombre que ofrecen el aspecto icónico del Dunk con un estilo de perfil bajo.");
             p2.setPrecio(new BigDecimal("450000"));
             p2.setStock(30);
             p2.setCategoria(hombre);
@@ -62,8 +62,8 @@ public class DataLoader implements CommandLineRunner {
             p2.setRating(4.8);
 
             Producto p3 = new Producto();
-            p3.setNombre("Tacón Elegante");
-            p3.setDescripcion("Tacón elegante para mujer, ideal para fiestas y eventos formales.");
+            p3.setNombre("Zapatilla Running Pro ");
+            p3.setDescripcion("Zapatilla profesional para running con máxima amortiguación.");
             p3.setPrecio(new BigDecimal("250000"));
             p3.setStock(40);
             p3.setCategoria(mujer);

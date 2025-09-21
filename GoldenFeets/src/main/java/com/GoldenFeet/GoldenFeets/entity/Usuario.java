@@ -1,23 +1,31 @@
 package com.GoldenFeet.GoldenFeets.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Data
+
+@Getter
+@Setter
+@ToString(exclude = "roles")
+@EqualsAndHashCode(exclude = "roles")
 @Entity
 @Table(name = "usuarios")
 public class Usuario implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_usuario") // <-- ¡ESTA ES LA LÍNEA QUE FALTABA!
+    @Column(name = "id_usuario")
     private Integer idUsuario;
 
     @Column(nullable = false, length = 100)
@@ -42,7 +50,7 @@ public class Usuario implements UserDetails {
     )
     private Set<Rol> roles;
 
-    // --- MÉTODOS REQUERIDOS POR UserDetails (estos no cambian) ---
+    // --- Métodos de UserDetails (sin cambios) ---
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -53,12 +61,12 @@ public class Usuario implements UserDetails {
 
     @Override
     public String getPassword() {
-        return passwordHash;
+        return this.passwordHash;
     }
 
     @Override
     public String getUsername() {
-        return email;
+        return this.email;
     }
 
     @Override
@@ -78,6 +86,6 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return activo;
+        return this.activo;
     }
 }

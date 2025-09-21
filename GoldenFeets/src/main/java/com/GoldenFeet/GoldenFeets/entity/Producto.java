@@ -1,35 +1,39 @@
-    package com.GoldenFeet.GoldenFeets.entity;
+package com.GoldenFeet.GoldenFeets.entity;
 
-    import jakarta.persistence.*;
-    import lombok.Data;
-    import java.math.BigDecimal;
+import jakarta.persistence.*;
+import lombok.Data;
+import java.math.BigDecimal;
 
-    @Data
-    @Entity
-    @Table(name = "productos")
-    public class Producto {
+@Data
+@Entity
+@Table(name = "productos")
+public class Producto {
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long id; // La clave primaria se llama 'id'
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-        private String nombre;
+    private String nombre;
 
-        @Column(length = 1000)
-        private String descripcion;
+    @Column(length = 1000) // Buena práctica para descripciones largas
+    private String descripcion;
 
-        private BigDecimal precio;
+    // Usar BigDecimal para dinero es la mejor práctica para evitar errores de precisión
+    private BigDecimal precio;
 
-        private int stock;
+    @Column(name = "original_price")
+    private BigDecimal originalPrice;
 
-        private String imagenUrl;
+    private String marca;
+    private int stock;
+    private double rating;
+    private boolean destacado;
 
-        @ManyToOne
-        @JoinColumn(name = "categoria_id")
-        private Categoria categoria;
+    @Column(name = "imagen_url")
+    private String imagenUrl;
 
-        private boolean destacado;
-
-        private BigDecimal originalPrice;
-        private double rating;
-    }
+    // Relación: Muchos productos pertenecen a una categoría
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id", nullable = false)
+    private Categoria categoria;
+}

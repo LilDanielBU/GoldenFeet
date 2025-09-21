@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List; // <-- Importación necesaria para el nuevo método
 import java.util.Map;
 import java.util.Optional;
 
@@ -19,18 +20,35 @@ public class ApiController {
 
     private final ProductoService productoService;
 
-    // --- CORRECCIÓN 1: El ID del producto ahora es Long ---
+    /**
+     * Obtiene los detalles de un producto por su ID.
+     * Usado para la "Vista Rápida" en el catálogo.
+     */
     @GetMapping("/productos/{id}")
     public ResponseEntity<ProductoDTO> obtenerProducto(@PathVariable Long id) {
-        Optional<ProductoDTO> productoOpt = productoService.buscarPorId(id);
-        return productoOpt.map(ResponseEntity::ok)
+        return productoService.buscarPorId(id)
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // --- ENDPOINT AÑADIDO PARA LA LISTA DE DESEOS ---
+    /**
+     * Recibe una lista de IDs de productos y devuelve los detalles de cada uno.
+     * Esencial para que la página de Lista de Deseos pueda mostrar los productos.
+     */
+    @PostMapping("/productos/by-ids")
+    public ResponseEntity<List<ProductoDTO>> obtenerProductosPorIds(@RequestBody List<Long> ids) {
+        List<ProductoDTO> productos = productoService.listarPorIds(ids);
+        return ResponseEntity.ok(productos);
+    }
+    // --- FIN DEL CÓDIGO AÑADIDO ---
+
+
+    /**
+     * Agrega un producto al carrito de compras almacenado en la sesión.
+     */
     @PostMapping("/carrito/agregar")
     public Map<String, Object> agregarAlCarrito(@RequestBody ItemCarritoRequest request, HttpSession session) {
-        // --- CORRECCIÓN 2: El carrito ahora usa Long como clave para el ID del producto ---
-        // Esto también soluciona el aviso "unchecked or unsafe operations"
         @SuppressWarnings("unchecked")
         Map<Long, Integer> carrito = (Map<Long, Integer>) session.getAttribute("carrito");
         if (carrito == null) {
@@ -53,23 +71,30 @@ public class ApiController {
         return respuesta;
     }
 
+    /**
+     * Obtiene el número total de items en el carrito.
+     */
     @GetMapping("/carrito/total")
     public Map<String, Object> obtenerTotalCarrito(HttpSession session) {
         @SuppressWarnings("unchecked")
         Map<Long, Integer> carrito = (Map<Long, Integer>) session.getAttribute("carrito");
+
         int totalItems = 0;
         if (carrito != null) {
             totalItems = carrito.values().stream().mapToInt(Integer::intValue).sum();
         }
+
         Map<String, Object> respuesta = new HashMap<>();
         respuesta.put("totalItems", totalItems);
         return respuesta;
     }
 }
 
-// --- CORRECCIÓN 3: El productoId ahora es Long ---
+/**
+ * Clase DTO para recibir la solicitud de agregar un item al carrito.
+ */
 @Data
 class ItemCarritoRequest {
-    private long productoId; // Usamos long para que coincida con el ID del Producto
+    private long productoId;
     private int cantidad;
 }

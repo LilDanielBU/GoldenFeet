@@ -17,25 +17,25 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
-    private final CustomAuthSuccessHandler customAuthSuccessHandler;
+    private final CustomAuthSuccessHandler customAuthSuccessHandler; // El nombre de tu clase es CustomAuthSuccessHandler
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // --- Rutas Públicas ---
                         .requestMatchers(
                                 "/", "/index", "/login", "/register", "/catalogo",
-                                "/css/**", "/js/**", "/img/**", "/api/**"
+                                "/css/**", "/js/**", "/images/**", "/api/**" // Corregido /img/ a /images/ si es necesario
                         ).permitAll()
 
-                        // --- Rutas Protegidas por Rol ---
-                        .requestMatchers("/administrador/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/gerente-entregas/**").hasAuthority("ROLE_GERENTEENTREGAS")
-                        .requestMatchers("/distribuidor/**").hasAuthority("ROLE_DISTRIBUIDOR")
+                        // --- RUTAS CORREGIDAS ---
+                        // 1. La URL ahora es "/admin/**" para que coincida con tu AdminController.
+                        // 2. Usamos hasRole("ADMIN") que es la convención (automáticamente busca "ROLE_ADMIN").
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/gerente-entregas/**").hasRole("GERENTEENTREGAS")
+                        .requestMatchers("/distribuidor/**").hasRole("DISTRIBUIDOR")
 
-                        // Cualquier otra ruta requiere estar autenticado
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
@@ -43,7 +43,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .successHandler(customAuthSuccessHandler)
+                        .successHandler(customAuthSuccessHandler) // Tu manejador se llama CustomAuthSuccessHandler
                         .permitAll()
                 )
                 .logout(logout -> logout
