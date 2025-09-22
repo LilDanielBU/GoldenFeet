@@ -5,7 +5,6 @@ import com.GoldenFeet.GoldenFeets.entity.*;
 import com.GoldenFeet.GoldenFeets.repository.ProductoRepository;
 import com.GoldenFeet.GoldenFeets.repository.UsuarioRepository;
 import com.GoldenFeet.GoldenFeets.repository.VentaRepository;
-import com.GoldenFeet.GoldenFeets.service.EntregaService; // <-- NUEVO: Importar el servicio de Entrega
 import com.GoldenFeet.GoldenFeets.service.VentaService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +13,9 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime; // <-- NUEVO: Importar para la fecha de creación de la entrega
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -27,7 +26,6 @@ public class VentaServiceImpl implements VentaService {
     private final VentaRepository ventaRepository;
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
-    private final EntregaService entregaService; // <-- NUEVO: Inyectar el servicio de Entrega
 
     @Override
     @Transactional
@@ -71,17 +69,6 @@ public class VentaServiceImpl implements VentaService {
         nuevaVenta.setDetallesVenta(detalles);
         Venta ventaGuardada = ventaRepository.save(nuevaVenta);
 
-        // --- INICIO DE LA LÓGICA DE ENTREGA AÑADIDA ---
-        Entrega nuevaEntrega = new Entrega();
-        nuevaEntrega.setVenta(ventaGuardada); // Vinculamos la entrega a la venta recién creada
-        nuevaEntrega.setEstado("PENDIENTE"); // El estado inicial de toda entrega
-        nuevaEntrega.setFechaCreacion(LocalDateTime.now()); // Guardamos la fecha y hora de creación
-        nuevaEntrega.setDistribuidor(null); // El gerente lo asignará después
-
-        // Usamos el servicio de entrega para guardar la nueva entidad en la base de datos
-        entregaService.guardar(nuevaEntrega);
-        // --- FIN DE LA LÓGICA DE ENTREGA AÑADIDA ---
-
         return convertirAVentaResponseDTO(ventaGuardada);
     }
 
@@ -92,28 +79,44 @@ public class VentaServiceImpl implements VentaService {
                 .collect(Collectors.toList());
     }
 
-    // --- Métodos adicionales para el AdminController (SIN CAMBIOS) ---
+    // --- Métodos adicionales para el AdminController ---
+
+    /**
+     * Obtiene todas las ventas.
+     */
     @Override
     public List<Venta> obtenerTodasLasVentas() {
         return ventaRepository.findAll();
     }
 
+    /**
+     * Obtiene las ventas en un período de tiempo.
+     */
     @Override
     public List<Venta> obtenerVentasPorPeriodo(LocalDate fechaInicio, LocalDate fechaFin) {
         return ventaRepository.findByFechaVentaBetween(fechaInicio, fechaFin);
     }
 
+    /**
+     * Obtiene una venta por su ID.
+     */
     @Override
     public Venta obtenerVentaPorId(Long id) {
         return ventaRepository.findById(id).orElse(null);
     }
 
+    /**
+     * Guarda o actualiza una venta.
+     */
     @Override
     @Transactional
     public Venta guardarVenta(Venta venta) {
         return ventaRepository.save(venta);
     }
 
+    /**
+     * Elimina una venta por su ID.
+     */
     @Override
     @Transactional
     public void eliminarVenta(Long id) {
@@ -123,7 +126,8 @@ public class VentaServiceImpl implements VentaService {
         ventaRepository.deleteById(id);
     }
 
-    // --- Método de conversión para uso interno (SIN CAMBIOS) ---
+    // --- Método de conversión para uso interno ---
+
     private VentaResponseDTO convertirAVentaResponseDTO(Venta venta) {
         List<DetalleVentaDTO> detallesDTO = venta.getDetallesVenta().stream()
                 .map(detalle -> new DetalleVentaDTO(

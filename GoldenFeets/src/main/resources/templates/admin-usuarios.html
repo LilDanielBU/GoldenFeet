@@ -90,26 +90,26 @@
                 </thead>
                 <tbody>
                 <tr th:each="usuario : ${usuarios}">
-                    <td th:text="${usuario.idUsuario()}">1</td>
-                    <td th:text="${usuario.nombre()}">Administrador</td>
-                    <td th:text="${usuario.email()}">admin@goldenfeets.com</td>
+                    <td th:text="${usuario.idUsuario}">1</td>
+                    <td th:text="${usuario.nombre}">Administrador</td>
+                    <td th:text="${usuario.email}">admin@goldenfeets.com</td>
                     <td>
-                                <span th:each="rol : ${usuario.roles()}"
-                                      th:text="${#strings.replace(rol, 'ROLE_', '')}"
-                                      class="role-badge"
-                                      th:classappend="${#strings.toLowerCase(rol) == 'role_admin'} ? 'role-admin' : 'role-cliente'">
-                                </span>
+                        <span th:each="rol : ${usuario.roles}"
+                              th:text="${#strings.replace(rol.nombre, 'ROLE_', '')}"
+                              class="role-badge"
+                              th:classappend="${#strings.toLowerCase(rol.nombre) == 'role_admin'} ? 'role-admin' : 'role-cliente'">
+                        </span>
                     </td>
                     <td>
-                                <span class="badge-status" th:classappend="${usuario.activo()} ? 'badge-active' : 'badge-inactive'"
-                                      th:text="${usuario.activo()} ? 'Activo' : 'Inactivo'">
-                                </span>
+                        <span class="badge-status" th:classappend="${usuario.activo} ? 'badge-active' : 'badge-inactive'"
+                              th:text="${usuario.activo} ? 'Activo' : 'Inactivo'">
+                        </span>
                     </td>
                     <td>
-                        <a th:href="@{/admin/usuarios/editar/{id}(id=${usuario.idUsuario()})}" class="btn btn-sm btn-warning me-2" title="Editar">
+                        <a th:href="@{/admin/usuarios/editar/{id}(id=${usuario.idUsuario})}" class="btn btn-sm btn-warning me-2" title="Editar">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <form th:action="@{/admin/usuarios/eliminar/{id}(id=${usuario.idUsuario()})}" method="post" class="d-inline">
+                        <form th:action="@{/admin/usuarios/eliminar/{id}(id=${usuario.idUsuario})}" method="post" class="d-inline">
                             <button type="submit" class="btn btn-sm btn-danger"
                                     onclick="return confirm('¿Estás seguro de que quieres eliminar a este usuario?');"
                                     title="Eliminar">
