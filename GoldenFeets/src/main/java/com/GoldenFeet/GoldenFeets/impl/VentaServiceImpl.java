@@ -1,102 +1,102 @@
 package com.GoldenFeet.GoldenFeets.impl;
 
-import com.GoldenFeet.GoldenFeets.dto.*;
-import com.GoldenFeet.GoldenFeets.entity.*;
+import com.GoldenFeet.GoldenFeets.dto.CrearVentaRequestDTO;
+import com.GoldenFeet.GoldenFeets.dto.DetalleVentaDTO;
+import com.GoldenFeet.GoldenFeets.dto.ItemVentaDTO;
+import com.GoldenFeet.GoldenFeets.dto.VentaResponseDTO;
+import com.GoldenFeet.GoldenFeets.entity.DetalleVenta;
+import com.GoldenFeet.GoldenFeets.entity.Producto;
+import com.GoldenFeet.GoldenFeets.entity.Usuario;
+import com.GoldenFeet.GoldenFeets.entity.Venta;
+import com.GoldenFeet.GoldenFeets.repository.DetalleVentaRepository;
 import com.GoldenFeet.GoldenFeets.repository.ProductoRepository;
 import com.GoldenFeet.GoldenFeets.repository.UsuarioRepository;
 import com.GoldenFeet.GoldenFeets.repository.VentaRepository;
+import com.GoldenFeet.GoldenFeets.service.InventarioService;
 import com.GoldenFeet.GoldenFeets.service.VentaService;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.transaction.annotation.Transactional;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class VentaServiceImpl implements VentaService {
 
-    private final VentaRepository ventaRepository;
-    private final ProductoRepository productoRepository;
-    private final UsuarioRepository usuarioRepository;
+    @Autowired
+    private VentaRepository ventaRepository;
+    @Autowired
+    private ProductoRepository productoRepository;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    @Autowired
+    private InventarioService inventarioService;
+
+    // Note: DetalleVentaRepository is not needed here if using CascadeType.ALL
 
     @Override
     @Transactional
-    public VentaResponseDTO crearVenta(CrearVentaRequestDTO request, String clienteEmail) {
+    public VentaResponseDTO crearVenta(CrearVentaRequestDTO requestDTO, String clienteEmail) {
         Usuario cliente = usuarioRepository.findByEmail(clienteEmail)
-                .orElseThrow(() -> new EntityNotFoundException("Cliente no encontrado con email: " + clienteEmail));
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con email: " + clienteEmail));
 
-        Venta nuevaVenta = new Venta();
-        nuevaVenta.setCliente(cliente);
-        nuevaVenta.setFechaVenta(LocalDate.now());
-        nuevaVenta.setEstado("COMPLETADA");
+        Venta venta = new Venta();
+        venta.setCliente(cliente);
+        venta.setFechaVenta(LocalDate.now());
+        venta.setEstado("PROCESANDO");
 
-        // --- ¡NUEVO! Guardamos los datos de envío y pago en la entidad ---
-        nuevaVenta.setDireccionEnvio(request.direccion());
-        nuevaVenta.setCiudadEnvio(request.ciudad() + ", " + request.departamento());
-        nuevaVenta.setMetodoPago(request.metodoPago());
-        // --- FIN DE LA SECCIÓN NUEVA ---
-
-        Set<DetalleVenta> detalles = new HashSet<>();
         BigDecimal totalVenta = BigDecimal.ZERO;
 
-        for (ItemVentaDTO itemDTO : request.items()) {
-            Producto producto = productoRepository.findById(itemDTO.productoId())
-                    .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado: " + itemDTO.productoId()));
+        // Itera sobre los DTOs para procesar cada ítem
+        for (ItemVentaDTO itemDto : requestDTO.items()) { // <-- CORRECCIÓN DE TYPO
+            Producto producto = productoRepository.findById(itemDto.productoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con ID: " + itemDto.productoId()));
 
-            if (producto.getStock() < itemDTO.cantidad()) {
-                throw new IllegalStateException("Stock insuficiente para: " + producto.getNombre());
-            }
-            producto.setStock(producto.getStock() - itemDTO.cantidad());
+            // Descuenta el stock del inventario
+            inventarioService.actualizarStock(producto.getId(), itemDto.cantidad(), "restar");
 
-            DetalleVenta detalle = new DetalleVenta();
-            detalle.setProducto(producto);
-            detalle.setCantidad(itemDTO.cantidad());
-            detalle.setPrecioUnitario(producto.getPrecio());
-            BigDecimal subtotal = producto.getPrecio().multiply(new BigDecimal(itemDTO.cantidad()));
-            detalle.setSubtotal(subtotal);
-            detalle.setVenta(nuevaVenta);
-            detalles.add(detalle);
-            totalVenta = totalVenta.add(subtotal);
+            // Crea el nuevo detalle
+            DetalleVenta detalle = new DetalleVenta(venta, producto, itemDto.cantidad(), producto.getPrecio());
+
+            // --- CORRECCIÓN ORPHAN REMOVAL ---
+            // Añade el detalle a la lista de la venta usando el método de ayuda.
+            // Esto mantiene la colección original y evita el error.
+            venta.addDetalle(detalle);
+
+            totalVenta = totalVenta.add(detalle.getSubtotal());
         }
 
-        nuevaVenta.setTotal(totalVenta);
-        nuevaVenta.setDetallesVenta(detalles);
-        Venta ventaGuardada = ventaRepository.save(nuevaVenta);
+        // Actualiza el total y el estado de la venta
+        venta.setTotal(totalVenta);
+        venta.setEstado("COMPLETADO");
 
-        return convertirAVentaResponseDTO(ventaGuardada);
+        // Guarda la venta. Gracias a CascadeType.ALL, los nuevos detalles se guardarán automáticamente.
+        Venta ventaFinal = ventaRepository.save(venta);
+        return VentaResponseDTO.fromEntity(ventaFinal);
     }
 
     @Override
-    public List<VentaResponseDTO> buscarVentasPorCliente(Integer idCliente) {
-        return ventaRepository.findByCliente_IdUsuario(idCliente).stream()
-                .map(this::convertirAVentaResponseDTO)
+    public List<VentaResponseDTO> buscarVentasPorCliente(Long idCliente) {
+        return ventaRepository.findByClienteIdUsuario(idCliente).stream()
+                .map(VentaResponseDTO::fromEntity)
                 .collect(Collectors.toList());
     }
 
-    private VentaResponseDTO convertirAVentaResponseDTO(Venta venta) {
-        List<DetalleVentaDTO> detallesDTO = venta.getDetallesVenta().stream()
-                .map(detalle -> new DetalleVentaDTO(
-                        detalle.getProducto().getId(),
-                        detalle.getProducto().getNombre(),
-                        detalle.getCantidad(),
-                        detalle.getPrecioUnitario(),
-                        detalle.getSubtotal()
-                )).collect(Collectors.toList());
+    @Override
+    public List<VentaResponseDTO> findAllVentas() {
+        return ventaRepository.findAll().stream()
+                .map(VentaResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
 
-        return new VentaResponseDTO(
-                venta.getIdVenta(),
-                venta.getFechaVenta(),
-                venta.getTotal(),
-                venta.getEstado(),
-                venta.getCliente().getEmail(),
-                detallesDTO
-        );
+    @Override
+    public Optional<VentaResponseDTO> findVentaById(Long id) {
+        return ventaRepository.findById(id)
+                .map(VentaResponseDTO::fromEntity);
     }
 }

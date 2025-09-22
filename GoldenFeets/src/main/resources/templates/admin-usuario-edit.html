@@ -2,129 +2,61 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Usuario - Golden Feets</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Poppins:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
             --primary-color: #4D1C95;
-            --primary-dark: #3a146e;
             --secondary-color: #6C4AB6;
-            --text-color: #2D2727;
             --light-bg: #F5F5F5;
-            --card-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            --success-color: #198754;
-            --error-color: #dc3545;
-            --role-admin: #198754;
-            --role-cliente: #0d6efd;
         }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); color: var(--text-color); }
-        header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .brand-name { font-family: 'Playfair Display', serif; font-size: 1.5em; }
-        .container-admin { max-width: 1200px; margin: 30px auto; background-color: white; box-shadow: var(--card-shadow); border-radius: 15px; overflow: hidden; }
-        .admin-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 25px 30px; text-align: center; }
-        .admin-header h1 { font-size: 28px; margin: 0; }
-        .admin-content { padding: 30px; }
-        .table thead { background-color: var(--primary-color); color: white; }
-        .badge-status { color: white; font-size: 0.9em; padding: 5px 10px; border-radius: 50px; }
-        .badge-active { background-color: var(--success-color); }
-        .badge-inactive { background-color: var(--error-color); }
-        .role-badge { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.85em; font-weight: 500; color: white; text-transform: capitalize; margin: 2px; }
-        .role-admin { background-color: var(--role-admin); }
-        .role-cliente { background-color: var(--role-cliente); }
-        .btn-golden { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border: none; padding: 10px 20px; border-radius: 50px; font-weight: 500; transition: all 0.3s; box-shadow: 0 4px 10px rgba(108, 74, 182, 0.3); }
-        .btn-golden:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(108, 74, 182, 0.4); }
-        .modal-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; }
-        .form-control:focus, .form-select:focus { border-color: var(--secondary-color); box-shadow: 0 0 0 0.25rem rgba(108, 74, 182, 0.25); }
-
-        .logo-title {
-            display: flex;
-            align-items: center;
-        }
-
-        .delivery-icon {
-            font-size: 24px;
-            margin-right: 10px;
-        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); }
+        .container-admin { max-width: 800px; margin: 50px auto; background-color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-radius: 15px; padding: 40px; }
+        .btn-golden { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border: none; }
     </style>
 </head>
 <body>
-<header>
-    <a th:href="@{/admin/panel}" class="btn btn-light" title="Volver al inicio">
-        <i class="fas fa-home"></i>
-    </a>
-    <div class="logo-title">
-        <div class="delivery-icon">
-            <i class="fas fa-users-cog"></i>
-        </div>
-        <h2>Administración</h2>
-    </div>
-
-    <div class="d-flex align-items-center">
-        <span class="brand-name me-3">Golden Feets</span>
-
-        <form th:action="@{/logout}" method="post" class="d-inline">
-            <button type="submit" class="btn btn-danger" title="Cerrar Sesión">
-                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-            </button>
-        </form>
-    </div>
-</header>
-
 <div class="container-admin">
-    <div class="admin-header">
-        <h1><i class="fas fa-edit me-2"></i>Editar Usuario</h1>
-    </div>
-    <div class="admin-content">
-        <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
-        <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+    <h1 class="mb-4 text-center">
+        <i class="fas fa-edit me-2"></i>Editar Usuario
+    </h1>
 
-        <form th:action="@{/admin/usuarios/actualizar}" th:object="${usuario}" method="post">
-            <input type="hidden" th:field="*{idUsuario}"/>
+    <form th:action="@{/admin/usuarios/actualizar}" th:object="${usuario}" method="post">
 
-            <div class="mb-3">
-                <label for="nombre" class="form-label">Nombre</label>
-                <input type="text" class="form-control" id="nombre" th:field="*{nombre}">
-            </div>
+        <input type="hidden" th:field="*{idUsuario}" />
 
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" th:field="*{email}" readonly>
-            </div>
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" th:field="*{nombre}" required>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" th:field="*{email}" required readonly>
+        </div>
 
-            <div class="mb-3">
-                <label for="activo" class="form-label">Estado</label>
-                <select id="activo" th:field="*{activo}" class="form-select">
-                    <option value="true" th:selected="*{activo}">Activo</option>
-                    <option value="false" th:selected="*{!activo}">Inactivo</option>
-                </select>
-            </div>
+        <div class="mb-3">
+            <label for="roles" class="form-label">Roles</label>
+            <select id="roles" th:field="*{rolesId}" class="form-select" multiple required>
+                <option th:each="rol : ${rolesTodos}"
+                        th:value="${rol.idRol}"
+                        th:text="${rol.nombre}">
+                </option>
+            </select>
+        </div>
 
-            <div class="mb-3">
-                <label for="roles" class="form-label">Roles</label>
-                <select id="roles" th:field="*{rolesId}" class="form-select" multiple required>
-                    <option th:each="rol : ${rolesTodos}"
-                            th:value="${rol.idRol}"
-                            th:text="${rol.nombre}"
-                            th:selected="${usuario.rolesId.contains(rol.idRol)}">
-                    </option>
-                </select>
-            </div>
+        <div class="form-check form-switch mb-4">
+            <input class="form-check-input" type="checkbox" id="activo" th:field="*{activo}">
+            <label class="form-check-label" for="activo">
+                Usuario Activo
+            </label>
+        </div>
 
-            <div class="mb-3">
-                <label for="password" class="form-label">Nueva Contraseña (Opcional)</label>
-                <input type="password" class="form-control" id="password" th:field="*{password}">
-                <small class="form-text text-muted">Deja este campo vacío para no cambiar la contraseña.</small>
-            </div>
-
-            <div class="d-flex justify-content-end">
-                <a th:href="@{/admin/usuarios}" class="btn btn-secondary me-2">Cancelar</a>
-                <button type="submit" class="btn btn-golden">Actualizar Usuario</button>
-            </div>
-        </form>
-    </div>
+        <div class="d-flex justify-content-end">
+            <a th:href="@{/admin/usuarios}" class="btn btn-secondary me-2">Cancelar</a>
+            <button type="submit" class="btn btn-golden">Actualizar Usuario</button>
+        </div>
+    </form>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

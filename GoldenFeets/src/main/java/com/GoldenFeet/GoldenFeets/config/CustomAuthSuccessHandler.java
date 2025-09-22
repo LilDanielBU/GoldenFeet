@@ -1,5 +1,6 @@
 package com.GoldenFeet.GoldenFeets.config;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
@@ -16,7 +17,6 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
 
-
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
@@ -31,7 +31,10 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
 
         // Lógica de redirección con prioridad
         if (isAdmin) {
-            response.sendRedirect("/admin/panel");
+            // --- CORRECCIÓN AQUÍ ---
+            // Se cambia el destino para el rol de administrador
+            response.sendRedirect("/admin/usuarios");
+
         } else if (isGerente) {
             response.sendRedirect("/gerente-entregas/dashboard");
         } else if (isDistribuidor) {

@@ -16,7 +16,10 @@ public interface UsuarioService {
     UsuarioResponseDTO actualizarPerfil(Integer idUsuario, UsuarioUpdateDTO request);
     UsuarioResponseDTO obtenerPerfil(Integer idUsuario);
     List<AdminUsuarioDTO> listarTodosLosUsuarios();
+
+    // --- CORRECCIÓN: Se elimina la línea con el error de sintaxis ---
     UsuarioResponseDTO guardarUsuario(UsuarioRegistroDTO request);
+
     void eliminarUsuario(Integer idUsuario);
     Usuario actualizarUsuarioAdmin(AdminUsuarioUpdateDTO dto);
     List<Usuario> findByRol(String nombreRol);

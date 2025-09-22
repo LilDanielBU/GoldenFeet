@@ -1,5 +1,6 @@
 package com.GoldenFeet.GoldenFeets.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +10,7 @@ import lombok.EqualsAndHashCode;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List; // <-- Cambiado de Set a List
+import java.util.List;
 
 @Getter
 @Setter
@@ -24,29 +25,45 @@ public class Venta {
     @Column(name = "id_venta")
     private Long idVenta;
 
-    private LocalDate fechaVenta;
-    private BigDecimal total;
-    private String estado;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id", nullable = false)
     private Usuario cliente;
 
-    // --- CORRECCIÓN CLAVE: Se cambia Set por List ---
-    @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<DetalleVenta> detallesVenta = new ArrayList<>();
+    @Column(name = "fecha_venta")
+    private LocalDate fechaVenta;
 
+    @Column(name = "total")
+    private BigDecimal total;
+
+    @Column(name = "estado")
+    private String estado;
+
+    @Column(name = "direccion_envio")
     private String direccionEnvio;
+
+    @Column(name = "ciudad_envio")
     private String ciudadEnvio;
+
+    @Column(name = "metodo_pago")
     private String metodoPago;
+
+    @Column(name = "id_transaccion")
     private String idTransaccion;
 
-    // --- GETTER Y SETTER CORREGIDOS PARA USAR LIST ---
-    public List<DetalleVenta> getDetallesVenta() {
-        return detallesVenta;
+    // --- RELACIÓN CORREGIDA Y MEJORADA ---
+    @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference // Evita bucles infinitos al convertir a JSON
+    private List<DetalleVenta> detallesVenta = new ArrayList<>();
+
+    // --- MÉTODOS DE AYUDA (Buena práctica) ---
+    // Para mantener la relación sincronizada en ambos lados
+    public void addDetalle(DetalleVenta detalle) {
+        detallesVenta.add(detalle);
+        detalle.setVenta(this);
     }
 
-    public void setDetallesVenta(List<DetalleVenta> detallesVenta) {
-        this.detallesVenta = detallesVenta;
+    public void removeDetalle(DetalleVenta detalle) {
+        detallesVenta.remove(detalle);
+        detalle.setVenta(null);
     }
 }
