@@ -9,6 +9,8 @@ import com.GoldenFeet.GoldenFeets.repository.ProductoRepository;
 import com.GoldenFeet.GoldenFeets.service.ProductoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +28,36 @@ public class ProductoServiceImpl implements ProductoService {
         return productoRepository.findAll().stream()
                 .map(this::convertirAProductoDTO)
                 .collect(Collectors.toList());
+    }
+    @Override
+    public List<ProductoDTO> obtenerProductosRecientes(int limit) {
+        // Creamos un objeto Pageable para limitar los resultados a 'limit'
+        Pageable pageable = PageRequest.of(0, limit);
+
+        return productoRepository.findProductosRecientes(pageable).stream()
+                .map(this::convertirAProductoDTO) // Asumo que tienes un método para convertir
+                .collect(Collectors.toList());
+    }
+
+    private ProductoDTO convertirAProductoDTO(Producto producto) {
+        // Verificamos si producto o su categoría son nulos para evitar errores
+        if (producto == null) {
+            return null;
+        }
+        String nombreCategoria = (producto.getCategoria() != null) ? producto.getCategoria().getNombre() : null;
+
+        return new ProductoDTO(
+                producto.getId(),
+                producto.getNombre(),
+                producto.getDescripcion(),
+                producto.getPrecio(),
+                producto.getOriginalPrice(),
+                producto.getStock(),
+                producto.getImagenUrl(),
+                nombreCategoria, // Obtenemos el nombre desde la entidad Categoria relacionada
+                producto.isDestacado(),
+                producto.getRating()
+        );
     }
 
     @Override
@@ -90,25 +122,6 @@ public class ProductoServiceImpl implements ProductoService {
                 .collect(Collectors.toList());
     }
 
-
-
-    // --- MÉTODOS PRIVADOS DE CONVERSIÓN (sin cambios) ---
-
-    private ProductoDTO convertirAProductoDTO(Producto producto) {
-        String nombreCategoria = (producto.getCategoria() != null) ? producto.getCategoria().getNombre() : "Sin Categoría";
-        return new ProductoDTO(
-                producto.getId(),
-                producto.getNombre(),
-                producto.getDescripcion(),
-                producto.getPrecio(),
-                producto.getOriginalPrice(),
-                producto.getStock(),
-                producto.getImagenUrl(),
-                nombreCategoria,
-                producto.isDestacado(),
-                producto.getRating()
-        );
-    }
 
     private CategoriaDTO convertirACategoriaDTO(Categoria categoria) {
         return new CategoriaDTO(

@@ -3,169 +3,330 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio de Sesión</title>
+    <title>Iniciar Sesión - Golden Feets</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
     <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background-color: #f4f4f4;
+        :root {
+            --c-brand: #6D28D9;
+            --c-brand-light: #8B5CF6;
+            --c-text-primary: #1f2937;
+            --c-text-secondary: #6b7280;
+            --c-border: #d1d5db;
+            --c-error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            min-height: 100vh;
         }
-        .page-container {
-            display: flex;
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f9fafb;
             min-height: 100vh;
-        }
-        .image-section {
-            flex: 1;
-            background-color: #4D1C95;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
         }
-        .image-container {
+
+        .login-container {
+            display: flex;
             width: 100%;
-            height: 100%;
-            background-image: url('https://allikestore.com/cdn/shop/files/Allike_Banner_adidas_13112024.jpg?v=1731453294&width=900');
+            max-width: 1000px;
+            min-height: 600px;
+            background-color: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+
+        /* --- Lado Izquierdo (Imagen) --- */
+        .image-section {
+            flex: 1;
+            background-image: url('https://images.unsplash.com/photo-1595341888016-a392ef81b7de?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');
             background-size: cover;
             background-position: center;
-            border-radius: 10px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 3rem;
+            color: white;
         }
+
+        .image-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(109, 40, 217, 0.4));
+        }
+
+        .image-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .image-content .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            color: white;
+            text-decoration: none;
+        }
+
+        .image-content p {
+            font-size: 1.125rem;
+            line-height: 1.6;
+            max-width: 350px;
+        }
+
+        /* --- Lado Derecho (Formulario) --- */
         .form-section {
             flex: 1;
-            background-color: white;
-            padding: 40px;
+            padding: 2rem 3rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
-        .container {
+
+        .form-wrapper {
+            width: 100%;
             max-width: 400px;
             margin: 0 auto;
-            width: 100%;
         }
-        h2 {
+
+        /* Estilo para el enlace de volver */
+        .back-to-store {
+            display: inline-block;
+            color: var(--c-text-secondary);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+        .back-to-store:hover {
+            color: var(--c-brand);
+        }
+
+        .form-header {
             text-align: center;
-            color: #2c3e50;
-            margin-bottom: 30px;
-            font-size: 28px;
+            margin-bottom: 2rem;
         }
-        .form-group {
-            margin-bottom: 25px;
+        .form-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.25rem;
+            color: var(--c-text-primary);
         }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #2c3e50;
-            font-weight: bold;
+        .form-header p {
+            color: var(--c-text-secondary);
+            margin-top: 0.5rem;
         }
-        input {
+
+        .input-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group i.fa-envelope,
+        .input-group i.fa-lock { /* Selectores específicos para los iconos dentro del campo */
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            pointer-events: none; /* Asegura que el icono no bloquee la interacción con el input */
+        }
+
+        .input-field {
             width: 100%;
-            padding: 14px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
-            transition: border-color 0.3s ease;
-            font-size: 16px;
+            padding: 12px 12px 12px 45px; /* Padding izquierdo para el icono principal */
+            border: 1px solid var(--c-border);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        input:focus {
-            border-color: #4D1C95;
+
+        /* Corregir el padding-right para el campo de contraseña */
+        .input-group input#password {
+            padding-right: 45px; /* Añade suficiente espacio a la derecha para el icono del ojo */
+        }
+
+
+        .input-field:focus {
             outline: none;
+            border-color: var(--c-brand);
+            box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.2);
         }
 
-        /* --- CSS CORREGIDO Y MEJORADO --- */
-        .primary-button {
-            /* Estilos base */
-            background-color: #4D1C95;
-            color: white;
-            padding: 16px 20px;
-            border: 2px solid #4D1C95;
-            border-radius: 8px;
+        #password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
             cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            margin-bottom: 15px;
-            text-align: center;
-
-            /* Propiedades para unificar apariencia */
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            text-decoration: none;
-            display: block;
+            color: #9ca3af;
+            z-index: 10; /* Asegura que el icono esté por encima del input */
         }
 
-        .primary-button:hover {
-            background-color: transparent;
-            color: #4D1C95;
+        .form-options {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1.5rem;
         }
 
-        .error {
-            color: #e74c3c;
-        }
-        .forgot-password {
-            text-align: right;
-            margin-top: -15px;
-            margin-bottom: 20px;
-        }
         .forgot-password a {
-            color: #7f8c8d;
+            font-size: 0.875rem;
+            color: var(--c-text-secondary);
             text-decoration: none;
-            font-size: 14px;
-            transition: color 0.3s ease;
+            transition: color 0.2s;
         }
         .forgot-password a:hover {
-            color: #3498db;
+            color: var(--c-brand);
         }
 
-        @media (max-width: 768px) {
-            .page-container {
-                flex-direction: column;
-            }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 0.5rem;
+            background-color: var(--c-brand);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--c-brand-light);
+            transform: translateY(-2px);
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: var(--c-text-secondary);
+        }
+        .register-link a {
+            color: var(--c-brand);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .error-message {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #b91c1c;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .error-message i {
+            margin-right: 0.75rem;
+        }
+
+        @media (max-width: 900px) {
             .image-section {
-                min-height: 300px;
+                display: none;
             }
             .form-section {
-                padding: 20px;
+                padding: 2rem;
+            }
+            .login-container {
+                min-height: auto;
+                margin: 2rem;
             }
         }
     </style>
 </head>
 <body>
-<div class="page-container">
+
+<div class="login-container">
     <div class="image-section">
-        <div class="image-container"></div>
+        <div class="image-content">
+            <a th:href="@{/}" class="logo">
+                <i class="fas fa-shoe-prints mr-2"></i>
+                Golden Feets
+            </a>
+            <p>"Cada paso cuenta. Haz que el tuyo sea dorado."</p>
+        </div>
     </div>
+
     <div class="form-section">
-        <div class="container">
-            <h2>Iniciar Sesión</h2>
-            <div th:if="${param.error}" class="error" style="display: block; text-align: center; margin-bottom: 15px; background-color: #ffdddd; border: 1px solid #f44336; padding: 10px; border-radius: 8px;">
-                Usuario o contraseña incorrectos.
+        <div class="form-wrapper">
+
+            <a th:href="@{/}" class="back-to-store">
+                <i class="fas fa-arrow-left mr-2"></i>Volver a la tienda
+            </a>
+
+            <div class="form-header">
+                <h1>Bienvenido de Nuevo</h1>
+                <p>Ingresa tus credenciales para acceder a tu cuenta.</p>
+            </div>
+
+            <div th:if="${param.error}" class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo.</span>
             </div>
 
             <form th:action="@{/login}" method="post">
-                <div class="form-group">
-                    <label for="username">Correo Electrónico:</label>
-                    <input type="email" id="username" name="username" required>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="username" name="username" class="input-field" placeholder="Correo Electrónico" required>
                 </div>
-                <div class="form-group">
-                    <label for="password">Contraseña:</label>
-                    <input type="password" id="password" name="password" required>
+
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" class="input-field" placeholder="Contraseña" required>
+                    <i id="password-toggle" class="fas fa-eye"></i>
                 </div>
-                <div class="forgot-password">
-                    <a href="#">¿Olvidaste tu contraseña?</a>
+
+                <div class="form-options">
+                    <div class="forgot-password">
+                        <a href="#">¿Olvidaste tu contraseña?</a>
+                    </div>
                 </div>
-                <button type="submit" class="primary-button">Iniciar Sesión</button>
+
+                <button type="submit" class="submit-btn">Iniciar Sesión</button>
             </form>
 
-            <button type="button" class="primary-button" th:onclick="|window.location.href='@{/register}'|">
-                Crear Cuenta Nueva
-            </button>
+            <div class="register-link">
+                ¿No tienes una cuenta? <a th:href="@{/register}">Regístrate aquí</a> </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const passwordField = document.getElementById('password');
+        const toggleIcon = document.getElementById('password-toggle');
+
+        if (toggleIcon) {
+            toggleIcon.addEventListener('click', function () {
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+            });
+        }
+    });
+</script>
+
 </body>
 </html>
