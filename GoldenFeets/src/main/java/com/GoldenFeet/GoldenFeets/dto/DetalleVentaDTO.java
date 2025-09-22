@@ -2,9 +2,8 @@ package com.GoldenFeet.GoldenFeets.dto;
 
 import java.math.BigDecimal;
 
-// CORRECCIÓN: idProducto ahora es Long
 public record DetalleVentaDTO(
-        Long idProducto,
+        Long productoId,
         String nombreProducto,
         int cantidad,
         BigDecimal precioUnitario,

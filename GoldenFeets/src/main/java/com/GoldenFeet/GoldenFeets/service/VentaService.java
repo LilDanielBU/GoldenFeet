@@ -2,6 +2,7 @@ package com.GoldenFeet.GoldenFeets.service;
 
 import com.GoldenFeet.GoldenFeets.dto.CrearVentaRequestDTO;
 import com.GoldenFeet.GoldenFeets.dto.VentaResponseDTO;
+import com.GoldenFeet.GoldenFeets.entity.Venta;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,8 +32,9 @@ public interface VentaService {
 
     /**
      * Busca una venta específica por su ID.
+     *
      * @param id El ID de la venta.
      * @return Un Optional con el DTO de la venta si se encuentra.
      */
-    Optional<VentaResponseDTO> findVentaById(Long id);
+    Optional<Venta> findVentaById(Long id);
 }

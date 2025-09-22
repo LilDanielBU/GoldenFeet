@@ -88,4 +88,8 @@ public class Inventario {
                 ", ultimaActualizacion=" + ultimaActualizacion +
                 '}';
     }
+
+    public int getCantidad() {
+        return 0;
+    }
 }

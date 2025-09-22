@@ -5,6 +5,7 @@ import com.GoldenFeet.GoldenFeets.entity.*;
 import com.GoldenFeet.GoldenFeets.repository.ProductoRepository;
 import com.GoldenFeet.GoldenFeets.repository.UsuarioRepository;
 import com.GoldenFeet.GoldenFeets.repository.VentaRepository;
+import com.GoldenFeet.GoldenFeets.service.EntregaService;
 import com.GoldenFeet.GoldenFeets.service.VentaService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,10 +14,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +27,7 @@ public class VentaServiceImpl implements VentaService {
     private final VentaRepository ventaRepository;
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final EntregaService entregaService;
 
     @Override
     @Transactional
@@ -42,7 +44,7 @@ public class VentaServiceImpl implements VentaService {
         nuevaVenta.setCiudadEnvio(request.ciudad() + ", " + request.departamento());
         nuevaVenta.setMetodoPago(request.metodoPago());
 
-        Set<DetalleVenta> detalles = new HashSet<>();
+        List<DetalleVenta> detalles = new ArrayList<>();
         BigDecimal totalVenta = BigDecimal.ZERO;
 
         for (ItemVentaDTO itemDTO : request.items()) {
@@ -52,7 +54,7 @@ public class VentaServiceImpl implements VentaService {
             if (producto.getStock() < itemDTO.cantidad()) {
                 throw new IllegalStateException("Stock insuficiente para: " + producto.getNombre());
             }
-            producto.setStock(producto.getStock() - itemDTO.cantidad());
+            // Lógica de stock a futuro
 
             DetalleVenta detalle = new DetalleVenta();
             detalle.setProducto(producto);
@@ -69,55 +71,59 @@ public class VentaServiceImpl implements VentaService {
         nuevaVenta.setDetallesVenta(detalles);
         Venta ventaGuardada = ventaRepository.save(nuevaVenta);
 
+        Entrega nuevaEntrega = new Entrega();
+        nuevaEntrega.setVenta(ventaGuardada);
+        nuevaEntrega.setEstado("PENDIENTE");
+        nuevaEntrega.setFechaCreacion(LocalDateTime.now());
+        entregaService.guardar(nuevaEntrega);
+
         return convertirAVentaResponseDTO(ventaGuardada);
     }
 
-    @Override
+
     public List<VentaResponseDTO> buscarVentasPorCliente(Integer idCliente) {
         return ventaRepository.findByCliente_IdUsuario(idCliente).stream()
                 .map(this::convertirAVentaResponseDTO)
                 .collect(Collectors.toList());
     }
 
-    // --- Métodos adicionales para el AdminController ---
-
-    /**
-     * Obtiene todas las ventas.
-     */
     @Override
+    public List<VentaResponseDTO> buscarVentasPorCliente(Long idCliente) {
+        return buscarVentasPorCliente(idCliente.intValue());
+    }
+
+    @Override
+    public List<VentaResponseDTO> findAllVentas() {
+        return List.of();
+    }
+
+    @Override
+    public Optional<Venta> findVentaById(Long id) {
+        return ventaRepository.findById(id);
+    }
+
+
     public List<Venta> obtenerTodasLasVentas() {
         return ventaRepository.findAll();
     }
 
-    /**
-     * Obtiene las ventas en un período de tiempo.
-     */
-    @Override
+
     public List<Venta> obtenerVentasPorPeriodo(LocalDate fechaInicio, LocalDate fechaFin) {
         return ventaRepository.findByFechaVentaBetween(fechaInicio, fechaFin);
     }
 
-    /**
-     * Obtiene una venta por su ID.
-     */
-    @Override
+
     public Venta obtenerVentaPorId(Long id) {
         return ventaRepository.findById(id).orElse(null);
     }
 
-    /**
-     * Guarda o actualiza una venta.
-     */
-    @Override
+
     @Transactional
     public Venta guardarVenta(Venta venta) {
         return ventaRepository.save(venta);
     }
 
-    /**
-     * Elimina una venta por su ID.
-     */
-    @Override
+
     @Transactional
     public void eliminarVenta(Long id) {
         if (!ventaRepository.existsById(id)) {
@@ -126,25 +132,9 @@ public class VentaServiceImpl implements VentaService {
         ventaRepository.deleteById(id);
     }
 
-    // --- Método de conversión para uso interno ---
-
+    // --- MÉTODO DE CONVERSIÓN ACTUALIZADO ---
     private VentaResponseDTO convertirAVentaResponseDTO(Venta venta) {
-        List<DetalleVentaDTO> detallesDTO = venta.getDetallesVenta().stream()
-                .map(detalle -> new DetalleVentaDTO(
-                        detalle.getProducto().getId(),
-                        detalle.getProducto().getNombre(),
-                        detalle.getCantidad(),
-                        detalle.getPrecioUnitario(),
-                        detalle.getSubtotal()
-                )).collect(Collectors.toList());
-
-        return new VentaResponseDTO(
-                venta.getIdVenta(),
-                venta.getFechaVenta(),
-                venta.getTotal(),
-                venta.getEstado(),
-                venta.getCliente().getEmail(),
-                detallesDTO
-        );
+        // Ahora simplemente usamos el método estático del DTO
+        return VentaResponseDTO.fromEntity(venta);
     }
 }
