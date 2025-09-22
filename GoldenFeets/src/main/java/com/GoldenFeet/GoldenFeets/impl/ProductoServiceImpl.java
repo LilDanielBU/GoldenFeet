@@ -48,8 +48,11 @@ public class ProductoServiceImpl implements ProductoService {
                 .collect(Collectors.toList());
     }
 
+    // --- NUEVOS MÉTODOS IMPLEMENTADOS ---
+
     @Override
     public List<ProductoDTO> buscarPorNombre(String nombre) {
+        // Llama al método del repositorio y convierte los resultados
         return productoRepository.findByNombreContainingIgnoreCase(nombre).stream()
                 .map(this::convertirAProductoDTO)
                 .collect(Collectors.toList());
@@ -57,20 +60,19 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     public List<ProductoDTO> listarPorCategoria(String nombreCategoria) {
+        // Llama al método del repositorio y convierte los resultados
         return productoRepository.findByCategoria_Nombre(nombreCategoria).stream()
                 .map(this::convertirAProductoDTO)
                 .collect(Collectors.toList());
     }
-
     @Override
     public List<String> listarMarcasDistintas() {
         return productoRepository.findDistinctMarcas();
     }
-
     @Override
     public List<ProductoDTO> listarPorIds(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
-            return List.of();
+            return List.of(); // Devuelve una lista vacía si no hay IDs
         }
         return productoRepository.findByIdIn(ids).stream()
                 .map(this::convertirAProductoDTO)
@@ -79,38 +81,36 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     public List<ProductoDTO> filtrarProductos(String categoria, Double precioMax, List<String> marcas) {
+        // Si la lista de marcas está vacía, la tratamos como nula para que la consulta funcione
         List<String> marcasFiltradas = (marcas != null && marcas.isEmpty()) ? null : marcas;
+
         return productoRepository.filtrarProductos(categoria, precioMax, marcasFiltradas)
                 .stream()
                 .map(this::convertirAProductoDTO)
                 .collect(Collectors.toList());
     }
 
-    // --- MÉTODO DE CONVERSIÓN CORREGIDO ---
+
+
+    // --- MÉTODOS PRIVADOS DE CONVERSIÓN (sin cambios) ---
 
     private ProductoDTO convertirAProductoDTO(Producto producto) {
         String nombreCategoria = (producto.getCategoria() != null) ? producto.getCategoria().getNombre() : "Sin Categoría";
-
-        // Obtenemos el stock desde la entidad Inventario asociada al producto
-        // Se asigna 0 si no hay una entrada de inventario para evitar errores
-        int stock = (producto.getInventario() != null) ? producto.getInventario().getStockActual() : 0;
-
         return new ProductoDTO(
                 producto.getId(),
                 producto.getNombre(),
                 producto.getDescripcion(),
                 producto.getPrecio(),
                 producto.getOriginalPrice(),
-                stock, // <-- Se usa la variable de stock obtenida del inventario
+                producto.getStock(),
                 producto.getImagenUrl(),
                 nombreCategoria,
-                producto.getDestacado(), // Asumiendo que el campo es Boolean
-                producto.getRating()     // Asumiendo que el campo es Float
+                producto.isDestacado(),
+                producto.getRating()
         );
     }
 
     private CategoriaDTO convertirACategoriaDTO(Categoria categoria) {
-        // Asumiendo que Categoria tiene estos getters. Ajusta si es necesario.
         return new CategoriaDTO(
                 categoria.getIdCategoria(),
                 categoria.getNombre(),

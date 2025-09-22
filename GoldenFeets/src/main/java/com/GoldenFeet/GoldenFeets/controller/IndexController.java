@@ -1,5 +1,6 @@
 package com.GoldenFeet.GoldenFeets.controller;
 
+import com.GoldenFeet.GoldenFeets.service.CategoriaService;
 import com.GoldenFeet.GoldenFeets.service.ProductoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -7,19 +8,23 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-@RequiredArgsConstructor // Facilita la inyección de dependencias
+@RequiredArgsConstructor
 public class IndexController {
 
-    // 1. Inyectamos el servicio para poder usarlo
     private final ProductoService productoService;
+    private final CategoriaService categoriaService;
 
     @GetMapping("/")
-    public String verPaginaDeInicio(Model model) { // 2. Añadimos 'Model' para poder pasar datos
+    public String verPaginaDeInicio(Model model) {
 
-        // 3. Obtenemos las categorías y las añadimos al modelo
-        // Esto le da a Thymeleaf la variable "categorias" que necesita
-        model.addAttribute("categorias", productoService.listarCategorias());
+        // 1. Obtenemos los productos destacados y los añadimos al modelo
+        // Esto hace que la variable "productosDestacados" esté disponible para tu plantilla Thymeleaf.
+        model.addAttribute("productosDestacados", productoService.obtenerProductosRecientes(4));
 
-        return "index"; // 4. Devolvemos el nombre de la plantilla
+        // 2. Obtenemos todas las categorías y las añadimos al modelo
+        // Esto hace que la variable "categorias" esté disponible para tu plantilla Thymeleaf.
+        model.addAttribute("categorias", categoriaService.listarTodas());
+
+        return "index"; // Devuelve el nombre de tu archivo de plantilla: "index.html"
     }
 }

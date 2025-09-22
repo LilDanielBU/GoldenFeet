@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param; // <-- Importación nece
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Collection;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
@@ -14,6 +15,9 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @Query("SELECT p FROM Producto p JOIN FETCH p.categoria")
     @Override
     List<Producto> findAll();
+
+    @Query("SELECT p FROM Producto p ORDER BY p.id DESC")
+    List<Producto> findProductosRecientes(Pageable pageable);
 
 
     List<Producto> findByCategoria_Nombre(String nombreCategoria);

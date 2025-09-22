@@ -11,4 +11,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     List<Usuario> findByRoles_Nombre(String nombreRol);
 
+
 }

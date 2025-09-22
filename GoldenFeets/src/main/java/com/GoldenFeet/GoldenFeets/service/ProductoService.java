@@ -23,4 +23,5 @@ public interface ProductoService {
     List<ProductoDTO> filtrarProductos(String categoria, Double precioMax, List<String> marcas);
     List<String> listarMarcasDistintas();
     List<ProductoDTO> listarPorIds(List<Long> ids);
+    List<ProductoDTO> obtenerProductosRecientes(int limit);
 }

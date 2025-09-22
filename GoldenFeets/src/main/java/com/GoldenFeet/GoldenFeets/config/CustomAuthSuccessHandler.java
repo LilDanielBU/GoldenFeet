@@ -31,7 +31,7 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
 
         // Lógica de redirección con prioridad
         if (isAdmin) {
-            response.sendRedirect("/admin/usuarios");
+            response.sendRedirect("/admin/panel");
         } else if (isGerente) {
             response.sendRedirect("/gerente-entregas/dashboard");
         } else if (isDistribuidor) {
