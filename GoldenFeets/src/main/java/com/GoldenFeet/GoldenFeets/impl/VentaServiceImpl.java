@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -37,11 +38,9 @@ public class VentaServiceImpl implements VentaService {
         nuevaVenta.setFechaVenta(LocalDate.now());
         nuevaVenta.setEstado("COMPLETADA");
 
-        // --- ¡NUEVO! Guardamos los datos de envío y pago en la entidad ---
         nuevaVenta.setDireccionEnvio(request.direccion());
         nuevaVenta.setCiudadEnvio(request.ciudad() + ", " + request.departamento());
         nuevaVenta.setMetodoPago(request.metodoPago());
-        // --- FIN DE LA SECCIÓN NUEVA ---
 
         Set<DetalleVenta> detalles = new HashSet<>();
         BigDecimal totalVenta = BigDecimal.ZERO;
@@ -79,6 +78,55 @@ public class VentaServiceImpl implements VentaService {
                 .map(this::convertirAVentaResponseDTO)
                 .collect(Collectors.toList());
     }
+
+    // --- Métodos adicionales para el AdminController ---
+
+    /**
+     * Obtiene todas las ventas.
+     */
+    @Override
+    public List<Venta> obtenerTodasLasVentas() {
+        return ventaRepository.findAll();
+    }
+
+    /**
+     * Obtiene las ventas en un período de tiempo.
+     */
+    @Override
+    public List<Venta> obtenerVentasPorPeriodo(LocalDate fechaInicio, LocalDate fechaFin) {
+        return ventaRepository.findByFechaVentaBetween(fechaInicio, fechaFin);
+    }
+
+    /**
+     * Obtiene una venta por su ID.
+     */
+    @Override
+    public Venta obtenerVentaPorId(Long id) {
+        return ventaRepository.findById(id).orElse(null);
+    }
+
+    /**
+     * Guarda o actualiza una venta.
+     */
+    @Override
+    @Transactional
+    public Venta guardarVenta(Venta venta) {
+        return ventaRepository.save(venta);
+    }
+
+    /**
+     * Elimina una venta por su ID.
+     */
+    @Override
+    @Transactional
+    public void eliminarVenta(Long id) {
+        if (!ventaRepository.existsById(id)) {
+            throw new EntityNotFoundException("Venta no encontrada con ID: " + id);
+        }
+        ventaRepository.deleteById(id);
+    }
+
+    // --- Método de conversión para uso interno ---
 
     private VentaResponseDTO convertirAVentaResponseDTO(Venta venta) {
         List<DetalleVentaDTO> detallesDTO = venta.getDetallesVenta().stream()

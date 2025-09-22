@@ -8,5 +8,6 @@ public record UsuarioResponseDTO(
         String email,
         String telefono,
         String direccion,
-        Set<String> roles // Devolvemos solo los nombres de los roles
+        boolean activo, // ¡Campo agregado!
+        Set<String> roles
 ) {}
