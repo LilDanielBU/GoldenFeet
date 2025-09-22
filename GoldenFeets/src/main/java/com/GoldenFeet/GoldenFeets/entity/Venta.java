@@ -8,15 +8,13 @@ import lombok.EqualsAndHashCode;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List; // <-- Cambiado de Set a List
 
-// --- ¡CORRECCIÓN CLAVE! ---
-// Eliminamos @Data y usamos anotaciones específicas
 @Getter
 @Setter
-@ToString(exclude = "detallesVenta") // Excluir para evitar bucle en logs
-@EqualsAndHashCode(exclude = "detallesVenta") // Excluir para evitar bucle en comparaciones
+@ToString(exclude = "detallesVenta")
+@EqualsAndHashCode(exclude = "detallesVenta")
 @Entity
 @Table(name = "ventas")
 public class Venta {
@@ -30,15 +28,25 @@ public class Venta {
     private BigDecimal total;
     private String estado;
 
-    @ManyToOne(fetch = FetchType.LAZY) // LAZY es mejor para el rendimiento
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id", nullable = false)
     private Usuario cliente;
 
+    // --- CORRECCIÓN CLAVE: Se cambia Set por List ---
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<DetalleVenta> detallesVenta = new HashSet<>();
+    private List<DetalleVenta> detallesVenta = new ArrayList<>();
 
     private String direccionEnvio;
     private String ciudadEnvio;
-    private String metodoPago; // Ej: "TARJETA_CREDITO", "PAYPAL"
-    private String idTransaccion; // Para guardar el ID de la pasarela de pago
+    private String metodoPago;
+    private String idTransaccion;
+
+    // --- GETTER Y SETTER CORREGIDOS PARA USAR LIST ---
+    public List<DetalleVenta> getDetallesVenta() {
+        return detallesVenta;
+    }
+
+    public void setDetallesVenta(List<DetalleVenta> detallesVenta) {
+        this.detallesVenta = detallesVenta;
+    }
 }

@@ -71,7 +71,7 @@ public class PedidoServiceImpl implements PedidoService {
             // productoRepository.save(producto);
         }
 
-        nuevaVenta.setDetallesVenta(detalles);
+        nuevaVenta.setDetallesVenta((List<DetalleVenta>) detalles);
         nuevaVenta.setTotal(totalPedido);
 
         // Guarda la Venta y sus Detalles en la base de datos
