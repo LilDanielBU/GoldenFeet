@@ -3,18 +3,21 @@ package com.GoldenFeet.GoldenFeets.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "entrega") // <-- CORRECCIÓN: Cambiado a singular
+@Table(name = "entrega")
 public class Entrega {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_entrega")
-    private Long idEntrega;
+    private Long idEntrega; // <-- CORRECCIÓN: El campo se llama idEntrega
 
-    // CORRECCIÓN: Mapeado a la columna 'fecha_entrega' de tu tabla
+    @Column(name = "fecha_creacion", nullable = false)
+    private LocalDateTime fechaCreacion;
+
     @Column(name = "fecha_entrega")
     private LocalDate fechaEntrega;
 
@@ -27,7 +30,7 @@ public class Entrega {
     @Column(columnDefinition = "TEXT")
     private String motivoRechazo;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_venta", nullable = false, unique = true)
     private Venta venta;
 
