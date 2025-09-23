@@ -37,6 +37,7 @@ public class AdminController {
 
     @GetMapping("/panel")
     public String mostrarPanel(Model model) {
+        // ... (tu método existente, sin cambios)
         List<VentaResponseDTO> todasLasVentas = ventaService.findAllVentas();
         List<Usuario> todosLosUsuarios = usuarioService.obtenerTodosLosUsuarios();
         List<Usuario> clientes = todosLosUsuarios.stream()
@@ -67,6 +68,7 @@ public class AdminController {
 
     @GetMapping("/usuarios")
     public String mostrarUsuarios(Model model) {
+        // ... (tu método existente, sin cambios)
         List<Usuario> listaUsuarios = usuarioService.obtenerTodosLosUsuarios();
         model.addAttribute("usuarios", listaUsuarios);
         model.addAttribute("nuevoUsuario", new UsuarioFormDTO());
@@ -75,9 +77,9 @@ public class AdminController {
         return "admin-usuarios";
     }
 
-    // --- MÉTODO NUEVO PARA MOSTRAR EL FORMULARIO DE EDICIÓN ---
     @GetMapping("/usuarios/editar/{id}")
     public String mostrarFormularioEditar(@PathVariable Integer id, Model model) {
+        // ... (tu método existente, sin cambios)
         Usuario usuario = usuarioService.obtenerUsuarioPorId(id);
         List<Rol> rolesTodos = rolService.listarTodosLosRoles();
 
@@ -96,9 +98,9 @@ public class AdminController {
         return "admin-usuario-edit";
     }
 
-    // --- MÉTODO NUEVO PARA PROCESAR LA ACTUALIZACIÓN ---
     @PostMapping("/usuarios/actualizar")
     public String actualizarUsuario(AdminUsuarioUpdateDTO usuarioDto, RedirectAttributes redirectAttributes) {
+        // ... (tu método existente, sin cambios)
         try {
             usuarioService.actualizarUsuarioAdmin(usuarioDto);
             redirectAttributes.addFlashAttribute("successMessage", "Usuario actualizado correctamente.");
@@ -109,17 +111,17 @@ public class AdminController {
     }
     @PostMapping("/usuarios/guardar")
     public String guardarNuevoUsuario(@ModelAttribute("nuevoUsuario") UsuarioFormDTO usuarioDto, RedirectAttributes redirectAttributes) {
+        // ... (tu método existente, sin cambios)
         try {
-            // Convert the form DTO to the registration DTO your service expects
             Set<Integer> rolesIdSet = (usuarioDto.getRolesId() != null) ? new HashSet<>(usuarioDto.getRolesId()) : Set.of();
 
             UsuarioRegistroDTO registroDTO = new UsuarioRegistroDTO(
                     usuarioDto.getNombre(),
                     usuarioDto.getEmail(),
                     usuarioDto.getDireccion(),
-                    null, // fecha_nacimiento is not in the form
-                    "N/A", // tipo_documento is not in the form
-                    "N/A", // numero_documento is not in the form
+                    null,
+                    "N/A",
+                    "N/A",
                     usuarioDto.getTelefono(),
                     usuarioDto.getPassword(),
                     rolesIdSet
@@ -131,7 +133,19 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("errorMessage", "Error al crear el usuario: " + e.getMessage());
         }
 
-        // Redirect back to the user list page after saving
+        return "redirect:/admin/usuarios";
+    }
+
+    // --- MÉTODO NUEVO PARA ELIMINAR ---
+    @PostMapping("/usuarios/eliminar/{id}")
+    public String eliminarUsuario(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+        try {
+            usuarioService.eliminarUsuario(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Usuario eliminado correctamente.");
+        } catch (Exception e) {
+            // Captura cualquier excepción, incluyendo las de clave foránea, y muestra un mensaje amigable
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar el usuario. Es posible que esté asociado a ventas u otros registros.");
+        }
         return "redirect:/admin/usuarios";
     }
 }

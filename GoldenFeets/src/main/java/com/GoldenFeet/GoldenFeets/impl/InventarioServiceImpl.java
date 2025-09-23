@@ -21,7 +21,7 @@ public class InventarioServiceImpl implements InventarioService {
     private InventarioRepository inventarioRepository;
 
     @Autowired
-    private ProductoRepository productoRepository; // Necesario para crear nuevas entradas de inventario
+    private ProductoRepository productoRepository;
 
     @Override
     public List<Inventario> findAllInventarios() {
@@ -47,14 +47,16 @@ public class InventarioServiceImpl implements InventarioService {
     }
 
     @Override
-    public Optional<Inventario> findByProductoId(Long productoId) {
-        return inventarioRepository.findByProductoId(productoId);
+    public Optional<Inventario> findByProductoId(Integer productoId) { // <-- CORRECCIÓN: Parámetro ahora es Integer
+        // --- CORRECCIÓN: Se llama al método correcto del repositorio ---
+        return inventarioRepository.findByProducto_Id(productoId);
     }
 
     @Override
     @Transactional
-    public Inventario actualizarStock(Long productoId, int cantidad, String operacion) {
-        Inventario inventario = inventarioRepository.findByProductoId(productoId)
+    public Inventario actualizarStock(Integer productoId, int cantidad, String operacion) { // <-- CORRECCIÓN: Parámetro ahora es Integer
+        // --- CORRECCIÓN: Se llama al método correcto del repositorio ---
+        Inventario inventario = inventarioRepository.findByProducto_Id(productoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Inventario no encontrado para el producto ID: " + productoId));
 
         if ("sumar".equalsIgnoreCase(operacion)) {
@@ -64,13 +66,14 @@ public class InventarioServiceImpl implements InventarioService {
         } else {
             throw new IllegalArgumentException("Operación de stock inválida: " + operacion);
         }
-        return saveInventario(inventario); // Guarda el inventario actualizado
+        return saveInventario(inventario);
     }
 
     @Override
     @Transactional
     public Inventario crearInventarioInicial(Producto producto, int stockInicial) {
-        if (inventarioRepository.findByProductoId(Long.valueOf(producto.getId())).isPresent()) {
+        // --- CORRECCIÓN: Se llama al método correcto y se pasa el ID (Integer) directamente ---
+        if (inventarioRepository.findByProducto_Id(producto.getId()).isPresent()) {
             throw new IllegalArgumentException("Ya existe una entrada de inventario para el producto: " + producto.getNombre());
         }
         Inventario nuevoInventario = new Inventario(producto, stockInicial);

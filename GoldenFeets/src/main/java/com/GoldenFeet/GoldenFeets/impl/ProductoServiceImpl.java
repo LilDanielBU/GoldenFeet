@@ -7,6 +7,8 @@ import com.GoldenFeet.GoldenFeets.dto.ProductoUpdateDTO;
 import com.GoldenFeet.GoldenFeets.entity.Categoria;
 import com.GoldenFeet.GoldenFeets.entity.Producto;
 import com.GoldenFeet.GoldenFeets.repository.CategoriaRepository;
+import com.GoldenFeet.GoldenFeets.repository.DetalleVentaRepository;
+import com.GoldenFeet.GoldenFeets.repository.InventarioRepository;
 import com.GoldenFeet.GoldenFeets.repository.ProductoRepository;
 import com.GoldenFeet.GoldenFeets.service.ProductoService;
 import jakarta.persistence.EntityNotFoundException;
@@ -27,8 +29,9 @@ public class ProductoServiceImpl implements ProductoService {
 
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
+    private final DetalleVentaRepository detalleVentaRepository;
+    private final InventarioRepository inventarioRepository;
 
-    // ... (todos tus otros métodos públicos no necesitan cambios)
     @Override
     public List<ProductoDTO> listarTodos() {
         return productoRepository.findAll().stream().map(this::convertirAProductoDTO).collect(Collectors.toList());
@@ -71,7 +74,6 @@ public class ProductoServiceImpl implements ProductoService {
                 .map(this::convertirAProductoDTO)
                 .collect(Collectors.toList());
     }
-
     @Override
     public List<ProductoDTO> obtenerProductosRecientes(int cantidad) {
         Pageable pageable = PageRequest.of(0, cantidad, Sort.by("id").descending());
@@ -145,17 +147,18 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
+    @Transactional
     public void eliminarProducto(Integer id) {
         Long productoId = Long.valueOf(id);
         if (!productoRepository.existsById(productoId)) {
             throw new EntityNotFoundException("Producto no encontrado con ID: " + id);
         }
+        detalleVentaRepository.deleteByProducto_Id(id);
+        inventarioRepository.deleteByProducto_Id(id);
         productoRepository.deleteById(productoId);
     }
 
-    // --- MÉTODO PRIVADO CORREGIDO ---
     private ProductoDTO convertirAProductoDTO(Producto producto) {
-        // CORRECCIÓN: La variable ahora es Integer para coincidir con la entidad y el DTO
         Integer categoriaId = (producto.getCategoria() != null) ? producto.getCategoria().getIdCategoria() : null;
         String nombreCategoria = (producto.getCategoria() != null) ? producto.getCategoria().getNombre() : "Sin Categoría";
         int stock = producto.getStock() != null ? producto.getStock() : 0;
@@ -169,7 +172,7 @@ public class ProductoServiceImpl implements ProductoService {
                 stock,
                 producto.getImagenUrl(),
                 producto.getMarca(),
-                categoriaId, // Ahora los tipos coinciden
+                categoriaId,
                 nombreCategoria,
                 producto.getDestacado(),
                 producto.getRating()
