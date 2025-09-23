@@ -24,7 +24,6 @@ public class CarritoController {
 
     @GetMapping("/carrito")
     public String verCarrito(HttpSession session, Model model) {
-        // --- CORRECCIÓN: El mapa del carrito usa Integer como clave ---
         @SuppressWarnings("unchecked")
         Map<Integer, Integer> carritoMap = (Map<Integer, Integer>) session.getAttribute("carrito");
 
@@ -32,24 +31,21 @@ public class CarritoController {
         BigDecimal subtotal = BigDecimal.ZERO;
 
         if (carritoMap != null && !carritoMap.isEmpty()) {
-            // 1. Obtenemos los IDs como una lista de Integer.
             List<Integer> productoIds = new ArrayList<>(carritoMap.keySet());
-
-            // 2. Esta llamada ahora es correcta porque el parámetro es List<Integer>.
             List<ProductoDTO> productosEncontrados = productoService.listarPorIds(productoIds);
 
-            // 3. El mapa de productos ahora usa Integer como clave.
+            // --- CORRECCIÓN 1: Usar el método getter getId() ---
             Map<Integer, ProductoDTO> productosMap = productosEncontrados.stream()
-                    .collect(Collectors.toMap(ProductoDTO::id, Function.identity()));
+                    .collect(Collectors.toMap(ProductoDTO::getId, Function.identity()));
 
-            // 4. Recorremos el carrito original.
             for (Map.Entry<Integer, Integer> entry : carritoMap.entrySet()) {
-                Integer productoId = entry.getKey(); // El tipo de la clave es Integer
+                Integer productoId = entry.getKey();
                 Integer cantidad = entry.getValue();
                 ProductoDTO producto = productosMap.get(productoId);
 
                 if (producto != null) {
-                    BigDecimal precioItem = producto.precio().multiply(new BigDecimal(cantidad));
+                    // --- CORRECCIÓN 2: Usar el método getter getPrecio() ---
+                    BigDecimal precioItem = producto.getPrecio().multiply(new BigDecimal(cantidad));
                     itemsDelCarrito.add(new CarritoItemDTO(producto, cantidad, precioItem));
                     subtotal = subtotal.add(precioItem);
                 }

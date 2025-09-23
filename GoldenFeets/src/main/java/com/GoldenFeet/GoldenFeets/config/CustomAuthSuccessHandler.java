@@ -17,10 +17,15 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
 
+        // Se obtienen todos los roles para mayor claridad
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
-        boolean isGerente = authentication.getAuthorities().stream()
+        // --- NUEVA LÓGICA AÑADIDA ---
+        boolean isGerenteInventario = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_GERENTEINVENTARIO"));
+
+        boolean isGerenteEntregas = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_GERENTEENTREGAS"));
 
         boolean isDistribuidor = authentication.getAuthorities().stream()
@@ -29,13 +34,15 @@ public class CustomAuthSuccessHandler implements AuthenticationSuccessHandler {
         boolean isCliente = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_CLIENTE"));
 
-        // Lógica de redirección con prioridad
+        // Lógica de redirección con la nueva prioridad
         if (isAdmin) {
-            // --- CORRECCIÓN AQUÍ ---
-            // Se cambia el destino para el rol de administrador
             response.sendRedirect("/admin/usuarios");
 
-        } else if (isGerente) {
+            // --- NUEVA REDIRECCIÓN AÑADIDA ---
+        } else if (isGerenteInventario) {
+            response.sendRedirect("/inventario/panel");
+
+        } else if (isGerenteEntregas) {
             response.sendRedirect("/gerente-entregas/dashboard");
         } else if (isDistribuidor) {
             response.sendRedirect("/distribuidor/dashboard");

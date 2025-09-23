@@ -17,7 +17,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
-    private final CustomAuthSuccessHandler customAuthSuccessHandler; // El nombre de tu clase es CustomAuthSuccessHandler
+    private final CustomAuthSuccessHandler customAuthSuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -26,13 +26,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/index", "/login", "/register", "/catalogo",
-                                "/css/**", "/js/**", "/images/**", "/api/**" // Corregido /img/ a /images/ si es necesario
+                                "/css/**", "/js/**", "/images/**", "/api/**"
                         ).permitAll()
 
-                        // --- RUTAS CORREGIDAS ---
-                        // 1. La URL ahora es "/admin/**" para que coincida con tu AdminController.
-                        // 2. Usamos hasRole("ADMIN") que es la convención (automáticamente busca "ROLE_ADMIN").
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                        // --- LÍNEA AÑADIDA ---
+                        // Asegura que solo el gerente de inventario acceda a su panel.
+                        .requestMatchers("/inventario/**").hasRole("GERENTEINVENTARIO")
+
                         .requestMatchers("/gerente-entregas/**").hasRole("GERENTEENTREGAS")
                         .requestMatchers("/distribuidor/**").hasRole("DISTRIBUIDOR")
 
@@ -43,7 +45,7 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .successHandler(customAuthSuccessHandler) // Tu manejador se llama CustomAuthSuccessHandler
+                        .successHandler(customAuthSuccessHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout

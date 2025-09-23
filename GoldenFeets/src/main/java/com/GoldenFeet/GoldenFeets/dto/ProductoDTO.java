@@ -1,18 +1,28 @@
 package com.GoldenFeet.GoldenFeets.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
-// Se asume que es un 'record', si es una clase, ajusta el tipo del campo y el getter.
-public record ProductoDTO(
-        Integer id, // <-- CORRECCIÓN: Cambiado de Long a Integer
-        String nombre,
-        String descripcion,
-        BigDecimal precio,
-        BigDecimal originalPrice,
-        int stock,
-        String imagenUrl,
-        String nombreCategoria,
-        Boolean destacado,
-        Float rating
-) {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProductoDTO {
+
+    private Integer id;
+    private String nombre;
+    private String descripcion;
+    private BigDecimal precio;
+    private BigDecimal originalPrice;
+    private int stock;
+    private String imagenUrl;
+    private String marca;
+
+    // --- CORRECCIÓN ---
+    private Integer categoriaId;    // Cambiado de Long a Integer
+    private String categoriaNombre;
+
+    private Boolean destacado;
+    private Float rating;
 }
