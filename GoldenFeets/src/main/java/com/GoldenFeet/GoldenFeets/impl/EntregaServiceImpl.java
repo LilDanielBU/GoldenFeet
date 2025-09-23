@@ -6,6 +6,7 @@ import com.GoldenFeet.GoldenFeets.entity.Entrega;
 import com.GoldenFeet.GoldenFeets.entity.Usuario;
 import com.GoldenFeet.GoldenFeets.repository.EntregaRepository;
 import com.GoldenFeet.GoldenFeets.repository.UsuarioRepository;
+import com.GoldenFeet.GoldenFeets.service.EmailService;
 import com.GoldenFeet.GoldenFeets.service.EntregaService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class EntregaServiceImpl implements EntregaService {
 
     private final EntregaRepository entregaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -115,7 +117,17 @@ public class EntregaServiceImpl implements EntregaService {
     public void actualizarEstado(Long entregaId, String nuevoEstado) {
         Entrega entrega = entregaRepository.findById(entregaId)
                 .orElseThrow(() -> new EntityNotFoundException("Entrega no encontrada con ID: " + entregaId));
+
         entrega.setEstado(nuevoEstado);
-        entregaRepository.save(entrega);
+
+        if ("ENTREGADO".equals(nuevoEstado)) {
+            entrega.setFechaEntrega(LocalDate.now());
+        }
+
+        Entrega entregaGuardada = entregaRepository.save(entrega);
+
+        if ("ENTREGADO".equals(nuevoEstado)) {
+            emailService.enviarCorreoDeEntregaCompletada(entregaGuardada);
+        }
     }
 }

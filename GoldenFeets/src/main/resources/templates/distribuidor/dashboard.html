@@ -152,7 +152,7 @@
                                 </span>
                         </td>
                         <td>
-                            <a th:href="@{/gerente-entregas/detalle/{id}(id=${entrega.idEntrega})}" class="btn btn-sm btn-success" title="Ver Detalles">
+                            <a th:href="@{/distribuidor/detalle/{id}(id=${entrega.idEntrega})}" class="btn btn-sm btn-success" title="Ver Detalles">
                                 <i class="fas fa-eye"></i>
                             </a>
                             <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalCambiarEstado"
@@ -193,6 +193,7 @@
         </div>
     </div>
 </div>
+
 <div class="modal fade" id="modalCancelar" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -224,6 +225,7 @@
                 modalCambiarEstado.querySelector('#entregaIdLabelEstado').textContent = '#' + entregaId;
             });
         }
+
         const modalCancelar = document.getElementById('modalCancelar');
         if (modalCancelar) {
             modalCancelar.addEventListener('show.bs.modal', function (event) {
