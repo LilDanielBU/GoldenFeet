@@ -2,16 +2,17 @@ package com.GoldenFeet.GoldenFeets.dto;
 
 import java.math.BigDecimal;
 
-// Usamos 'record' que es una forma moderna y concisa de crear DTOs en Java
+// Se asume que es un 'record', si es una clase, ajusta el tipo del campo y el getter.
 public record ProductoDTO(
-        Long id,
+        Integer id, // <-- CORRECCIÓN: Cambiado de Long a Integer
         String nombre,
         String descripcion,
         BigDecimal precio,
-        BigDecimal originalPrice, // <-- Campo que faltaba
+        BigDecimal originalPrice,
         int stock,
         String imagenUrl,
         String nombreCategoria,
-        boolean destacado, // <-- Campo que faltaba (en lugar de 'descuento')
-        double rating      // <-- Campo que faltaba
-) {}
+        Boolean destacado,
+        Float rating
+) {
+}

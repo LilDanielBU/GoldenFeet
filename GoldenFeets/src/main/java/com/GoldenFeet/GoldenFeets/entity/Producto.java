@@ -11,9 +11,12 @@ import java.math.BigDecimal;
 @Table(name = "productos")
 public class Producto {
 
+    // --- CORRECCIÓN CLAVE AQUÍ ---
+    // Se ajusta el tipo a Integer y se añade el nombre correcto de la columna.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id_producto")
+    private Integer id;
 
     @Column(nullable = false)
     private String nombre;
@@ -30,7 +33,6 @@ public class Producto {
     @Column(name = "imagen_url")
     private String imagenUrl;
 
-    // --- CAMPOS RESTAURADOS ---
     @Column(name = "marca")
     private String marca;
 
@@ -39,7 +41,6 @@ public class Producto {
 
     @Column(name = "destacado", nullable = false)
     private Boolean destacado;
-    // --- FIN DE CAMPOS RESTAURADOS ---
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoria_id", nullable = false)
@@ -48,17 +49,16 @@ public class Producto {
     @OneToOne(mappedBy = "producto", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Inventario inventario;
 
-    // --- Constructor ---
     public Producto() {
         this.rating = 0.0f;
         this.destacado = false;
     }
 
-    // --- Método de conveniencia para obtener el Stock ---
+    // Método de conveniencia para obtener el stock desde el inventario
     @Transient
     public int getStock() {
         if (this.inventario != null) {
-            return this.inventario.getCantidad();
+            return this.inventario.getStockActual();
         }
         return 0;
     }

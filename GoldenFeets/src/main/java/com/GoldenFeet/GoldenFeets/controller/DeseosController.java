@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional; // <-- AÑADE ESTA LÍNEA
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,12 +22,16 @@ public class DeseosController {
 
     @GetMapping("/lista_deseos")
     public String verListaDeseos(HttpSession session, Model model) {
+
+        // --- CORRECCIÓN AQUÍ ---
+        // Se cambia el tipo de dato de Long a Integer para que coincida con el servicio.
         @SuppressWarnings("unchecked")
-        Set<Long> deseosIds = (Set<Long>) session.getAttribute("deseos");
+        Set<Integer> deseosIds = (Set<Integer>) session.getAttribute("deseos");
 
         if (deseosIds == null || deseosIds.isEmpty()) {
             model.addAttribute("productosDeseados", Collections.emptyList());
         } else {
+            // Esta llamada ahora funciona porque deseosIds contiene Integers.
             List<ProductoDTO> productosDeseados = deseosIds.stream()
                     .map(productoService::buscarPorId)
                     .filter(Optional::isPresent)

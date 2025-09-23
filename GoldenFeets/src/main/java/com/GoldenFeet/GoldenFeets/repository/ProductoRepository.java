@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param; // <-- Importación necesaria
 import org.springframework.stereotype.Repository;
 import java.util.List;
-import java.util.Collection;
+
 import org.springframework.data.domain.Pageable;
 
 @Repository
@@ -22,7 +22,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     List<Producto> findByCategoria_Nombre(String nombreCategoria);
     List<Producto> findByNombreContainingIgnoreCase(String nombre);
-    List<Producto> findByIdIn(Collection<Long> ids);
+    List<Producto> findByIdIn(List<Integer> ids);
 
     @Query("SELECT p FROM Producto p JOIN FETCH p.categoria WHERE p.destacado = :destacado")
     List<Producto> findByDestacado(@Param("destacado") boolean destacado);

@@ -1,8 +1,15 @@
 package com.GoldenFeet.GoldenFeets.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@ToString(exclude = "producto") // Excluir producto para evitar bucles en logs
 @Entity
 @Table(name = "inventario")
 public class Inventario {
@@ -13,7 +20,8 @@ public class Inventario {
     private Long idInventario;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_producto", referencedColumnName = "id", unique = true, nullable = false)
+    // --- CORRECCIÓN: Apuntar a la columna correcta de la tabla productos ---
+    @JoinColumn(name = "id_producto", referencedColumnName = "id_producto", unique = true, nullable = false)
     private Producto producto;
 
     @Column(name = "stock_actual", nullable = false)
@@ -32,40 +40,10 @@ public class Inventario {
         this.ultimaActualizacion = LocalDateTime.now();
     }
 
-    // Getters y Setters
-    public Long getIdInventario() {
-        return idInventario;
-    }
+    // El método getCantidad() fue eliminado porque no pertenecía a esta entidad.
+    // Los Getters y Setters ahora son generados por Lombok (@Getter y @Setter).
 
-    public void setIdInventario(Long idInventario) {
-        this.idInventario = idInventario;
-    }
-
-    public Producto getProducto() {
-        return producto;
-    }
-
-    public void setProducto(Producto producto) {
-        this.producto = producto;
-    }
-
-    public Integer getStockActual() {
-        return stockActual;
-    }
-
-    public void setStockActual(Integer stockActual) {
-        this.stockActual = stockActual;
-    }
-
-    public LocalDateTime getUltimaActualizacion() {
-        return ultimaActualizacion;
-    }
-
-    public void setUltimaActualizacion(LocalDateTime ultimaActualizacion) {
-        this.ultimaActualizacion = ultimaActualizacion;
-    }
-
-    // Métodos para facilitar la gestión del stock
+    // --- LÓGICA DE STOCK (YA ERA CORRECTA) ---
     public void reducirStock(int cantidad) {
         if (this.stockActual < cantidad) {
             throw new IllegalArgumentException("No hay suficiente stock para el producto " + producto.getNombre());
@@ -77,19 +55,5 @@ public class Inventario {
     public void aumentarStock(int cantidad) {
         this.stockActual += cantidad;
         this.ultimaActualizacion = LocalDateTime.now();
-    }
-
-    @Override
-    public String toString() {
-        return "Inventario{" +
-                "idInventario=" + idInventario +
-                ", producto=" + (producto != null ? producto.getNombre() : "N/A") +
-                ", stockActual=" + stockActual +
-                ", ultimaActualizacion=" + ultimaActualizacion +
-                '}';
-    }
-
-    public int getCantidad() {
-        return 0;
     }
 }

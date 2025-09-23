@@ -2,7 +2,7 @@ package com.GoldenFeet.GoldenFeets.entity;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import com.fasterxml.jackson.annotation.JsonBackReference; // Si usas para evitar recursión en JSON
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "detalles_venta")
@@ -15,18 +15,20 @@ public class DetalleVenta {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venta_id", nullable = false)
-    @JsonBackReference // Evita la recursión infinita en JSON
+    @JsonBackReference
     private Venta venta;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_producto", nullable = false)
+    // --- CORRECCIÓN AQUÍ ---
+    // Se añade 'referencedColumnName' para que apunte a la columna correcta en 'productos'
+    @JoinColumn(name = "id_producto", referencedColumnName = "id_producto", nullable = false)
     private Producto producto;
 
     @Column(name = "cantidad", nullable = false)
     private Integer cantidad;
 
     @Column(name = "precio_unitario")
-    private BigDecimal precioUnitario; // Precio del producto en el momento de la venta
+    private BigDecimal precioUnitario;
 
     @Column(name = "subtotal")
     private BigDecimal subtotal;
@@ -43,60 +45,25 @@ public class DetalleVenta {
         this.subtotal = precioUnitario.multiply(new BigDecimal(cantidad));
     }
 
-    // Getters y Setters
-    public Long getIdDetalle() {
-        return idDetalle;
-    }
-
-    public void setIdDetalle(Long idDetalle) {
-        this.idDetalle = idDetalle;
-    }
-
-    public Venta getVenta() {
-        return venta;
-    }
-
-    public void setVenta(Venta venta) {
-        this.venta = venta;
-    }
-
-    public Producto getProducto() {
-        return producto;
-    }
-
-    public void setProducto(Producto producto) {
-        this.producto = producto;
-    }
-
-    public Integer getCantidad() {
-        return cantidad;
-    }
-
+    // Getters y Setters...
+    public Long getIdDetalle() { return idDetalle; }
+    public void setIdDetalle(Long idDetalle) { this.idDetalle = idDetalle; }
+    public Venta getVenta() { return venta; }
+    public void setVenta(Venta venta) { this.venta = venta; }
+    public Producto getProducto() { return producto; }
+    public void setProducto(Producto producto) { this.producto = producto; }
+    public Integer getCantidad() { return cantidad; }
     public void setCantidad(Integer cantidad) {
         this.cantidad = cantidad;
-        if (this.precioUnitario != null) {
-            this.subtotal = this.precioUnitario.multiply(new BigDecimal(cantidad));
-        }
+        if (this.precioUnitario != null) { this.subtotal = this.precioUnitario.multiply(new BigDecimal(cantidad)); }
     }
-
-    public BigDecimal getPrecioUnitario() {
-        return precioUnitario;
-    }
-
+    public BigDecimal getPrecioUnitario() { return precioUnitario; }
     public void setPrecioUnitario(BigDecimal precioUnitario) {
         this.precioUnitario = precioUnitario;
-        if (this.cantidad != null) {
-            this.subtotal = precioUnitario.multiply(new BigDecimal(cantidad));
-        }
+        if (this.cantidad != null) { this.subtotal = precioUnitario.multiply(new BigDecimal(cantidad)); }
     }
-
-    public BigDecimal getSubtotal() {
-        return subtotal;
-    }
-
-    public void setSubtotal(BigDecimal subtotal) {
-        this.subtotal = subtotal;
-    }
+    public BigDecimal getSubtotal() { return subtotal; }
+    public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
 
     @Override
     public String toString() {
@@ -104,8 +71,6 @@ public class DetalleVenta {
                 "idDetalle=" + idDetalle +
                 ", producto=" + (producto != null ? producto.getNombre() : "N/A") +
                 ", cantidad=" + cantidad +
-                ", precioUnitario=" + precioUnitario +
-                ", subtotal=" + subtotal +
                 '}';
     }
 }

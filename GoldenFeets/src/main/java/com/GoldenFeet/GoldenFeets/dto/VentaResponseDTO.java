@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 /**
  * DTO para la respuesta, mostrando los detalles de la venta creada.
- * Convertido a una clase inmutable para resolver el error de contexto estático.
  */
 public final class VentaResponseDTO {
     private final Long idVenta;
@@ -30,7 +29,7 @@ public final class VentaResponseDTO {
     }
 
     /**
-     * Constructor estático (factory method) para mapear desde la entidad Venta.
+     * Factory method para mapear desde la entidad Venta.
      */
     public static VentaResponseDTO fromEntity(Venta venta) {
         List<DetalleVentaResponseDTO> detallesDto = venta.getDetallesVenta().stream()
@@ -60,13 +59,14 @@ public final class VentaResponseDTO {
  * DTO para cada detalle en la respuesta.
  */
 final class DetalleVentaResponseDTO {
-    private final Long productoId;
+    // --- CORRECCIÓN AQUÍ ---
+    private final Integer productoId; // Cambiado de Long a Integer
     private final String nombreProducto;
     private final int cantidad;
     private final BigDecimal precioUnitario;
     private final BigDecimal subtotal;
 
-    public DetalleVentaResponseDTO(Long productoId, String nombreProducto, int cantidad, BigDecimal precioUnitario, BigDecimal subtotal) {
+    public DetalleVentaResponseDTO(Integer productoId, String nombreProducto, int cantidad, BigDecimal precioUnitario, BigDecimal subtotal) {
         this.productoId = productoId;
         this.nombreProducto = nombreProducto;
         this.cantidad = cantidad;
@@ -75,7 +75,7 @@ final class DetalleVentaResponseDTO {
     }
 
     /**
-     * Constructor estático (factory method) para mapear desde la entidad DetalleVenta.
+     * Factory method para mapear desde la entidad DetalleVenta.
      */
     public static DetalleVentaResponseDTO fromEntity(DetalleVenta detalle) {
         return new DetalleVentaResponseDTO(
@@ -88,7 +88,7 @@ final class DetalleVentaResponseDTO {
     }
 
     // Getters
-    public Long getProductoId() { return productoId; }
+    public Integer getProductoId() { return productoId; } // Tipo de retorno también cambiado
     public String getNombreProducto() { return nombreProducto; }
     public int getCantidad() { return cantidad; }
     public BigDecimal getPrecioUnitario() { return precioUnitario; }

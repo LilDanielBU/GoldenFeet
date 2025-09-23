@@ -31,17 +31,17 @@ public class ProductoServiceImpl implements ProductoService {
                 .collect(Collectors.toList());
     }
 
+    // --- CORRECCIÓN: Parámetro cambiado a Integer ---
     @Override
-    public Optional<ProductoDTO> buscarPorId(Long id) {
-        return productoRepository.findById(id)
+    public Optional<ProductoDTO> buscarPorId(Integer id) {
+        return productoRepository.findById(Long.valueOf(id))
                 .map(this::convertirAProductoDTO);
     }
 
-    // --- MÉTODO CORREGIDO ---
     @Override
     public List<CategoriaDTO> listarCategorias() {
         return categoriaRepository.findAll().stream()
-                .map(categoria -> new CategoriaDTO( // La lógica de conversión se mueve aquí
+                .map(categoria -> new CategoriaDTO(
                         categoria.getIdCategoria(),
                         categoria.getNombre(),
                         categoria.getDescripcion(),
@@ -84,8 +84,9 @@ public class ProductoServiceImpl implements ProductoService {
         return productoRepository.findDistinctMarcas();
     }
 
+    // --- CORRECCIÓN: Parámetro cambiado a List<Integer> ---
     @Override
-    public List<ProductoDTO> listarPorIds(List<Long> ids) {
+    public List<ProductoDTO> listarPorIds(List<Integer> ids) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
@@ -103,12 +104,11 @@ public class ProductoServiceImpl implements ProductoService {
                 .collect(Collectors.toList());
     }
 
-    // --- MÉTODOS PRIVADOS DE CONVERSIÓN ---
-
     private ProductoDTO convertirAProductoDTO(Producto producto) {
         String nombreCategoria = (producto.getCategoria() != null) ? producto.getCategoria().getNombre() : "Sin Categoría";
         int stock = (producto.getInventario() != null) ? producto.getInventario().getStockActual() : 0;
 
+        // Esta llamada ahora es correcta porque los tipos coinciden (Integer)
         return new ProductoDTO(
                 producto.getId(),
                 producto.getNombre(),
@@ -122,6 +122,4 @@ public class ProductoServiceImpl implements ProductoService {
                 producto.getRating()
         );
     }
-
-    // El método "convertirACategoriaDTO" se ha eliminado porque su lógica se movió a "listarCategorias".
 }

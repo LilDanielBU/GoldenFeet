@@ -2,7 +2,6 @@ package com.GoldenFeet.GoldenFeets.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 
 @Data
@@ -15,7 +14,7 @@ public class CarritoItem {
     private Integer id;
 
     @Column(name = "session_id", nullable = false)
-    private String sessionId; // O el ID del usuario si ha iniciado sesión
+    private String sessionId;
 
     @Column(name = "cantidad", nullable = false)
     private int cantidad;
@@ -23,14 +22,13 @@ public class CarritoItem {
     @Column(name = "fecha_agregado")
     private LocalDateTime fechaAgregado;
 
-    // --- RELACIÓN CORREGIDA Y MEJORADA ---
-    @ManyToOne(fetch = FetchType.LAZY) // Usamos LAZY para mejor rendimiento
-    @JoinColumn(name = "producto_id", referencedColumnName = "id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    // --- CORRECCIÓN AQUÍ ---
+    @JoinColumn(name = "producto_id", referencedColumnName = "id_producto", nullable = false)
     private Producto producto;
 
     @PrePersist
     protected void onAdd() {
         this.fechaAgregado = LocalDateTime.now();
     }
-
 }

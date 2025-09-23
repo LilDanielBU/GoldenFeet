@@ -70,7 +70,7 @@ public class InventarioServiceImpl implements InventarioService {
     @Override
     @Transactional
     public Inventario crearInventarioInicial(Producto producto, int stockInicial) {
-        if (inventarioRepository.findByProductoId(producto.getId()).isPresent()) {
+        if (inventarioRepository.findByProductoId(Long.valueOf(producto.getId())).isPresent()) {
             throw new IllegalArgumentException("Ya existe una entrada de inventario para el producto: " + producto.getNombre());
         }
         Inventario nuevoInventario = new Inventario(producto, stockInicial);

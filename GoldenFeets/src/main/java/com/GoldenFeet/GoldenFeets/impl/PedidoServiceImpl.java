@@ -35,7 +35,7 @@ public class PedidoServiceImpl implements PedidoService {
 
         // Busca todos los productos necesarios en una sola consulta a la BD
         List<Long> productoIds = pedidoRequest.getItems().stream().map(item -> item.getProductoId()).collect(Collectors.toList());
-        Map<Long, Producto> productosMap = productoRepository.findAllById(productoIds).stream()
+        Map<Integer, Producto> productosMap = productoRepository.findAllById(productoIds).stream()
                 .collect(Collectors.toMap(Producto::getId, Function.identity()));
 
         // Crea la entidad Venta principal

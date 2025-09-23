@@ -2,7 +2,6 @@ package com.GoldenFeet.GoldenFeets.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.math.BigDecimal;
 
 @Data
@@ -26,9 +25,7 @@ public class DetalleOrdenCompra {
     private OrdenCompra ordenCompra;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    // --- LÍNEA CORREGIDA ---
-    @JoinColumn(name = "id_producto", referencedColumnName = "id", nullable = false)
+    // --- CORRECCIÓN AQUÍ ---
+    @JoinColumn(name = "id_producto", referencedColumnName = "id_producto", nullable = false)
     private Producto producto;
-
-    // Getters y Setters...
 }

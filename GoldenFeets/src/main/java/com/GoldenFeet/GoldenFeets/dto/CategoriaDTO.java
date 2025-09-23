@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CategoriaDTO {
 
-    private Long idCategoria; // <-- CORRECCIÓN AQUÍ
+    private Integer idCategoria; // <-- Changed from Long to Integer
 
     private String nombre;
 

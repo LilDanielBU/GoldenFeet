@@ -11,7 +11,9 @@ public class Categoria {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idCategoria; // CORRECCIÓN: Cambiado de Integer a Long
+    // --- CORRECCIÓN AQUÍ ---
+    @Column(name = "id_categoria") // Es bueno ser explícito con el nombre de la columna
+    private Integer idCategoria; // Cambiado de Long a Integer
 
     private String nombre;
 
@@ -20,7 +22,6 @@ public class Categoria {
     @Column(name = "imagen_url")
     private String imagenUrl;
 
-    // Relación bidireccional: Una categoría tiene muchos productos
     @OneToMany(mappedBy = "categoria", fetch = FetchType.LAZY)
     private List<Producto> productos;
 }
