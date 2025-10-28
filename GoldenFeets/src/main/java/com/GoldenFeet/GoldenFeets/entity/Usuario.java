@@ -28,6 +28,24 @@ public class Usuario implements UserDetails {
     @Column(name = "id_usuario")
     private Integer idUsuario;
 
+    @Column(name = "departamento")
+    private String departamento;
+
+    @Column(name = "ciudad")
+    private String ciudad;
+
+    @Column(length = 100)
+    private String localidad;
+
+    @Column(length = 100)
+    private String barrio;
+
+    @Column(name = "informacion_adicional")
+    private String informacionAdicional;
+
+    @Column(name = "apellido")
+    private String apellido;
+
     @Column(nullable = false, length = 100)
     private String nombre;
 
@@ -50,7 +68,6 @@ public class Usuario implements UserDetails {
     )
     private Set<Rol> roles;
 
-    // --- Métodos de UserDetails (sin cambios) ---
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

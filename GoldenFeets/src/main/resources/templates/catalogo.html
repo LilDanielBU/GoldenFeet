@@ -372,13 +372,6 @@
                                         <span th:if="${producto.originalPrice != null and producto.originalPrice > producto.precio}" class="text-decoration-line-through text-muted me-2" th:text="'$' + ${#numbers.formatDecimal(producto.originalPrice, 1, 'POINT', 0, 'COMMA')}"></span>
                                         <span class="h5 mb-0" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 1, 'POINT', 0, 'COMMA')}"></span>
                                     </div>
-                                    <div class="product-rating" th:title="'Calificación: ' + ${producto.rating} + ' de 5'">
-                                        <th:block th:each="i : ${#numbers.sequence(1, 5)}">
-                                            <i th:if="${producto.rating >= i}" class="bi bi-star-fill text-warning"></i>
-                                            <i th:if="${producto.rating < i and producto.rating > i-1}" class="bi bi-star-half text-warning"></i>
-                                            <i th:if="${producto.rating < i-0.5}" class="bi bi-star text-warning"></i>
-                                        </th:block>
-                                    </div>
                                 </div>
                                 <div class="d-flex justify-content-between gap-2">
                                     <button th:data-product-name="${producto.nombre}"
@@ -528,13 +521,6 @@
             if (!response.ok) throw new Error('Producto no encontrado');
             const product = await response.json();
 
-            let ratingStars = '';
-            for (let i = 1; i <= 5; i++) {
-                if (product.rating >= i) ratingStars += '<i class="bi bi-star-fill text-warning"></i>';
-                else if (product.rating > i - 1) ratingStars += '<i class="bi bi-star-half text-warning"></i>';
-                else ratingStars += '<i class="bi bi-star text-warning"></i>';
-            }
-
             modalTitle.textContent = product.nombre;
             modalContent.innerHTML = `
                 <div class="row g-4">
@@ -545,7 +531,6 @@
                         <p>${product.descripcion}</p>
                         <div class="mb-3"><span class="fs-4 fw-bold text-primary">$${product.precio.toFixed(0)}</span></div>
                         <div class="mb-3"><p class="mb-1 fw-bold small text-muted">Stock: ${product.stock} unidades</p></div>
-                        <div class="mb-3"><p class="mb-0"><span class="fw-bold small text-muted">Calificación:</span> ${ratingStars}</p></div>
                         <div class="mt-auto bg-light p-3 rounded">
                             <div class="row align-items-center g-2">
                                 <div class="col-auto">
