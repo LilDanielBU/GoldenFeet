@@ -28,8 +28,9 @@ public class SecurityConfig {
                                 "/", "/index", "/login", "/register", "/catalogo","/carrito",
                                 "/css/**", "/js/**", "/images/**", "/api/**"
                         ).permitAll()
-
+                        .requestMatchers("/perfil/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+
 
                         // --- LÍNEA AÑADIDA ---
                         // Asegura que solo el gerente de inventario acceda a su panel.
