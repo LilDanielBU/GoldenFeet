@@ -15,6 +15,10 @@ public class AdminUsuarioUpdateDTO {
     private boolean activo;
     private Set<Integer> rolesId; // Usamos Set para que coincida con la lógica del controller
 
+    // --- CAMPO NUEVO AÑADIDO ---
+    private String localidad;
+    // --- FIN CAMPO NUEVO ---
+
     // Constructor vacío requerido
     public AdminUsuarioUpdateDTO() {
     }
@@ -68,4 +72,14 @@ public class AdminUsuarioUpdateDTO {
     public void setRolesId(Set<Integer> rolesId) {
         this.rolesId = rolesId;
     }
+
+    // --- GETTER Y SETTER AÑADIDOS ---
+    public String getLocalidad() {
+        return localidad;
+    }
+
+    public void setLocalidad(String localidad) {
+        this.localidad = localidad;
+    }
+    // --- FIN GETTER Y SETTER ---
 }

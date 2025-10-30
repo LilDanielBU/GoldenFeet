@@ -28,9 +28,26 @@ public interface EntregaRepository extends JpaRepository<Entrega, Long> {
                                 @Param("clienteEmail") String clienteEmail);
 
     long countByEstado(String estado);
-
-    // --- NUEVOS MÉTODOS PARA ESTADÍSTICAS DEL DISTRIBUIDOR ---
     long countByDistribuidor_IdUsuarioAndEstado(Integer idUsuario, String estado);
     long countByDistribuidor_IdUsuarioAndFechaEntrega(Integer idUsuario, LocalDate fecha);
     long countByDistribuidor_IdUsuario(Integer idUsuario);
+
+    // Método de conteo anterior (para estados activos)
+    long countByDistribuidor_IdUsuarioAndEstadoInAndFechaCreacionBetween(
+            Integer idUsuario,
+            List<String> estados,
+            LocalDateTime inicioDelDia,
+            LocalDateTime finDelDia
+    );
+
+    // --- NUEVA CONSULTA (CORRECTA) ---
+    /**
+     * Cuenta todas las entregas que fueron ASIGNADAS a un distribuidor
+     * en el rango de fechas actual (hoy).
+     */
+    long countByDistribuidor_IdUsuarioAndFechaAsignacionBetween(
+            Integer idUsuario,
+            LocalDateTime inicioDelDia,
+            LocalDateTime finDelDia
+    );
 }

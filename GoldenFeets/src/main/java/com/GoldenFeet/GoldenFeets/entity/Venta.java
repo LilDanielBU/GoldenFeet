@@ -44,19 +44,22 @@ public class Venta {
     @Column(name = "ciudad_envio")
     private String ciudadEnvio;
 
+    // --- CAMPO DE LOCALIDAD AÑADIDO ---
+    @Column(name = "localidad")
+    private String localidad;
+
     @Column(name = "metodo_pago")
     private String metodoPago;
 
     @Column(name = "id_transaccion")
     private String idTransaccion;
 
-    // --- RELACIÓN CORREGIDA Y MEJORADA ---
+    // --- CORRECCIÓN: Cambiado de Set a List ---
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonManagedReference // Evita bucles infinitos al convertir a JSON
+    @JsonManagedReference
     private List<DetalleVenta> detallesVenta = new ArrayList<>();
 
-    // --- MÉTODOS DE AYUDA (Buena práctica) ---
-    // Para mantener la relación sincronizada en ambos lados
+    // --- MÉTODOS DE AYUDA ---
     public void addDetalle(DetalleVenta detalle) {
         detallesVenta.add(detalle);
         detalle.setVenta(this);

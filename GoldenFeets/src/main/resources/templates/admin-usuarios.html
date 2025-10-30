@@ -17,11 +17,29 @@
             --card-shadow: 0 10px 20px rgba(0,0,0,0.1);
             --success-color: #198754;
             --error-color: #dc3545;
-            --role-admin: #198754;
-            --role-cliente: #0d6efd;
+
+            /* --- paleta de colores para roles --- */
+            --role-admin: #198754;       /* Verde */
+            --role-cliente: #0d6efd;     /* Azul */
+            --role-gerente_inventario: #fd7e14; /* Naranja */
+            --role-distribuidor: #0dcaf0;     /* Cian */
+            --role-gerente_entregas: #6f42c1; /* Púrpura */
+            --role-default: #6c757d;      /* Gris */
         }
         body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); color: var(--text-color); }
         header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+
+        /* --- ESTILOS DE HEADER RESTAURADOS --- */
+        header .logo-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        header .delivery-icon {
+            font-size: 1.5em;
+        }
+        /* --- FIN ESTILOS HEADER --- */
+
         .brand-name { font-family: 'Playfair Display', serif; font-size: 1.5em; }
         .container-admin { max-width: 1200px; margin: 30px auto; background-color: white; box-shadow: var(--card-shadow); border-radius: 15px; overflow: hidden; }
         .admin-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 25px 30px; text-align: center; }
@@ -31,9 +49,16 @@
         .badge-status { color: white; font-size: 0.9em; padding: 5px 10px; border-radius: 50px; }
         .badge-active { background-color: var(--success-color); }
         .badge-inactive { background-color: var(--error-color); }
+
+        /* --- LÓGICA DE COLORES DE ROLES --- */
         .role-badge { display: inline-block; padding: 4px 12px; border-radius: 50px; font-size: 0.85em; font-weight: 500; color: white; text-transform: capitalize; margin: 2px; }
         .role-admin { background-color: var(--role-admin); }
         .role-cliente { background-color: var(--role-cliente); }
+        .role-gerente_inventario { background-color: var(--role-gerente_inventario); }
+        .role-distribuidor { background-color: var(--role-distribuidor); }
+        .role-gerente_entregas { background-color: var(--role-gerente_entregas); }
+        .role-default { background-color: var(--role-default); } /* Color por defecto */
+
         .btn-golden { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border: none; padding: 10px 20px; border-radius: 50px; font-weight: 500; transition: all 0.3s; box-shadow: 0 4px 10px rgba(108, 74, 182, 0.3); }
         .btn-golden:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(108, 74, 182, 0.4); }
         .modal-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; }
@@ -41,6 +66,7 @@
     </style>
 </head>
 <body>
+
 <header>
     <a th:href="@{/admin/panel}" class="btn btn-light" title="Volver al inicio">
         <i class="fas fa-home"></i>
@@ -52,8 +78,7 @@
         <h2>Administración</h2>
     </div>
 
-    <div class="d-flex align-items-center">
-
+    <div class="d-flex align-items: center">
         <form th:action="@{/logout}" method="post" class="d-inline">
             <button type="submit" class="btn btn-danger" title="Cerrar Sesión">
                 <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
@@ -61,15 +86,14 @@
         </form>
     </div>
 </header>
-
 <div class="container-admin">
     <div class="admin-header">
         <h1><i class="fas fa-user-shield me-2"></i>Gestión de Usuarios</h1>
     </div>
 
     <div class="admin-content">
-        <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
-        <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert" th:text="${errorMessage}"></div>
 
         <button class="btn btn-golden mb-4" data-bs-toggle="modal" data-bs-target="#modalUsuario">
             <i class="fas fa-user-plus me-2"></i>Nuevo Usuario
@@ -82,21 +106,37 @@
                     <th>ID</th>
                     <th>Nombre</th>
                     <th>Email</th>
+                    <th>Localidad</th>
                     <th>Roles</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
                 </thead>
                 <tbody>
+                <tr th:if="${usuarios.isEmpty()}">
+                    <td colspan="7" class="text-center text-muted py-4">No hay usuarios registrados.</td>
+                </tr>
                 <tr th:each="usuario : ${usuarios}">
                     <td th:text="${usuario.idUsuario}">1</td>
                     <td th:text="${usuario.nombre}">Administrador</td>
                     <td th:text="${usuario.email}">admin@goldenfeets.com</td>
+
+                    <td>
+                        <span th:if="${usuario.roles.?[nombre == 'ROLE_DISTRIBUIDOR'].size() > 0}"
+                              th:text="${usuario.localidad != null ? usuario.localidad : 'Sin Asignar'}"
+                              class="fw-bold">
+                        </span>
+                        <span th:unless="${usuario.roles.?[nombre == 'ROLE_DISTRIBUIDOR'].size() > 0}"
+                              class="text-muted">
+                              N/A
+                        </span>
+                    </td>
+
                     <td>
                         <span th:each="rol : ${usuario.roles}"
                               th:text="${#strings.replace(rol.nombre, 'ROLE_', '')}"
                               class="role-badge"
-                              th:classappend="${#strings.toLowerCase(rol.nombre) == 'role_admin'} ? 'role-admin' : 'role-cliente'">
+                              th:classappend="'role-' + ${#strings.toLowerCase(#strings.replace(rol.nombre, 'ROLE_', ''))}">
                         </span>
                     </td>
                     <td>
@@ -148,15 +188,28 @@
                         <label for="direccion" class="form-label">Dirección</label>
                         <input type="text" class="form-control" id="direccion" th:field="*{direccion}">
                     </div>
+
                     <div class="mb-3">
-                        <label for="roles" class="form-label">Roles</label>
-                        <select id="roles" th:field="*{rolesId}" class="form-select" multiple required>
+                        <label for="rolesModal" class="form-label">Roles</label>
+                        <select id="rolesModal" th:field="*{rolesId}" class="form-select" multiple required onchange="toggleLocalidadFieldModal()">
                             <option th:each="rol : ${rolesTodos}"
                                     th:value="${rol.idRol}"
                                     th:text="${rol.nombre}">
                             </option>
                         </select>
                     </div>
+
+                    <div class="mb-3" id="localidad-form-group-modal" style="display: none;">
+                        <label for="localidadNueva" class="form-label">Localidad Asignada (Distribuidor)</label>
+                        <select class="form-select" id="localidadNueva" th:field="*{localidad}">
+                            <option value="">-- Seleccione Localidad --</option>
+                            <option th:each="loc : ${localidades}"
+                                    th:value="${loc}"
+                                    th:text="${loc}">
+                            </option>
+                        </select>
+                    </div>
+
                     <div class="mb-3">
                         <label for="telefono" class="form-label">Teléfono</label>
                         <input type="tel" class="form-control" id="telefono" th:field="*{telefono}">
@@ -172,5 +225,31 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function toggleLocalidadFieldModal() {
+        const rolesSelectModal = document.getElementById('rolesModal');
+        const localidadDivModal = document.getElementById('localidad-form-group-modal');
+        if (!rolesSelectModal || !localidadDivModal) return;
+
+        let esDistribuidor = false;
+        for (const option of rolesSelectModal.options) {
+            if (option.selected && option.text === 'ROLE_DISTRIBUIDOR') {
+                esDistribuidor = true;
+                break;
+            }
+        }
+        localidadDivModal.style.display = esDistribuidor ? 'block' : 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const modalUsuario = document.getElementById('modalUsuario');
+        if(modalUsuario) {
+            modalUsuario.addEventListener('show.bs.modal', function() {
+                toggleLocalidadFieldModal();
+            });
+        }
+    });
+</script>
 </body>
 </html>

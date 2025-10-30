@@ -35,10 +35,15 @@ public class AuthController {
      */
     @GetMapping("/register")
     public String showRegistrationForm(Model model) {
-        // Le pasamos un DTO vacío a la vista con los 9 argumentos correctos
+
+        // --- LÍNEA CORREGIDA ---
+        // Le pasamos un DTO vacío con los 10 argumentos correctos
+        // (nombre, email, direccion, localidad, fecha_nacimiento, tipo_doc, num_doc, telefono, password, roles)
         model.addAttribute("usuarioDto",
-                new UsuarioRegistroDTO("", "", "", null, "", "", "", "", null) // <-- Se añadió 'null' al final
+                new UsuarioRegistroDTO("", "", "", "", null, "", "", "", "", null) // <-- Ahora tiene 10 argumentos
         );
+        // --- FIN DE CORRECCIÓN ---
+
         return "register";
     }
     /**

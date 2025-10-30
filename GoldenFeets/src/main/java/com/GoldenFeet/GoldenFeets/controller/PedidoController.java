@@ -31,7 +31,8 @@ public class PedidoController {
         }
 
         // 2. Verificamos que el carrito no esté vacío
-        if (pedidoRequest == null || pedidoRequest.items() == null || pedidoRequest.items().isEmpty()) {
+        // CORRECCIÓN: Se usa getItems() en lugar de items()
+        if (pedidoRequest == null || pedidoRequest.getItems() == null || pedidoRequest.getItems().isEmpty()) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "El carrito está vacío. No se puede procesar el pedido."));
         }

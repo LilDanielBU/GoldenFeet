@@ -10,9 +10,9 @@ import java.util.List;
 @Repository
 public interface VentaRepository extends JpaRepository<Venta, Long> {
 
-    // MÉTODO AÑADIDO
+    // --- MÉTODO AÑADIDO ---
     List<Venta> findByCliente_IdUsuario(Integer idCliente);
 
-    // MÉTODO AÑADIDO
+    // --- MÉTODO AÑADIDO ---
     List<Venta> findByFechaVentaBetween(LocalDate fechaInicio, LocalDate fechaFin);
 }

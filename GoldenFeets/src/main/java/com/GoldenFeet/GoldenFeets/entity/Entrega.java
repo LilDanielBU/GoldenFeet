@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
 
 @Data
 @Entity
@@ -13,7 +15,7 @@ public class Entrega {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_entrega")
-    private Long idEntrega; // <-- CORRECCIÓN: El campo se llama idEntrega
+    private Long idEntrega;
 
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaCreacion;
@@ -21,14 +23,19 @@ public class Entrega {
     @Column(name = "fecha_entrega")
     private LocalDate fechaEntrega;
 
+    @Column(name = "fecha_asignacion")
+    private LocalDateTime fechaAsignacion;
+
     @Column(length = 50)
     private String estado;
 
-    @Column(columnDefinition = "TEXT")
-    private String motivoCancelacion;
+    // --- CAMPO NUEVO AÑADIDO ---
+    @Column(name = "localidad")
+    private String localidad;
+    // --- FIN CAMPO NUEVO ---
 
     @Column(columnDefinition = "TEXT")
-    private String motivoRechazo;
+    private String motivoCancelacion;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_venta", nullable = false, unique = true)
@@ -37,4 +44,7 @@ public class Entrega {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_distribuidor")
     private Usuario distribuidor;
+
+    @OneToMany(mappedBy = "entrega", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Novedad> novedades = new ArrayList<>();
 }

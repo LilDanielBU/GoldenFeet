@@ -18,6 +18,10 @@ public record UsuarioRegistroDTO(
         @NotEmpty(message = "La dirección no puede estar vacía.")
         String direccion,
 
+        // --- CAMPO NUEVO AÑADIDO ---
+        String localidad,
+        // --- FIN CAMPO NUEVO ---
+
         @NotNull(message = "La fecha de nacimiento es obligatoria.")
         LocalDate fecha_nacimiento,
 
@@ -34,5 +38,6 @@ public record UsuarioRegistroDTO(
         @NotEmpty(message = "La contraseña no puede estar vacía.")
         @Size(min = 8, message = "La contraseña debe tener al menos 8 caracteres.")
         String password,
+
         Set<Integer> rolesId
 ) {}

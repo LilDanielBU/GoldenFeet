@@ -1,20 +1,21 @@
 package com.GoldenFeet.GoldenFeets.dto;
 
+import lombok.Data;
 import java.util.List;
 
-// Este 'record' ahora incluye toda la información necesaria para crear el pedido.
-public record CrearVentaRequestDTO(
+@Data
+public class CrearVentaRequestDTO {
 
-        List<ItemVentaDTO> items,
+    private List<ItemVentaDTO> items;
 
-        // --- NUEVOS CAMPOS ---
-        // Datos de envío
-        String nombre,
-        String apellido,
-        String direccion,
-        String ciudad,
-        String departamento,
+    // --- DATOS DE ENVÍO ---
+    private String nombre;
+    private String apellido;
+    private String direccion;
+    private String ciudad;
+    private String departamento;
+    private String localidad; // <-- CAMPO AÑADIDO
 
-        // Datos de pago
-        String metodoPago
-) {}
+    // Datos de pago
+    private String metodoPago;
+}
