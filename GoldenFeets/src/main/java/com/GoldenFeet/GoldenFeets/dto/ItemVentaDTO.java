@@ -3,6 +3,6 @@ package com.GoldenFeet.GoldenFeets.dto;
 
 public record ItemVentaDTO(
 
-        Long productoId,
+        Integer productoId,
         int cantidad
 ) {}

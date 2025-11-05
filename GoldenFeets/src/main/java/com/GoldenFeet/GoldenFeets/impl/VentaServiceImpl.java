@@ -40,24 +40,21 @@ public class VentaServiceImpl implements VentaService {
         nuevaVenta.setFechaVenta(LocalDate.now());
         nuevaVenta.setEstado("COMPLETADA");
 
-        // --- GUARDANDO DATOS DE ENVÍO (INCLUYENDO LOCALIDAD) ---
-        nuevaVenta.setDireccionEnvio(request.getDireccion());
-        nuevaVenta.setCiudadEnvio(request.getCiudad() + ", " + request.getDepartamento());
-        nuevaVenta.setMetodoPago(request.getMetodoPago());
-        nuevaVenta.setLocalidad(request.getLocalidad()); // <-- LÍNEA AÑADIDA
-        // --- FIN DE DATOS DE ENVÍO ---
+        nuevaVenta.setDireccionEnvio(request.direccion());
+        nuevaVenta.setCiudadEnvio(request.ciudad() + ", " + request.departamento());
+        nuevaVenta.setMetodoPago(request.metodoPago());
 
         List<DetalleVenta> detalles = new ArrayList<>();
         BigDecimal totalVenta = BigDecimal.ZERO;
 
-        for (ItemVentaDTO itemDTO : request.getItems()) {
+        for (ItemVentaDTO itemDTO : request.items()) {
             Producto producto = productoRepository.findById(itemDTO.productoId())
                     .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado: " + itemDTO.productoId()));
 
             if (producto.getStock() < itemDTO.cantidad()) {
                 throw new IllegalStateException("Stock insuficiente para: " + producto.getNombre());
             }
-            // Lógica de stock a futuro...
+            // Lógica de stock a futuro
 
             DetalleVenta detalle = new DetalleVenta();
             detalle.setProducto(producto);
@@ -74,19 +71,16 @@ public class VentaServiceImpl implements VentaService {
         nuevaVenta.setDetallesVenta(detalles);
         Venta ventaGuardada = ventaRepository.save(nuevaVenta);
 
-        // --- CREANDO LA ENTREGA (CON LOCALIDAD) ---
         Entrega nuevaEntrega = new Entrega();
         nuevaEntrega.setVenta(ventaGuardada);
         nuevaEntrega.setEstado("PENDIENTE");
         nuevaEntrega.setFechaCreacion(LocalDateTime.now());
-        nuevaEntrega.setLocalidad(ventaGuardada.getLocalidad()); // <-- LÍNEA AÑADIDA
         entregaService.guardar(nuevaEntrega);
-        // --- FIN DE CREACIÓN DE ENTREGA ---
 
         return convertirAVentaResponseDTO(ventaGuardada);
     }
 
-    @Override
+
     public List<VentaResponseDTO> buscarVentasPorCliente(Integer idCliente) {
         return ventaRepository.findByCliente_IdUsuario(idCliente).stream()
                 .map(this::convertirAVentaResponseDTO)
@@ -100,7 +94,7 @@ public class VentaServiceImpl implements VentaService {
 
     @Override
     public List<VentaResponseDTO> findAllVentas() {
-        return List.of(); // Implementación pendiente
+        return List.of();
     }
 
     @Override
@@ -108,28 +102,28 @@ public class VentaServiceImpl implements VentaService {
         return ventaRepository.findById(id);
     }
 
-    @Override
+
     public List<Venta> obtenerTodasLasVentas() {
         return ventaRepository.findAll();
     }
 
-    @Override
+
     public List<Venta> obtenerVentasPorPeriodo(LocalDate fechaInicio, LocalDate fechaFin) {
         return ventaRepository.findByFechaVentaBetween(fechaInicio, fechaFin);
     }
 
-    @Override
+
     public Venta obtenerVentaPorId(Long id) {
         return ventaRepository.findById(id).orElse(null);
     }
 
-    @Override
+
     @Transactional
     public Venta guardarVenta(Venta venta) {
         return ventaRepository.save(venta);
     }
 
-    @Override
+
     @Transactional
     public void eliminarVenta(Long id) {
         if (!ventaRepository.existsById(id)) {
@@ -138,7 +132,9 @@ public class VentaServiceImpl implements VentaService {
         ventaRepository.deleteById(id);
     }
 
+    // --- MÉTODO DE CONVERSIÓN ACTUALIZADO ---
     private VentaResponseDTO convertirAVentaResponseDTO(Venta venta) {
+        // Ahora simplemente usamos el método estático del DTO
         return VentaResponseDTO.fromEntity(venta);
     }
 }

@@ -8,7 +8,14 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ItemPedidoDTO {
-    private Long productoId;
+
+    /**
+     * El ID del producto.
+     * Se cambió de Long a Integer para que coincida con el tipo de dato
+     * del ID en la entidad Producto.
+     */
+    private Integer productoId; // <--- ESTE ES EL CAMBIO
+
     private int cantidad;
 
     // Validaciones adicionales si las necesitas

@@ -1,5 +1,6 @@
 package com.GoldenFeet.GoldenFeets.impl;
 
+import com.GoldenFeet.GoldenFeets.dto.ItemPedidoDTO; // Asegúrate de que esta importación esté
 import com.GoldenFeet.GoldenFeets.dto.PedidoRequestDTO;
 import com.GoldenFeet.GoldenFeets.entity.DetalleVenta;
 import com.GoldenFeet.GoldenFeets.entity.Producto;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList; // Importa ArrayList
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,10 +35,22 @@ public class PedidoServiceImpl implements PedidoService {
     @Transactional // Esto asegura que toda la operación sea atómica (o todo o nada)
     public Venta crearPedido(PedidoRequestDTO pedidoRequest) {
 
-        // Busca todos los productos necesarios en una sola consulta a la BD
-        List<Long> productoIds = pedidoRequest.getItems().stream().map(item -> item.getProductoId()).collect(Collectors.toList());
+        // --- INICIO DE CORRECCIÓN ---
+
+        // 1. CAMBIO: 'List<Long>' se cambió a 'List<Integer>'
+        // Ahora 'item.getProductoId()' devuelve 'Integer' (desde ItemPedidoDTO),
+        // así que la lista 'productoIds' debe ser de tipo 'Integer'.
+        List<Integer> productoIds = pedidoRequest.getItems().stream()
+                .map(ItemPedidoDTO::getProductoId) // Usamos el método de referencia
+                .collect(Collectors.toList());
+
+        // 2. CAMBIO: 'Map<Integer, Producto>' ya estaba bien, pero lo confirmamos.
+        // 'Producto::getId' ahora devuelve 'Integer', por lo que la clave del mapa es 'Integer'.
+        // La llamada a 'findAllById(productoIds)' ahora funciona porque 'productoIds' es 'List<Integer>'.
         Map<Integer, Producto> productosMap = productoRepository.findAllById(productoIds).stream()
                 .collect(Collectors.toMap(Producto::getId, Function.identity()));
+
+        // --- FIN DE CORRECCIÓN ---
 
         // Crea la entidad Venta principal
         Venta nuevaVenta = new Venta();
@@ -51,6 +65,8 @@ public class PedidoServiceImpl implements PedidoService {
 
         // Crea cada detalle de la venta
         for (var itemDTO : pedidoRequest.getItems()) {
+            // Esta línea ahora funciona, ya que 'itemDTO.getProductoId()' es 'Integer'
+            // y 'productosMap' está correctamente claveado por 'Integer'.
             Producto producto = productosMap.get(itemDTO.getProductoId());
             if (producto == null) throw new RuntimeException("Producto no encontrado con ID: " + itemDTO.getProductoId());
 
@@ -71,7 +87,10 @@ public class PedidoServiceImpl implements PedidoService {
             // productoRepository.save(producto);
         }
 
-        nuevaVenta.setDetallesVenta((List<DetalleVenta>) detalles);
+        // 3. CAMBIO (Corrección de Bug):
+        // No puedes "castear" (forzar) un Set a una List. Debes crear una nueva Lista a partir del Set.
+        // Asumiendo que 'detallesVenta' en tu entidad 'Venta' es de tipo 'List<DetalleVenta>'.
+        nuevaVenta.setDetallesVenta(new ArrayList<>(detalles));
         nuevaVenta.setTotal(totalPedido);
 
         // Guarda la Venta y sus Detalles en la base de datos

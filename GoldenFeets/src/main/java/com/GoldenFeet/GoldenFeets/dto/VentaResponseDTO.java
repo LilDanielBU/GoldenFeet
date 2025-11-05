@@ -36,12 +36,13 @@ public final class VentaResponseDTO {
                 .map(DetalleVentaResponseDTO::fromEntity)
                 .collect(Collectors.toList());
 
+        // Asumiendo que Venta tiene su propio ID (idVenta) que SÍ es Long
         return new VentaResponseDTO(
                 venta.getIdVenta(),
                 venta.getFechaVenta(),
                 venta.getTotal(),
                 venta.getEstado(),
-                venta.getCliente().getEmail(),
+                venta.getCliente().getEmail(), // Asumiendo que cliente y email existen
                 detallesDto
         );
     }
@@ -59,8 +60,7 @@ public final class VentaResponseDTO {
  * DTO para cada detalle en la respuesta.
  */
 final class DetalleVentaResponseDTO {
-    // --- CORRECCIÓN AQUÍ ---
-    private final Integer productoId; // Cambiado de Long a Integer
+    private final Integer productoId;
     private final String nombreProducto;
     private final int cantidad;
     private final BigDecimal precioUnitario;
@@ -79,7 +79,11 @@ final class DetalleVentaResponseDTO {
      */
     public static DetalleVentaResponseDTO fromEntity(DetalleVenta detalle) {
         return new DetalleVentaResponseDTO(
-                detalle.getProducto().getId(),
+                // --- INICIO DE CORRECCIÓN ---
+                // Usamos Math.toIntExact() para convertir el Long de getId()
+                // al Integer que espera el constructor.
+                Math.toIntExact(detalle.getProducto().getId()),
+                // --- FIN DE CORRECCIÓN ---
                 detalle.getProducto().getNombre(),
                 detalle.getCantidad(),
                 detalle.getPrecioUnitario(),
@@ -88,7 +92,7 @@ final class DetalleVentaResponseDTO {
     }
 
     // Getters
-    public Integer getProductoId() { return productoId; } // Tipo de retorno también cambiado
+    public Integer getProductoId() { return productoId; }
     public String getNombreProducto() { return nombreProducto; }
     public int getCantidad() { return cantidad; }
     public BigDecimal getPrecioUnitario() { return precioUnitario; }

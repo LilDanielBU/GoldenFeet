@@ -54,15 +54,6 @@
         </div>
         <div class="card-body">
 
-            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-                <span th:text="${successMessage}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <span th:text="${errorMessage}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="mt-4">Listado de Productos</h3>
                 <a th:href="@{/inventario/productos/nuevo}" class="btn btn-primary">
@@ -102,6 +93,16 @@
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
+
+                            <button class="btn btn-info btn-sm"
+                                    th:data-producto-id="${producto.id}"
+                                    th:data-producto-nombre="${producto.nombre}"
+                                    onclick="abrirModalHistorial(this)"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#historialModal"
+                                    title="Ver Historial">
+                                <i class="fas fa-history"></i>
+                            </button>
                         </td>
                     </tr>
                     <tr th:if="${productos.isEmpty()}">
@@ -113,6 +114,83 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="historialModal" tabindex="-1" aria-labelledby="historialModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="historialModalTitle">Historial de Movimientos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Motivo</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tablaHistorialBody">
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    /**
+     * 1. La función ahora recibe 'buttonElement' (el botón que fue presionado).
+     */
+    async function abrirModalHistorial(buttonElement) {
+
+        // 2. Leemos los datos de forma segura desde los atributos data-*
+        const productoId = buttonElement.getAttribute('data-producto-id');
+        const productoNombre = buttonElement.getAttribute('data-producto-nombre');
+
+        // 3. El resto de la función es igual...
+        const tbody = document.getElementById('tablaHistorialBody');
+        document.getElementById('historialModalTitle').textContent = `Historial de: ${productoNombre}`;
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Cargando...</td></tr>';
+
+        try {
+            const response = await fetch(`/api/inventario/historial/${productoId}`);
+
+            if (!response.ok) {
+                throw new Error('No se pudo cargar el historial');
+            }
+
+            const movimientos = await response.json();
+            tbody.innerHTML = '';
+
+            if (movimientos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hay movimientos registrados para este producto.</td></tr>';
+            } else {
+                movimientos.forEach(mov => {
+                    const fila = `
+                        <tr>
+                            <td>${mov.fecha}</td>
+                            <td>${mov.tipoMovimiento}</td>
+                            <td>${mov.cantidad}</td>
+                            <td>${mov.motivo}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += fila;
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar historial:', error);
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Error al cargar el historial.</td></tr>`;
+        }
+    }
+</script>
 </body>
 </html>
