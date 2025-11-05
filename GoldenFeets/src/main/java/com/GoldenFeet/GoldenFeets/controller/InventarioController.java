@@ -1,5 +1,9 @@
 package com.GoldenFeet.GoldenFeets.controller;
 
+import com.GoldenFeet.GoldenFeets.service.AlmacenamientoService;
+import org.springframework.core.io.Resource; // Mantengo el import por si se usa en otro lugar, pero no en este método
+import org.springframework.http.HttpHeaders; // Mantengo el import
+import org.springframework.http.ResponseEntity; // Mantengo el import
 import com.GoldenFeet.GoldenFeets.dto.ProductoCreateDTO;
 import com.GoldenFeet.GoldenFeets.dto.ProductoDTO;
 import com.GoldenFeet.GoldenFeets.dto.ProductoUpdateDTO;
@@ -26,8 +30,9 @@ public class InventarioController {
 
     private final ProductoService productoService;
     private final CategoriaRepository categoriaRepository;
+    // Se mantiene el servicio inyectado, aunque ya no se usa directamente aquí
+    private final AlmacenamientoService almacenamientoService;
 
-    // ... (otros métodos sin cambios)
     @GetMapping("/panel")
     public String mostrarPanelInventario(Model model) {
         List<ProductoDTO> listaProductos = productoService.listarTodos();
@@ -73,15 +78,15 @@ public class InventarioController {
 
         ProductoDTO productoDTO = productoOpt.get();
         ProductoUpdateDTO updateDTO = new ProductoUpdateDTO();
+
+        // Mapeo de ProductoDTO a ProductoUpdateDTO
         updateDTO.setId(productoDTO.getId());
         updateDTO.setNombre(productoDTO.getNombre());
         updateDTO.setDescripcion(productoDTO.getDescripcion());
         updateDTO.setPrecio(productoDTO.getPrecio());
         updateDTO.setOriginalPrice(productoDTO.getOriginalPrice());
         updateDTO.setStock(productoDTO.getStock());
-        updateDTO.setImagenUrl(productoDTO.getImagenUrl());
         updateDTO.setMarca(productoDTO.getMarca());
-        updateDTO.setRating(productoDTO.getRating());
         updateDTO.setDestacado(productoDTO.getDestacado());
         updateDTO.setCategoriaId(productoDTO.getCategoriaId());
 
@@ -89,30 +94,25 @@ public class InventarioController {
         model.addAttribute("categorias", categoriaRepository.findAll());
         model.addAttribute("titulo", "Editar Producto");
         model.addAttribute("isEditMode", true);
+        model.addAttribute("imagenActualUrl", productoDTO.getImagenUrl());
+
         return "producto-form";
     }
 
-    // --- MÉTODO CON DEPURACIÓN AÑADIDA ---
     @PostMapping("/productos/actualizar/{id}")
     public String procesarActualizacion(@PathVariable("id") Integer id,
                                         @Valid @ModelAttribute("productoDTO") ProductoUpdateDTO productoDTO,
                                         BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
 
-        // --- LÍNEAS DE DIAGNÓSTICO ---
-        System.out.println("--- INTENTANDO ACTUALIZAR PRODUCTO ---");
-        System.out.println("ID a actualizar: " + id);
-        System.out.println("Datos recibidos en DTO: " + productoDTO.toString());
-        // -----------------------------
-
         if (bindingResult.hasErrors()) {
-            System.out.println("Error de validación: " + bindingResult.getAllErrors());
             model.addAttribute("categorias", categoriaRepository.findAll());
             model.addAttribute("titulo", "Editar Producto");
             model.addAttribute("isEditMode", true);
+            // Si hay error, necesitamos la URL de la imagen actual para mostrarla
+            productoService.buscarPorId(id).ifPresent(p -> model.addAttribute("imagenActualUrl", p.getImagenUrl()));
             return "producto-form";
         }
         try {
-            productoDTO.setId(id);
             productoService.actualizarProducto(id, productoDTO);
             redirectAttributes.addFlashAttribute("successMessage", "¡Producto actualizado exitosamente!");
             return "redirect:/inventario/panel";
@@ -132,4 +132,6 @@ public class InventarioController {
         }
         return "redirect:/inventario/panel";
     }
+
+    // --- EL MÉTODO PARA SERVIR ARCHIVOS FUE ELIMINADO CORRECTAMENTE ---
 }

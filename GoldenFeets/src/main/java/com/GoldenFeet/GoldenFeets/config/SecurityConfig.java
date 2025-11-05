@@ -30,8 +30,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/perfil/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-
-
+                        .requestMatchers("/inventario/api/imagenes/**").permitAll()
                         // --- LÍNEA AÑADIDA ---
                         // Asegura que solo el gerente de inventario acceda a su panel.
                         .requestMatchers("/inventario/**").hasRole("GERENTEINVENTARIO")

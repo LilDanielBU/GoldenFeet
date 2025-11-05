@@ -12,14 +12,16 @@ import java.util.stream.Collectors;
  * DTO para la respuesta, mostrando los detalles de la venta creada.
  */
 public final class VentaResponseDTO {
-    private final Long idVenta;
+    // --- CORREGIDO ---
+    private final Long idVenta; // De Integer a Long
     private final LocalDate fechaVenta;
     private final BigDecimal total;
     private final String estado;
     private final String clienteEmail;
     private final List<DetalleVentaResponseDTO> detalles;
 
-    public VentaResponseDTO(Long idVenta, LocalDate fechaVenta, BigDecimal total, String estado, String clienteEmail, List<DetalleVentaResponseDTO> detalles) {
+    // --- CORREGIDO ---
+    public VentaResponseDTO(Long idVenta, LocalDate fechaVenta, BigDecimal total, String estado, String clienteEmail, List<DetalleVentaResponseDTO> detalles) { // De Integer a Long
         this.idVenta = idVenta;
         this.fechaVenta = fechaVenta;
         this.total = total;
@@ -36,7 +38,9 @@ public final class VentaResponseDTO {
                 .map(DetalleVentaResponseDTO::fromEntity)
                 .collect(Collectors.toList());
 
-        // Asumiendo que Venta tiene su propio ID (idVenta) que SÍ es Long
+        // --- CORRECCIÓN ---
+        // Ahora esto funciona: venta.getIdVenta() (Long) se pasa al
+        // constructor que espera un Long.
         return new VentaResponseDTO(
                 venta.getIdVenta(),
                 venta.getFechaVenta(),
@@ -48,7 +52,8 @@ public final class VentaResponseDTO {
     }
 
     // Getters
-    public Long getIdVenta() { return idVenta; }
+    // --- CORREGIDO ---
+    public Long getIdVenta() { return idVenta; } // De Integer a Long
     public LocalDate getFechaVenta() { return fechaVenta; }
     public BigDecimal getTotal() { return total; }
     public String getEstado() { return estado; }
@@ -58,6 +63,7 @@ public final class VentaResponseDTO {
 
 /**
  * DTO para cada detalle en la respuesta.
+ * (Esta clase ya estaba correcta por tu arreglo anterior)
  */
 final class DetalleVentaResponseDTO {
     private final Integer productoId;
@@ -79,11 +85,8 @@ final class DetalleVentaResponseDTO {
      */
     public static DetalleVentaResponseDTO fromEntity(DetalleVenta detalle) {
         return new DetalleVentaResponseDTO(
-                // --- INICIO DE CORRECCIÓN ---
-                // Usamos Math.toIntExact() para convertir el Long de getId()
-                // al Integer que espera el constructor.
-                Math.toIntExact(detalle.getProducto().getId()),
-                // --- FIN DE CORRECCIÓN ---
+                // Esto está correcto (asumiendo que Producto.id es Integer)
+                detalle.getProducto().getId(),
                 detalle.getProducto().getNombre(),
                 detalle.getCantidad(),
                 detalle.getPrecioUnitario(),

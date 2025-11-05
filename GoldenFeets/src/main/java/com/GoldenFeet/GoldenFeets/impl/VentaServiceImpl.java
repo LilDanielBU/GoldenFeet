@@ -40,21 +40,26 @@ public class VentaServiceImpl implements VentaService {
         nuevaVenta.setFechaVenta(LocalDate.now());
         nuevaVenta.setEstado("COMPLETADA");
 
-        nuevaVenta.setDireccionEnvio(request.direccion());
-        nuevaVenta.setCiudadEnvio(request.ciudad() + ", " + request.departamento());
-        nuevaVenta.setMetodoPago(request.metodoPago());
+        // --- INICIO DE CORRECCIÓN (Clase: CrearVentaRequestDTO) ---
+        // Se usan getters .get...()
+        nuevaVenta.setDireccionEnvio(request.getDireccion());
+        nuevaVenta.setCiudadEnvio(request.getCiudad() + ", " + request.getDepartamento());
+        nuevaVenta.setMetodoPago(request.getMetodoPago());
 
         List<DetalleVenta> detalles = new ArrayList<>();
         BigDecimal totalVenta = BigDecimal.ZERO;
 
-        for (ItemVentaDTO itemDTO : request.items()) {
+        // Se usa .getItems()
+        for (ItemVentaDTO itemDTO : request.getItems()) {
+
+            // --- INICIO DE CORRECCIÓN (Record: ItemVentaDTO) ---
+            // Se usa acceso directo .campo()
             Producto producto = productoRepository.findById(itemDTO.productoId())
                     .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado: " + itemDTO.productoId()));
 
             if (producto.getStock() < itemDTO.cantidad()) {
                 throw new IllegalStateException("Stock insuficiente para: " + producto.getNombre());
             }
-            // Lógica de stock a futuro
 
             DetalleVenta detalle = new DetalleVenta();
             detalle.setProducto(producto);
@@ -65,7 +70,9 @@ public class VentaServiceImpl implements VentaService {
             detalle.setVenta(nuevaVenta);
             detalles.add(detalle);
             totalVenta = totalVenta.add(subtotal);
+            // --- FIN DE CORRECCIÓN (Record: ItemVentaDTO) ---
         }
+        // --- FIN DE CORRECCIÓN (Clase: CrearVentaRequestDTO) ---
 
         nuevaVenta.setTotal(totalVenta);
         nuevaVenta.setDetallesVenta(detalles);
@@ -94,6 +101,7 @@ public class VentaServiceImpl implements VentaService {
 
     @Override
     public List<VentaResponseDTO> findAllVentas() {
+        // Implementación pendiente
         return List.of();
     }
 
@@ -132,9 +140,7 @@ public class VentaServiceImpl implements VentaService {
         ventaRepository.deleteById(id);
     }
 
-    // --- MÉTODO DE CONVERSIÓN ACTUALIZADO ---
     private VentaResponseDTO convertirAVentaResponseDTO(Venta venta) {
-        // Ahora simplemente usamos el método estático del DTO
         return VentaResponseDTO.fromEntity(venta);
     }
 }

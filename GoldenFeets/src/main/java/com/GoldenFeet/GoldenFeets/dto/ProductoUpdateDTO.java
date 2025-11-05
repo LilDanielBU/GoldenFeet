@@ -2,6 +2,8 @@ package com.GoldenFeet.GoldenFeets.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.math.BigDecimal;
 
 @Data
@@ -25,14 +27,12 @@ public class ProductoUpdateDTO {
     @Min(value = 0)
     private Integer stock;
 
-    @Size(max = 255)
-    private String imagenUrl;
+    private MultipartFile imagenArchivo;
 
     @Size(max = 255)
     private String marca;
 
-    @NotNull
-    private Float rating;
+
 
     private boolean destacado;
 

@@ -1,10 +1,10 @@
 package com.GoldenFeet.GoldenFeets.config;
 
 import com.GoldenFeet.GoldenFeets.entity.Categoria;
-import com.GoldenFeet.GoldenFeets.entity.Inventario; // <-- IMPORTAR Inventario
+// import com.GoldenFeet.GoldenFeets.entity.Inventario; // <-- 1. ELIMINADO
 import com.GoldenFeet.GoldenFeets.entity.Producto;
 import com.GoldenFeet.GoldenFeets.repository.CategoriaRepository;
-import com.GoldenFeet.GoldenFeets.repository.InventarioRepository; // <-- IMPORTAR Repositorio de Inventario
+// import com.GoldenFeet.GoldenFeets.repository.InventarioRepository; // <-- 2. ELIMINADO
 import com.GoldenFeet.GoldenFeets.repository.ProductoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -19,7 +19,7 @@ public class DataLoader implements CommandLineRunner {
 
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
-    private final InventarioRepository inventarioRepository; // <-- 1. INYECTAR el nuevo repositorio
+    // private final InventarioRepository inventarioRepository; // <-- 3. ELIMINADO
 
     @Override
     public void run(String... args) throws Exception {
@@ -31,36 +31,39 @@ public class DataLoader implements CommandLineRunner {
             Categoria hombre = new Categoria();
             hombre.setNombre("Hombre");
             hombre.setDescripcion("Calzado de alta calidad para hombres.");
+            // Asumimos que Categoria también cambió a 'imagenNombre'
+            hombre.setImagenNombre("https://i.pinimg.com/736x/de/70/b5/de70b5917ab1ddb0b0de8ba0d4974abe.jpg");
 
             Categoria mujer = new Categoria();
             mujer.setNombre("Mujer");
             mujer.setDescripcion("Estilo y confort para el pie femenino.");
+            mujer.setImagenNombre("https://i.pinimg.com/736x/1b/04/05/1b040589e2335d668eeddb51a3c2173c.jpg");
 
             Categoria ninos = new Categoria();
             ninos.setNombre("Niños");
             ninos.setDescripcion("Calzado duradero y divertido para los más pequeños.");
+            ninos.setImagenNombre("https://i.pinimg.com/736x/d0/8c/07/d08c071136d14f88c1e943d6fbaed59f.jpg");
 
-            // Guardamos las categorías para que obtengan un ID
             categoriaRepository.saveAll(List.of(hombre, mujer, ninos));
 
-            // --- Crear Productos (sin stock) ---
+            // --- Crear Productos (con stock directo) ---
             Producto p1 = new Producto();
             p1.setNombre("Zapato Casual");
             p1.setDescripcion("Zapato casual para hombre, perfecto para eventos casuales.");
             p1.setPrecio(new BigDecimal("299900"));
-            // p1.setStock(50); // <-- 2. Se elimina esta línea
+            p1.setStock(50); // <-- 4. Asignamos stock directo
             p1.setCategoria(hombre);
-            p1.setImagenUrl("https://i.pinimg.com/736x/de/70/b5/de70b5917ab1ddb0b0de8ba0d4974abe.jpg");
+            p1.setImagenNombre("https://i.pinimg.com/736x/de/70/b5/de70b5917ab1ddb0b0de8ba0d4974abe.jpg"); // <-- 5. CAMBIO DE MÉTODO
             p1.setDestacado(true);
-            p1.setRating(4.5f); // Usar 'f' para float
+            p1.setRating(4.5f);
 
             Producto p2 = new Producto();
             p2.setNombre("Zapatilla Dunk");
             p2.setDescripcion("Zapatilla para hombre que ofrecen el aspecto icónico del Dunk con un estilo de perfil bajo.");
             p2.setPrecio(new BigDecimal("450000"));
-            // p2.setStock(30); // <-- 2. Se elimina esta línea
+            p2.setStock(30); // <-- 4. Asignamos stock directo
             p2.setCategoria(hombre);
-            p2.setImagenUrl("https://i.pinimg.com/736x/91/64/db/9164db9be79f3cfb9ce97854d09455ae.jpg");
+            p2.setImagenNombre("https://i.pinimg.com/736x/91/64/db/9164db9be79f3cfb9ce97854d09455ae.jpg"); // <-- 5. CAMBIO DE MÉTODO
             p2.setDestacado(true);
             p2.setRating(4.8f);
 
@@ -68,9 +71,9 @@ public class DataLoader implements CommandLineRunner {
             p3.setNombre("Zapatilla Running Pro");
             p3.setDescripcion("Zapatilla profesional para running con máxima amortiguación.");
             p3.setPrecio(new BigDecimal("250000"));
-            // p3.setStock(40); // <-- 2. Se elimina esta línea
+            p3.setStock(40); // <-- 4. Asignamos stock directo
             p3.setCategoria(mujer);
-            p3.setImagenUrl("https://i.pinimg.com/736x/1b/04/05/1b040589e2335d668eeddb51a3c2173c.jpg");
+            p3.setImagenNombre("https://i.pinimg.com/736x/1b/04/05/1b040589e2335d668eeddb51a3c2173c.jpg"); // <-- 5. CAMBIO DE MÉTODO
             p3.setDestacado(true);
             p3.setRating(4.6f);
 
@@ -78,24 +81,18 @@ public class DataLoader implements CommandLineRunner {
             p4.setNombre("Zapato Infantil");
             p4.setDescripcion("Zapato cómodo y resistente para las aventuras diarias de los niños.");
             p4.setPrecio(new BigDecimal("120000"));
-            // p4.setStock(100); // <-- 2. Se elimina esta línea
+            p4.setStock(100); // <-- 4. Asignamos stock directo
             p4.setCategoria(ninos);
-            p4.setImagenUrl("https://i.pinimg.com/736x/d0/8c/07/d08c071136d14f88c1e943d6fbaed59f.jpg");
+            p4.setImagenNombre("https://i.pinimg.com/736x/d0/8c/07/d08c071136d14f88c1e943d6fbaed59f.jpg"); // <-- 5. CAMBIO DE MÉTODO
             p4.setDestacado(false);
             p4.setRating(4.2f);
 
-            // Guardamos todos los productos a la vez para que obtengan sus IDs
-            List<Producto> productosGuardados = productoRepository.saveAll(List.of(p1, p2, p3, p4));
+            productoRepository.saveAll(List.of(p1, p2, p3, p4));
 
-            // --- 3. Crear y Guardar el Inventario para cada producto ---
-            Inventario inv1 = new Inventario(productosGuardados.get(0), 50);
-            Inventario inv2 = new Inventario(productosGuardados.get(1), 30);
-            Inventario inv3 = new Inventario(productosGuardados.get(2), 40);
-            Inventario inv4 = new Inventario(productosGuardados.get(3), 100);
+            // --- 6. Lógica de inventario ELIMINADA ---
+            // Ya no es necesaria, el stock está en la tabla productos.
 
-            inventarioRepository.saveAll(List.of(inv1, inv2, inv3, inv4));
-
-            System.out.println("¡Datos de prueba cargados correctamente en productos e inventario!");
+            System.out.println("¡Datos de prueba cargados correctamente!");
         }
     }
 }

@@ -28,9 +28,8 @@ public class Producto {
     @Column(name = "original_price")
     private BigDecimal originalPrice;
 
-    @Column(name = "imagen_url")
-    private String imagenUrl;
-
+    @Column(name = "imagen_nombre")
+    private String imagenNombre;
     @Column(name = "marca")
     private String marca;
 
@@ -40,7 +39,6 @@ public class Producto {
     @Column(name = "destacado", nullable = false)
     private Boolean destacado;
 
-    // --- CAMPO AÑADIDO (CORRECTO) ---
     @Column(name = "stock", nullable = false)
     private Integer stock;
 
@@ -48,16 +46,11 @@ public class Producto {
     @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;
 
-    // Se eliminó la relación con la entidad Inventario (¡Correcto!)
 
-    /**
-     * Constructor por defecto para inicializar valores.
-     */
     public Producto() {
         this.rating = 0.0f;
         this.destacado = false;
-        this.stock = 0; // Se inicializa el stock en 0
+        this.stock = 0;
     }
 
-    // Se eliminó el método @Transient getStock() (¡Correcto!)
 }

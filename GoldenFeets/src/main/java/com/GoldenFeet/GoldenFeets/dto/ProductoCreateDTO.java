@@ -2,6 +2,8 @@ package com.GoldenFeet.GoldenFeets.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.math.BigDecimal;
 
 @Data
@@ -26,14 +28,12 @@ public class ProductoCreateDTO {
     @Min(value = 0, message = "El stock no puede ser negativo.")
     private Integer stock;
 
-    @Size(max = 255, message = "La URL de la imagen es demasiado larga.")
-    private String imagenUrl;
+    private MultipartFile imagenArchivo;
 
     @Size(max = 255, message = "La marca es demasiado larga.")
     private String marca;
 
-    // Se puede dejar nulo si no se especifica
-    private Float rating = 0.0f;
+
 
     // Por defecto no será destacado
     private boolean destacado = false;
