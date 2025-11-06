@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Usuario - Golden Feets</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4D1C95;
+            --secondary-color: #6C4AB6;
+            --light-bg: #F5F5F5;
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); }
+        .container-admin { max-width: 800px; margin: 50px auto; background-color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-radius: 15px; padding: 40px; }
+        .btn-golden { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border: none; }
+    </style>
+</head>
+<body>
+<div class="container-admin">
+    <h1 class="mb-4 text-center">
+        <i class="fas fa-edit me-2"></i>Editar Usuario
+    </h1>
+
+    <form th:action="@{/admin/usuarios/actualizar}" th:object="${usuario}" method="post">
+
+        <input type="hidden" th:field="*{idUsuario}" />
+
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" th:field="*{nombre}" required>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" th:field="*{email}" required readonly>
+        </div>
+
+        <div class="mb-3">
+            <label for="rolesEdit" class="form-label">Roles</label>
+            <select id="rolesEdit" th:field="*{rolesId}" class="form-select" multiple required onchange="toggleLocalidadFieldEdit()">
+                <option th:each="rol : ${rolesTodos}"
+                        th:value="${rol.idRol}"
+                        th:text="${rol.nombre}">
+                </option>
+            </select>
+        </div>
+
+        <div class="mb-3" id="localidad-form-group-edit">
+            <label for="localidad" class="form-label">Localidad Asignada (Distribuidor)</label>
+            <select class="form-select" id="localidad" th:field="*{localidad}">
+                <option value="">-- Ninguna --</option>
+                <option th:each="loc : ${localidades}"
+                        th:value="${loc}"
+                        th:text="${loc}">
+                </option>
+            </select>
+        </div>
+
+        <div class="form-check form-switch mb-4">
+            <input class="form-check-input" type="checkbox" id="activo" th:field="*{activo}">
+            <label class="form-check-label" for="activo">Usuario Activo</label>
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <a th:href="@{/admin/usuarios}" class="btn btn-secondary me-2">Cancelar</a>
+            <button type="submit" class="btn btn-golden">Actualizar Usuario</button>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function toggleLocalidadFieldEdit() {
+        const rolesSelect = document.getElementById('rolesEdit');
+        const localidadDiv = document.getElementById('localidad-form-group-edit');
+        if (!rolesSelect || !localidadDiv) return;
+
+        let esDistribuidor = false;
+        for (const option of rolesSelect.options) {
+            if (option.selected && option.text === 'ROLE_DISTRIBUIDOR') {
+                esDistribuidor = true;
+                break;
+            }
+        }
+        localidadDiv.style.display = esDistribuidor ? 'block' : 'none';
+    }
+
+    // Ejecuta la función al cargar la página para establecer el estado inicial
+    document.addEventListener('DOMContentLoaded', toggleLocalidadFieldEdit);
+</script>
+</body>
+</html>
+</html>
