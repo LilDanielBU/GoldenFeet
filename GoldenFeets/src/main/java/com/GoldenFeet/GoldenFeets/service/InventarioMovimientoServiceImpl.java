@@ -1,4 +1,4 @@
-package com.GoldenFeet.GoldenFeets.service; // <-- CORREGIDO: El paquete de implementación debe ser 'impl'
+package com.GoldenFeet.GoldenFeets.service;
 
 import com.GoldenFeet.GoldenFeets.dto.HistorialDTO;
 import com.GoldenFeet.GoldenFeets.dto.IngresoDTO;
@@ -6,7 +6,7 @@ import com.GoldenFeet.GoldenFeets.entity.InventarioMovimiento;
 import com.GoldenFeet.GoldenFeets.entity.Producto;
 import com.GoldenFeet.GoldenFeets.repository.InventarioMovimientoRepository;
 import com.GoldenFeet.GoldenFeets.repository.ProductoRepository;
-import com.GoldenFeet.GoldenFeets.service.InventarioMovimientoService; // Importa la interfaz
+import com.GoldenFeet.GoldenFeets.service.InventarioMovimientoService; // Importación necesaria
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,30 +39,78 @@ public class InventarioMovimientoServiceImpl implements InventarioMovimientoServ
     @Override
     @Transactional
     public void registrarIngreso(IngresoDTO ingresoDTO) {
-        if (ingresoDTO.getCantidad() <= 0) {
+
+        if (ingresoDTO.getCantidad() == null || ingresoDTO.getCantidad() <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a cero.");
         }
 
-        // Buscar el producto (ID es Integer)
-        Producto producto = productoRepository.findById(ingresoDTO.getProductoId())
+        // 💥 CORRECCIÓN: Convertimos el ID (Integer) a Long para buscar en ProductoRepository.
+        Long productoIdLong = ingresoDTO.getProductoId().longValue();
+
+        Producto producto = productoRepository.findById(productoIdLong)
                 .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con ID: " + ingresoDTO.getProductoId()));
 
         // Actualizar el stock
         int stockAnterior = producto.getStock();
-        int stockNuevo = stockAnterior + ingresoDTO.getCantidad();
+        int cantidadIngresada = ingresoDTO.getCantidad();
+        int stockNuevo = stockAnterior + cantidadIngresada;
         producto.setStock(stockNuevo);
         productoRepository.save(producto);
 
         // Crear y guardar el movimiento
+        // Asumiendo que el constructor de InventarioMovimiento establece la fecha.
         InventarioMovimiento movimiento = new InventarioMovimiento(
                 producto,
                 "INGRESO",
-                ingresoDTO.getCantidad(),
+                cantidadIngresada,
                 ingresoDTO.getMotivo()
         );
 
         inventarioMovimientoRepository.save(movimiento);
     }
+
+    /**
+     * Registra una salida (resta) de inventario.
+     */
+    @Transactional
+    @Override
+    public void registrarSalida(IngresoDTO salidaDTO) {
+
+        if (salidaDTO.getCantidad() == null || salidaDTO.getCantidad() <= 0) {
+            throw new IllegalArgumentException("La cantidad de salida debe ser al menos 1.");
+        }
+
+        // 💥 CORRECCIÓN: Convertimos el ID (Integer) a Long para buscar en ProductoRepository.
+        Long productoIdLong = salidaDTO.getProductoId().longValue();
+
+        // 1. Buscar el producto
+        Producto producto = productoRepository.findById(productoIdLong)
+                .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con ID: " + salidaDTO.getProductoId()));
+
+        // 2. Verificar y actualizar el stock
+        int stockAnterior = producto.getStock();
+        int cantidadRetirada = salidaDTO.getCantidad();
+        int stockNuevo = stockAnterior - cantidadRetirada;
+
+        if (stockNuevo < 0) {
+            throw new IllegalArgumentException("El stock no puede ser negativo. Stock actual: " + stockAnterior + ".");
+        }
+
+        producto.setStock(stockNuevo);
+        productoRepository.save(producto); // Guarda el producto con el stock actualizado
+
+        // 3. Crear el registro del movimiento
+        InventarioMovimiento movimiento = new InventarioMovimiento(
+                producto,
+                "SALIDA", // Tipo de movimiento
+                cantidadRetirada,
+                salidaDTO.getMotivo()
+        );
+
+        // 4. Guardar el movimiento en el historial
+        inventarioMovimientoRepository.save(movimiento);
+    }
+
 
     /**
      * Obtiene el historial de un producto.
@@ -71,8 +119,7 @@ public class InventarioMovimientoServiceImpl implements InventarioMovimientoServ
     @Transactional(readOnly = true)
     public List<HistorialDTO> getHistorialPorProducto(Integer productoId) {
 
-        // 1. CORRECCIÓN CRÍTICA: Usamos el método correcto findByProducto_Id,
-        // asumiendo que la ordenación (OrderByFechaDesc) se maneja en el DTO o en el cliente.
+        // Ya está corregido para Long
         List<InventarioMovimiento> movimientos = inventarioMovimientoRepository
                 .findByProducto_Id(Long.valueOf(productoId));
 

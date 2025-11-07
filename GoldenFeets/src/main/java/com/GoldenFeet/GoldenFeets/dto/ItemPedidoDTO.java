@@ -1,25 +1,24 @@
 package com.GoldenFeet.GoldenFeets.dto;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class ItemPedidoDTO {
 
-    /**
-     * El ID del producto.
-     * Se cambió de Long a Integer para que coincida con el tipo de dato
-     * del ID en la entidad Producto.
-     */
-    private Integer productoId; // <--- ESTE ES EL CAMBIO
+    // --- CORRECCIÓN CLAVE ---
+    private Integer productoId; // <-- Debe ser Integer
 
     private int cantidad;
 
-    // Validaciones adicionales si las necesitas
-    public boolean isValid() {
-        return productoId != null && productoId > 0 && cantidad > 0;
+    // Getters y Setters
+    public Integer getProductoId() { // <-- Debe ser Integer
+        return productoId;
+    }
+    public void setProductoId(Integer productoId) { // <-- Debe ser Integer
+        this.productoId = productoId;
+    }
+
+    public int getCantidad() {
+        return cantidad;
+    }
+    public void setCantidad(int cantidad) {
+        this.cantidad = cantidad;
     }
 }

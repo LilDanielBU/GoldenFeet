@@ -23,10 +23,7 @@ public class ProductoUpdateDTO {
     @DecimalMin(value = "0.0")
     private BigDecimal originalPrice;
 
-    @NotNull(message = "El stock es obligatorio.")
-    @Min(value = 0)
-    private Integer stock;
-
+   
     private MultipartFile imagenArchivo;
 
     @Size(max = 255)

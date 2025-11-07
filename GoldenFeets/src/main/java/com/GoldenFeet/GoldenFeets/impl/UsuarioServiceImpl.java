@@ -5,7 +5,7 @@ import com.GoldenFeet.GoldenFeets.entity.Rol;
 import com.GoldenFeet.GoldenFeets.entity.Usuario;
 import com.GoldenFeet.GoldenFeets.repository.RolRepository;
 import com.GoldenFeet.GoldenFeets.repository.UsuarioRepository;
-import com.GoldenFeet.GoldenFeets.service.UsuarioService;
+import com.GoldenFeet.GoldenFeets.service.UsuarioService; // Importación correcta
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +23,18 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
+
+    // -----------------------------------------------------------
+    // ✅ MÉTODO CLAVE IMPLEMENTADO: Necesario para PedidoServiceImpl
+    // -----------------------------------------------------------
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Usuario> buscarPorId(Integer id) {
+        // Implementación del método necesario para que la venta encuentre al cliente
+        return usuarioRepository.findById(id);
+    }
+    // -----------------------------------------------------------
+
 
     @Override
     public UsuarioResponseDTO actualizarPerfil(Integer idUsuario, UsuarioUpdateDTO request) {
@@ -67,10 +79,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         nuevoUsuario.setDireccion(request.direccion());
         nuevoUsuario.setTelefono(request.telefono());
         nuevoUsuario.setFechaNacimiento(request.fecha_nacimiento());
-        nuevoUsuario.setLocalidad(request.localidad()); // <-- LÍNEA AÑADIDA
-        // Asumiendo que 'tipo_documento' y 'numero_documento' también están en la entidad Usuario
-        // nuevoUsuario.setTipoDocumento(request.tipo_documento());
-        // nuevoUsuario.setNumeroDocumento(request.numero_documento());
+        nuevoUsuario.setLocalidad(request.localidad());
         nuevoUsuario.setRoles(roles);
         nuevoUsuario.setActivo(true);
 
@@ -91,7 +100,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         usuario.setNombre(dto.getNombre());
         usuario.setActivo(dto.isActivo());
-        usuario.setLocalidad(dto.getLocalidad()); // <-- LÍNEA AÑADIDA
+        usuario.setLocalidad(dto.getLocalidad());
 
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
             usuario.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
@@ -146,8 +155,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     @Transactional
     public Usuario crearClienteDesdeVenta(String nombre, String email, String telefono, String direccion, String ciudad, String codigoPostal) {
-        // ... (tu método existente) ...
-        return null; // O la lógica que tuvieras
+        return null;
     }
 
     @Override

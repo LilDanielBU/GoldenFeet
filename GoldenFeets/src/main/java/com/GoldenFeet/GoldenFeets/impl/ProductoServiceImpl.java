@@ -5,7 +5,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.GoldenFeet.GoldenFeets.entity.InventarioMovimiento;
 import com.GoldenFeet.GoldenFeets.repository.InventarioMovimientoRepository;
-import java.time.LocalDateTime;
 import com.GoldenFeet.GoldenFeets.dto.CategoriaDTO;
 import com.GoldenFeet.GoldenFeets.dto.ProductoCreateDTO;
 import com.GoldenFeet.GoldenFeets.dto.ProductoDTO;
@@ -24,6 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,6 +43,7 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     public List<ProductoDTO> listarTodos() {
+        // Asumiendo que Producto.id es Long
         List<Producto> productos = productoRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
         return productos.stream()
                 .map(this::convertirAProductoDTO)
@@ -52,7 +53,8 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     @Transactional(readOnly = true)
     public Optional<ProductoDTO> buscarPorId(Integer id) {
-        return productoRepository.findById(id)
+        // 💥 CORRECCIÓN: Convertimos el Integer de entrada a Long, ya que ProductoRepository espera Long.
+        return productoRepository.findById(id.longValue())
                 .map(this::convertirAProductoDTO);
     }
 
@@ -108,7 +110,9 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductoDTO> listarPorIds(List<Integer> ids) {
-        return productoRepository.findAllById(ids).stream()
+        // 💥 CORRECCIÓN: Convertimos List<Integer> a List<Long>
+        List<Long> idLongs = ids.stream().map(Integer::longValue).collect(Collectors.toList());
+        return productoRepository.findAllById(idLongs).stream()
                 .map(this::convertirAProductoDTO)
                 .collect(Collectors.toList());
     }
@@ -127,7 +131,8 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     @Transactional
     public Producto crearProducto(ProductoCreateDTO productoDTO) {
-        Categoria categoria = categoriaRepository.findById(Long.valueOf(productoDTO.getCategoriaId()))
+        // Categoria.id es Integer
+        Categoria categoria = categoriaRepository.findById(productoDTO.getCategoriaId())
                 .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada con ID: " + productoDTO.getCategoriaId()));
 
         Producto nuevoProducto = new Producto();
@@ -135,7 +140,9 @@ public class ProductoServiceImpl implements ProductoService {
         nuevoProducto.setDescripcion(productoDTO.getDescripcion());
         nuevoProducto.setPrecio(productoDTO.getPrecio());
         nuevoProducto.setOriginalPrice(productoDTO.getOriginalPrice());
-        nuevoProducto.setStock(productoDTO.getStock());
+
+        nuevoProducto.setStock(0);
+
         nuevoProducto.setMarca(productoDTO.getMarca());
         nuevoProducto.setDestacado(productoDTO.isDestacado());
         nuevoProducto.setCategoria(categoria);
@@ -147,35 +154,34 @@ public class ProductoServiceImpl implements ProductoService {
 
         Producto productoGuardado = productoRepository.save(nuevoProducto);
 
-        if (productoGuardado.getStock() != null && productoGuardado.getStock() > 0) {
-            InventarioMovimiento movimientoInicial = new InventarioMovimiento(
-                    productoGuardado,
-                    "INGRESO_INICIAL",
-                    productoGuardado.getStock(),
-                    "Creación de producto"
-            );
-            inventarioMovimientoRepository.save(movimientoInicial);
-        }
+        // Registrar el movimiento inicial
+        InventarioMovimiento movimientoInicial = new InventarioMovimiento();
+        movimientoInicial.setProducto(productoGuardado);
+        movimientoInicial.setTipoMovimiento("INGRESO_INICIAL");
+        movimientoInicial.setCantidad(0);
+        movimientoInicial.setMotivo("Creación de producto");
+        movimientoInicial.setFecha(LocalDateTime.now());
+
+        inventarioMovimientoRepository.save(movimientoInicial);
+
         return productoGuardado;
     }
 
     @Override
     @Transactional
     public Producto actualizarProducto(Integer id, ProductoUpdateDTO productoDTO) {
-        Producto productoExistente = productoRepository.findById(id)
+        // 💥 CORRECCIÓN: Convertimos el Integer de entrada a Long.
+        Producto productoExistente = productoRepository.findById(id.longValue())
                 .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con ID: " + id));
 
-        Categoria categoria = categoriaRepository.findById(Long.valueOf(productoDTO.getCategoriaId()))
+        Categoria categoria = categoriaRepository.findById(productoDTO.getCategoriaId())
                 .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada con ID: " + productoDTO.getCategoriaId()));
-
-        int stockAntiguo = productoExistente.getStock() != null ? productoExistente.getStock() : 0;
-        int stockNuevo = productoDTO.getStock();
 
         productoExistente.setNombre(productoDTO.getNombre());
         productoExistente.setDescripcion(productoDTO.getDescripcion());
         productoExistente.setPrecio(productoDTO.getPrecio());
         productoExistente.setOriginalPrice(productoDTO.getOriginalPrice());
-        productoExistente.setStock(stockNuevo);
+
         productoExistente.setMarca(productoDTO.getMarca());
         productoExistente.setDestacado(productoDTO.isDestacado());
         productoExistente.setCategoria(categoria);
@@ -189,51 +195,40 @@ public class ProductoServiceImpl implements ProductoService {
 
         Producto productoActualizado = productoRepository.save(productoExistente);
 
-        if (stockAntiguo != stockNuevo) {
-            int diferencia = stockNuevo - stockAntiguo;
-            String tipo = (diferencia > 0) ? "AJUSTE_INGRESO" : "AJUSTE_SALIDA";
-            InventarioMovimiento movimientoAjuste = new InventarioMovimiento(
-                    productoActualizado,
-                    tipo,
-                    Math.abs(diferencia),
-                    "Ajuste manual (admin)"
-            );
-            inventarioMovimientoRepository.save(movimientoAjuste);
-        }
         return productoActualizado;
     }
 
     @Override
     @Transactional
     public void eliminarProducto(Integer id) {
-        Producto producto = productoRepository.findById(id)
+        // 💥 CORRECCIÓN: Convertimos el Integer de entrada a Long.
+        Long idLong = id.longValue();
+
+        Producto producto = productoRepository.findById(idLong)
                 .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con ID: " + id));
 
-        // El ID de producto (Integer) debe convertirse a Long para las FKs de DetalleVenta e InventarioMovimiento
-        Long productoIdLong = Long.valueOf(id);
-
-        // 1. Desvincular historial (IMPORTANTE: InventarioMovimiento.producto_id debe ser nullable=true en la entidad)
-        List<InventarioMovimiento> movimientos = inventarioMovimientoRepository.findByProducto_Id(productoIdLong);
+        // Usamos el idLong para buscar movimientos y detalles
+        List<InventarioMovimiento> movimientos = inventarioMovimientoRepository.findByProducto_Id(idLong);
         for (InventarioMovimiento movimiento : movimientos) {
-            movimiento.setProducto(null); // Desvincula
+            movimiento.setProducto(null);
         }
-        inventarioMovimientoRepository.saveAll(movimientos); // Guarda los registros desvinculados
+        inventarioMovimientoRepository.saveAll(movimientos);
 
-        // 2. Borrar detalles de venta (REQUIERE @Modifying y @Transactional en DetalleVentaRepository)
-        detalleVentaRepository.deleteByProducto_Id(productoIdLong);
-
-        // 3. Eliminar archivo
+        detalleVentaRepository.deleteByProducto_Id(idLong);
         almacenamientoService.eliminarArchivo(producto.getImagenNombre());
-
-        // 4. Borrar producto
-        productoRepository.deleteById(id);
+        productoRepository.deleteById(idLong);
     }
 
     // --- MÉTODOS PRIVADOS DE CONVERSIÓN ---
 
     private ProductoDTO convertirAProductoDTO(Producto producto) {
+        // Producto.id es Long, pero DTO espera Integer
+        Integer productoId = (producto.getId() != null) ? producto.getId().intValue() : null;
+
+        // Categoria.idCategoria es Integer
         Integer categoriaId = (producto.getCategoria() != null)
-                ? producto.getCategoria().getIdCategoria().intValue() : null;
+                ? producto.getCategoria().getIdCategoria() : null;
+
         String nombreCategoria = (producto.getCategoria() != null)
                 ? producto.getCategoria().getNombre() : "Sin Categoría";
         int stock = producto.getStock() != null ? producto.getStock() : 0;
@@ -245,7 +240,6 @@ public class ProductoServiceImpl implements ProductoService {
             if (imagenNombre.startsWith("http://") || imagenNombre.startsWith("https://")) {
                 imagenUrlFinal = imagenNombre;
             } else {
-                // RUTA PÚBLICA CORREGIDA (debe coincidir con ArchivoController y SecurityConfig)
                 imagenUrlFinal = ServletUriComponentsBuilder
                         .fromCurrentContextPath()
                         .path("/api/imagenes/")
@@ -255,7 +249,7 @@ public class ProductoServiceImpl implements ProductoService {
         }
 
         return new ProductoDTO(
-                producto.getId(),
+                productoId,
                 producto.getNombre(),
                 producto.getDescripcion(),
                 producto.getPrecio(),
@@ -278,7 +272,6 @@ public class ProductoServiceImpl implements ProductoService {
             if (imagenNombre.startsWith("http://") || imagenNombre.startsWith("https://")) {
                 imagenUrlFinal = imagenNombre;
             } else {
-                // RUTA PÚBLICA CORREGIDA (debe coincidir con ArchivoController y SecurityConfig)
                 imagenUrlFinal = ServletUriComponentsBuilder
                         .fromCurrentContextPath()
                         .path("/api/imagenes/")
@@ -288,7 +281,7 @@ public class ProductoServiceImpl implements ProductoService {
         }
 
         return new CategoriaDTO(
-                categoria.getIdCategoria().intValue(),
+                categoria.getIdCategoria(),
                 categoria.getNombre(),
                 categoria.getDescripcion(),
                 imagenUrlFinal

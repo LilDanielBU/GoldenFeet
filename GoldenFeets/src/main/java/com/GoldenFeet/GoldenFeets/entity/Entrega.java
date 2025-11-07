@@ -26,13 +26,12 @@ public class Entrega {
     @Column(name = "fecha_asignacion")
     private LocalDateTime fechaAsignacion;
 
+    // ✅ CAMPO ESTADO CORREGIDO (No final)
     @Column(length = 50)
     private String estado;
 
-    // --- CAMPO NUEVO AÑADIDO ---
     @Column(name = "localidad")
     private String localidad;
-    // --- FIN CAMPO NUEVO ---
 
     @Column(columnDefinition = "TEXT")
     private String motivoCancelacion;
@@ -42,9 +41,16 @@ public class Entrega {
     private Venta venta;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_distribuidor")
+    // ✅ CORRECCIÓN FINAL: Forzamos INT y permitimos NULL (nullable=true)
+    @JoinColumn(name = "id_distribuidor", nullable = true, columnDefinition = "INT")
     private Usuario distribuidor;
 
     @OneToMany(mappedBy = "entrega", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Novedad> novedades = new ArrayList<>();
+
+    // ✅ CONSTRUCTOR para inicializar campos NOT NULL
+    public Entrega() {
+        this.fechaCreacion = LocalDateTime.now();
+        this.estado = "PENDIENTE";
+    }
 }

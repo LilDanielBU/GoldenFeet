@@ -54,7 +54,7 @@ public class VentaServiceImpl implements VentaService {
 
             // --- INICIO DE CORRECCIÓN (Record: ItemVentaDTO) ---
             // Se usa acceso directo .campo()
-            Producto producto = productoRepository.findById(itemDTO.productoId())
+            Producto producto = productoRepository.findById(Long.valueOf(itemDTO.productoId()))
                     .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado: " + itemDTO.productoId()));
 
             if (producto.getStock() < itemDTO.cantidad()) {

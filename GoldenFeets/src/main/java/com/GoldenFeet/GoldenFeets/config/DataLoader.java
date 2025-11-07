@@ -46,48 +46,6 @@ public class DataLoader implements CommandLineRunner {
 
             categoriaRepository.saveAll(List.of(hombre, mujer, ninos));
 
-            // --- Crear Productos (con stock directo) ---
-            Producto p1 = new Producto();
-            p1.setNombre("Zapato Casual");
-            p1.setDescripcion("Zapato casual para hombre, perfecto para eventos casuales.");
-            p1.setPrecio(new BigDecimal("299900"));
-            p1.setStock(50); // <-- 4. Asignamos stock directo
-            p1.setCategoria(hombre);
-            p1.setImagenNombre("https://i.pinimg.com/736x/de/70/b5/de70b5917ab1ddb0b0de8ba0d4974abe.jpg"); // <-- 5. CAMBIO DE MÉTODO
-            p1.setDestacado(true);
-            p1.setRating(4.5f);
-
-            Producto p2 = new Producto();
-            p2.setNombre("Zapatilla Dunk");
-            p2.setDescripcion("Zapatilla para hombre que ofrecen el aspecto icónico del Dunk con un estilo de perfil bajo.");
-            p2.setPrecio(new BigDecimal("450000"));
-            p2.setStock(30); // <-- 4. Asignamos stock directo
-            p2.setCategoria(hombre);
-            p2.setImagenNombre("https://i.pinimg.com/736x/91/64/db/9164db9be79f3cfb9ce97854d09455ae.jpg"); // <-- 5. CAMBIO DE MÉTODO
-            p2.setDestacado(true);
-            p2.setRating(4.8f);
-
-            Producto p3 = new Producto();
-            p3.setNombre("Zapatilla Running Pro");
-            p3.setDescripcion("Zapatilla profesional para running con máxima amortiguación.");
-            p3.setPrecio(new BigDecimal("250000"));
-            p3.setStock(40); // <-- 4. Asignamos stock directo
-            p3.setCategoria(mujer);
-            p3.setImagenNombre("https://i.pinimg.com/736x/1b/04/05/1b040589e2335d668eeddb51a3c2173c.jpg"); // <-- 5. CAMBIO DE MÉTODO
-            p3.setDestacado(true);
-            p3.setRating(4.6f);
-
-            Producto p4 = new Producto();
-            p4.setNombre("Zapato Infantil");
-            p4.setDescripcion("Zapato cómodo y resistente para las aventuras diarias de los niños.");
-            p4.setPrecio(new BigDecimal("120000"));
-            p4.setStock(100); // <-- 4. Asignamos stock directo
-            p4.setCategoria(ninos);
-            p4.setImagenNombre("https://i.pinimg.com/736x/d0/8c/07/d08c071136d14f88c1e943d6fbaed59f.jpg"); // <-- 5. CAMBIO DE MÉTODO
-            p4.setDestacado(false);
-            p4.setRating(4.2f);
-
-            productoRepository.saveAll(List.of(p1, p2, p3, p4));
 
             // --- 6. Lógica de inventario ELIMINADA ---
             // Ya no es necesaria, el stock está en la tabla productos.

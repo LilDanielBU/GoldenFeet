@@ -40,7 +40,7 @@ public interface EntregaRepository extends JpaRepository<Entrega, Long> {
             LocalDateTime finDelDia
     );
 
-    // --- NUEVA CONSULTA (CORRECTA) ---
+    // --- CONSULTA ADICIONAL ---
     /**
      * Cuenta todas las entregas que fueron ASIGNADAS a un distribuidor
      * en el rango de fechas actual (hoy).

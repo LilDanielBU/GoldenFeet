@@ -9,6 +9,7 @@ import com.GoldenFeet.GoldenFeets.entity.Usuario;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional; // Necesario para Optional
 
 public interface UsuarioService {
 
@@ -17,57 +18,25 @@ public interface UsuarioService {
     UsuarioResponseDTO obtenerPerfil(Integer idUsuario);
     List<AdminUsuarioDTO> listarTodosLosUsuarios();
 
-    // --- CORRECCIÓN: Se elimina la línea con el error de sintaxis ---
+    // Método para guardar usuario desde registro
     UsuarioResponseDTO guardarUsuario(UsuarioRegistroDTO request);
 
     void eliminarUsuario(Integer idUsuario);
     Usuario actualizarUsuarioAdmin(AdminUsuarioUpdateDTO dto);
     List<Usuario> findByRol(String nombreRol);
 
+    // 💥 MÉTODO CLAVE AÑADIDO: Debe estar presente para que UsuarioServiceImpl compile.
+    Optional<Usuario> buscarPorId(Integer id);
+
     // Métodos nuevos agregados
-    /**
-     * Busca un usuario por su email
-     */
     Usuario buscarPorEmail(String email);
-
-    /**
-     * Cambia el rol de un usuario existente
-     */
     Usuario cambiarRolUsuario(Integer id, String nuevoRol);
-
-    /**
-     * Obtiene un usuario por ID (retorna entidad Usuario)
-     */
     Usuario obtenerUsuarioPorId(Integer id);
-
-    /**
-     * Guarda un usuario directamente (entidad Usuario)
-     */
     Usuario guardarUsuario(Usuario usuario);
-
-    /**
-     * Crea un cliente automáticamente desde una venta
-     */
     Usuario crearClienteDesdeVenta(String nombre, String email, String telefono,
                                    String direccion, String ciudad, String codigoPostal);
-
-    /**
-     * Obtiene usuarios agrupados por rol
-     */
     Map<String, List<Usuario>> obtenerUsuariosAgrupadosPorRol();
-
-    /**
-     * Valida si se puede asignar un rol específico a un usuario
-     */
     boolean puedeAsignarRol(Integer usuarioId, String nombreRol);
-
-    /**
-     * Obtiene estadísticas de usuarios por rol
-     */
     Map<String, Long> obtenerEstadisticasUsuariosPorRol();
-
-    /**
-     * Obtiene todos los usuarios (retorna entidades Usuario)
-     */
     List<Usuario> obtenerTodosLosUsuarios();
 }

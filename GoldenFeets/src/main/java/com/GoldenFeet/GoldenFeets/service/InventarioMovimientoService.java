@@ -2,6 +2,8 @@ package com.GoldenFeet.GoldenFeets.service;
 
 import com.GoldenFeet.GoldenFeets.dto.HistorialDTO;
 import com.GoldenFeet.GoldenFeets.dto.IngresoDTO;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 public interface InventarioMovimientoService {
@@ -12,6 +14,9 @@ public interface InventarioMovimientoService {
      * guarda un registro en InventarioMovimiento.
      */
     void registrarIngreso(IngresoDTO ingresoDTO);
+
+    @Transactional
+    void registrarSalida(IngresoDTO salidaDTO);
 
     /**
      * Obtiene el historial de movimientos de un producto específico.

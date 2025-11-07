@@ -12,18 +12,15 @@ public class Categoria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_categoria")
-    private Long idCategoria; // <-- Mantenido como Long (es lo correcto para tu app)
+    private Integer idCategoria;
 
-    @Column(nullable = false, unique = true) // Añadido para asegurar que el nombre sea único
+    @Column(nullable = false, unique = true)
     private String nombre;
 
     private String descripcion;
 
-    // --- INICIO DE CORRECCIÓN ---
-    // Se renombra el campo para almacenar solo el nombre del archivo
     @Column(name = "imagen_nombre")
     private String imagenNombre;
-    // --- FIN DE CORRECCIÓN ---
 
     @OneToMany(mappedBy = "categoria", fetch = FetchType.LAZY)
     private List<Producto> productos;

@@ -24,9 +24,7 @@ public class ProductoCreateDTO {
     @DecimalMin(value = "0.0", message = "El precio original no puede ser negativo.")
     private BigDecimal originalPrice;
 
-    @NotNull(message = "El stock es obligatorio.")
-    @Min(value = 0, message = "El stock no puede ser negativo.")
-    private Integer stock;
+
 
     private MultipartFile imagenArchivo;
 
@@ -39,5 +37,5 @@ public class ProductoCreateDTO {
     private boolean destacado = false;
 
     @NotNull(message = "Debes seleccionar una categoría.")
-    private Long categoriaId;
+    private Integer categoriaId;
 }
