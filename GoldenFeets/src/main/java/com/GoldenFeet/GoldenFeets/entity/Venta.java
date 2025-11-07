@@ -29,13 +29,13 @@ public class Venta {
     @JoinColumn(name = "cliente_id", nullable = false)
     private Usuario cliente;
 
-    @Column(name = "fecha_venta")
+    @Column(name = "fecha_venta", nullable = false)
     private LocalDate fechaVenta;
 
-    @Column(name = "total")
+    @Column(name = "total", nullable = false)
     private BigDecimal total;
 
-    @Column(name = "estado")
+    @Column(name = "estado", nullable = false)
     private String estado;
 
     @Column(name = "direccion_envio")
@@ -44,7 +44,7 @@ public class Venta {
     @Column(name = "ciudad_envio")
     private String ciudadEnvio;
 
-    // --- CAMPO DE LOCALIDAD AÑADIDO ---
+    /** Representa la localidad o comuna para la gestión de entrega. */
     @Column(name = "localidad")
     private String localidad;
 
@@ -54,19 +54,24 @@ public class Venta {
     @Column(name = "id_transaccion")
     private String idTransaccion;
 
-    // --- CORRECCIÓN: Cambiado de Set a List ---
+    // Relación Bidireccional con DetalleVenta
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<DetalleVenta> detallesVenta = new ArrayList<>();
 
-    // --- MÉTODOS DE AYUDA ---
+    // --- MÉTODOS DE AYUDA para la gestión de la colección ---
     public void addDetalle(DetalleVenta detalle) {
+        if (detallesVenta == null) {
+            detallesVenta = new ArrayList<>();
+        }
         detallesVenta.add(detalle);
         detalle.setVenta(this);
     }
 
     public void removeDetalle(DetalleVenta detalle) {
-        detallesVenta.remove(detalle);
-        detalle.setVenta(null);
+        if (detallesVenta != null) {
+            detallesVenta.remove(detalle);
+            detalle.setVenta(null);
+        }
     }
 }
