@@ -8,9 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
     <style>
-        /* ================================== */
-        /* ===== ESTILOS CSS MEJORADOS ===== */
-        /* ================================== */
+
         :root {
             --primary-color: #6a5af9;
             --secondary-color: #d73bf6;
@@ -317,42 +315,8 @@
         </aside>
 
         <div class="col-lg-9 col-md-8 col-12">
-            <section id="featured-products" class="mb-5 featured-section"
-                     th:if="${!productosDestacados.isEmpty() and param.categoria == null and param.busqueda == null}">
-                <h2 class="mb-4">Destacados</h2>
-                <div id="productCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
-                    <div class="carousel-indicators">
-                        <button th:each="producto, iterStat : ${productosDestacados}"
-                                type="button" data-bs-target="#productCarousel"
-                                th:attr="data-bs-slide-to=${iterStat.index}"
-                                th:classappend="${iterStat.index == 0} ? 'active'"
-                                th:aria-current="${iterStat.index == 0} ? 'true'"></button>
-                    </div>
-                    <div class="carousel-inner">
-                        <div class="carousel-item" th:each="producto, iterStat : ${productosDestacados}" th:classappend="${iterStat.index == 0} ? 'active'">
-                            <img th:src="${producto.imagenUrl}" class="d-block carousel-item-bg-image" th:alt="${producto.nombre}">
-                            <div class="carousel-caption-custom">
-                                <h3 class="animate__animated animate__fadeInDown" th:text="${producto.nombre}"></h3>
-                                <p class="animate__animated animate__fadeInUp d-none d-sm-block" th:text="${producto.descripcion}"></p>
-                                <div class="mt-3">
-                                    <button th:onclick="|quickViewProduct(${producto.id})|" class="btn btn-primary btn-sm animate__animated animate__pulse">
-                                        <i class="bi bi-eye me-1"></i> Ver Detalles
-                                    </button>
-                                    <button th:data-product-name="${producto.nombre}"
-                                            th:onclick="|addToCart(this, ${producto.id}, 1)|"
-                                            class="btn btn-outline-light btn-sm">
-                                        <i class="bi bi-cart-plus me-1"></i>Añadir
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Anterior</span></button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Siguiente</span></button>
-                </div>
-            </section>
-
             <h2 class="mb-4" th:text="${tituloCatalogo}">Nuestro Catálogo</h2>
+
             <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="product-container">
                 <div class="col" th:each="producto : ${productos}">
                     <div class="card product-card h-100">
@@ -394,6 +358,7 @@
                 <h3 class="mt-3">¡Oops! No encontramos productos</h3>
                 <p class="text-muted">Intenta con otra búsqueda o categoría.</p>
             </div>
+
         </div>
     </div>
 </main>
@@ -413,6 +378,9 @@
             </div>
         </div>
     </div>
+</div>
+<div id="notification" class="notification">
+    <span id="notification-message"></span>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -443,6 +411,7 @@
         const priceValueDisplay = document.getElementById('price-range-value-desktop');
         if (priceSlider && priceValueDisplay) {
             priceSlider.addEventListener('input', function() {
+                // Formatear el valor del precio para mejor lectura
                 const formattedValue = new Intl.NumberFormat('es-CO').format(this.value);
                 priceValueDisplay.textContent = `$${formattedValue}`;
             });
@@ -605,9 +574,13 @@
      */
     function showNotification(message) {
         const notification = document.getElementById('notification');
-        const notificationMessage = document.getElementById('notification-message');
-        if (notification && notificationMessage) {
-            notificationMessage.textContent = message;
+        if (notification) {
+            const messageElement = notification.querySelector('#notification-message')
+            if (messageElement) {
+                messageElement.textContent = message;
+            } else {
+                 notification.textContent = message;
+            }
             notification.classList.add('show');
             setTimeout(() => { notification.classList.remove('show'); }, 3000);
         }
