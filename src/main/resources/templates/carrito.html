@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras - Golden Feets</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        :root {
+            /* Colors inspired by havi.txt and adjusted for cart */
+            --primary-color: #6a5af9;
+            --secondary-color: #d73bf6;
+            --primary-gradient: linear-gradient(135deg, #6a5af9, #d73bf6);
+            --accent-color: #ff6b6b; /* Danger/Alert */
+            --success-color: #10b981; /* Success */
+            --warning-color: #f59e0b; /* Warning */
+            --info-color: #0dcaf0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --text-color: #343a40;
+            --text-muted-color: #6c757d;
+            --border-color: #dee2e6;
+            --white: #ffffff;
+            --font-family-sans-serif: 'Poppins', sans-serif;
+            --bs-body-font-family: var(--font-family-sans-serif);
+            --bs-border-radius: 0.375rem; /* Default Bootstrap radius */
+            --bs-border-radius-lg: 0.5rem;
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+        }
+
+        body {
+            background-color: var(--light-color);
+            color: var(--text-color);
+        }
+
+        /* --- Header --- */
+        .app-header {
+            background-color: var(--white);
+            padding: 0.75rem 1rem;
+            box-shadow: var(--shadow-sm);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 1030; /* Above Bootstrap components */
+        }
+        .app-header .navbar-brand {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1.25rem;
+        }
+        .header-cart-icon {
+            position: relative;
+            font-size: 1.6rem;
+            color: var(--dark-color);
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .header-cart-icon:hover {
+            color: var(--primary-color);
+        }
+        .cart-count-badge {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background: var(--primary-gradient);
+            color: var(--white);
+            font-size: 0.65rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            border: 1px solid var(--white);
+        }
+
+        /* --- Checkout Steps --- */
+        .checkout-steps {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            background-color: var(--white);
+            border-radius: var(--bs-border-radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+        .step {
+            text-align: center;
+            color: var(--text-muted-color);
+            position: relative;
+            padding: 0 0.5rem;
+        }
+        .step .step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--light-color);
+            border: 2px solid var(--border-color);
+            color: var(--text-muted-color);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        .step .step-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: block;
+            transition: color 0.3s ease;
+        }
+        .step.active .step-icon, .step.completed .step-icon {
+            border-color: var(--primary-color);
+            background: var(--primary-gradient);
+            color: var(--white);
+        }
+        .step.active .step-label {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        .step.completed .step-label {
+            color: var(--text-color);
+        }
+        /* Step Connectors */
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20px; /* Center vertically with icon */
+            left: calc(50% + 30px); /* Start after icon+padding */
+            right: calc(-50% + 30px); /* Extend to next icon */
+            height: 2px;
+            background-color: var(--border-color);
+            z-index: -1;
+            transition: background-color 0.3s ease;
+        }
+        .step.completed::after {
+             background-color: var(--primary-color);
+        }
+
+        /* --- Cart Item Styling --- */
+        .cart-item {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+        }
+        .cart-item:last-child { border-bottom: none; }
+        .cart-item-image {
+            width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+            background-color: var(--white);
+            border-radius: var(--bs-border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+        .cart-item-image img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .cart-item-details { flex-grow: 1; }
+        .cart-item-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .cart-item-variant {
+            color: var(--text-muted-color);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        .cart-item-actions { text-align: right; }
+        .cart-item-price {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+        }
+        .quantity-selector {
+            display: inline-flex; /* Use inline-flex */
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .quantity-btn {
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--border-color);
+            background-color: var(--white);
+            color: var(--primary-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, color 0.2s;
+            padding: 0;
+            font-size: 1rem;
+        }
+        .quantity-btn:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+        .quantity-btn.minus { border-radius: var(--bs-border-radius) 0 0 var(--bs-border-radius); }
+        .quantity-btn.plus { border-radius: 0 var(--bs-border-radius) var(--bs-border-radius) 0; }
+        .quantity-input {
+            width: 45px;
+            height: 28px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-left: none;
+            border-right: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            padding: 0.2rem;
+            /* Remove arrows for number input */
+            -moz-appearance: textfield;
+        }
+        .quantity-input::-webkit-outer-spin-button,
+        .quantity-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .remove-item-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted-color);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0.25rem;
+            transition: color 0.2s ease;
+            text-decoration: underline;
+        }
+        .remove-item-btn:hover {
+            color: var(--accent-color);
+        }
+        .remove-item-btn i { vertical-align: middle; }
+
+        /* --- Order Summary --- */
+        .order-summary-card {
+            background-color: var(--white);
+            border-radius: var(--bs-border-radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            position: sticky;
+            top: 80px; /* Adjust based on header height */
+        }
+        .summary-title {
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .summary-table { width: 100%; }
+        .summary-table tr td {
+            padding: 0.6rem 0;
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+        .summary-table tr td:last-child { text-align: right; font-weight: 500; }
+        .summary-table tr.summary-subtotal td {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+         .summary-table tr.summary-shipping td,
+         .summary-table tr.summary-discount td {
+             padding-top: 1rem;
+         }
+         .summary-table tr.summary-discount td:last-child {
+             color: var(--success-color);
+         }
+        .summary-table tr.summary-total td {
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--text-color);
+        }
+        .promo-code .form-control, .promo-code .btn {
+            height: calc(1.5em + 0.75rem + 2px); /* Bootstrap default height */
+            font-size: 0.9rem;
+        }
+        .promo-code .btn { background: var(--primary-gradient); color: var(--white); border: none;}
+        .promo-feedback {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+         .promo-feedback.text-success { color: var(--success-color) !important; }
+         .promo-feedback.text-danger { color: var(--accent-color) !important; }
+
+        /* --- Checkout Form Sections --- */
+        #shipping-form, #payment-form, #confirmation-view {
+            background-color: var(--white);
+            border-radius: var(--bs-border-radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+        .form-section-title {
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* --- Shipping Options --- */
+        .shipping-option {
+            border: 1px solid var(--border-color);
+            border-radius: var(--bs-border-radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .shipping-option:hover {
+            border-color: var(--primary-color);
+        }
+        .shipping-option input[type="radio"] {
+            margin-top: 0.2rem;
+        }
+        .shipping-option .form-check-label {
+            display: block;
+            width: 100%;
+        }
+        .shipping-option.active {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(106, 90, 249, 0.25);
+        }
+        .shipping-cost { font-weight: 600; }
+
+         /* --- Payment Options --- */
+         .payment-option {
+             border: 1px solid var(--border-color);
+             border-radius: var(--bs-border-radius);
+             padding: 0.75rem 1rem;
+             margin-bottom: 0.5rem;
+             cursor: pointer;
+             transition: border-color 0.2s, box-shadow 0.2s;
+             display: flex;
+             align-items: center;
+         }
+         .payment-option:hover { border-color: var(--primary-color); }
+         .payment-option input[type="radio"] { margin-right: 0.75rem; }
+         .payment-option.active {
+             border-color: var(--primary-color);
+             box-shadow: 0 0 0 2px rgba(106, 90, 249, 0.25);
+         }
+         .payment-icon { font-size: 1.5rem; margin-right: 0.5rem;}
+         #credit-card-form {
+             border: 1px solid var(--border-color);
+             padding: 1.5rem;
+             margin-top: 1rem;
+             border-radius: var(--bs-border-radius);
+         }
+
+        /* --- Confirmation View --- */
+        #confirmation-view .confirmation-icon {
+            font-size: 4rem;
+            color: var(--success-color);
+            margin-bottom: 1.5rem;
+        }
+        #confirmation-view h4 { color: var(--success-color); }
+        .order-details-summary {
+            list-style: none;
+            padding: 0;
+            margin-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+        }
+        .order-details-summary li {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .order-details-summary li span:first-child { color: var(--text-muted-color); }
+        .order-details-summary li span:last-child { font-weight: 500; }
+
+        /* --- Buttons --- */
+        .checkout-button {
+             background: var(--primary-gradient);
+             color: var(--white);
+             border: none;
+             padding: 0.75rem 1.5rem;
+             font-weight: 600;
+             border-radius: 50px; /* Pill shape */
+             transition: opacity 0.2s ease, box-shadow 0.2s ease;
+        }
+        .checkout-button:hover {
+             opacity: 0.9;
+             box-shadow: 0 4px 10px rgba(106, 90, 249, 0.3);
+        }
+        .checkout-button:disabled {
+             opacity: 0.65;
+             cursor: not-allowed;
+             box-shadow: none;
+        }
+        .back-button {
+            color: var(--primary-color);
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .back-button:hover {
+            color: var(--secondary-color);
+        }
+        .back-button i { margin-right: 0.25rem; }
+
+
+        /* --- Utilities --- */
+        .hidden { display: none !important; }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 767px) {
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start; /* Align start for mobile */
+                gap: 1rem;
+            }
+            .cart-item-image { width: 80px; height: 80px; }
+            .cart-item-details { width: 100%; }
+            .cart-item-actions {
+                text-align: left; /* Align left for mobile */
+                width: 100%;
+                margin-top: 0.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+             .cart-item-price { margin-bottom: 0; order: 2; }
+            .quantity-selector { margin-bottom: 0; order: 1;}
+            .remove-item-btn { order: 3; margin-left: 1rem;}
+
+            .checkout-steps { padding: 1rem 0;}
+            .step .step-icon { width: 30px; height: 30px; font-size: 0.9rem; border-width: 1px; margin-bottom: 0.25rem;}
+            .step .step-label { font-size: 0.7rem; }
+             .step:not(:last-child)::after { top: 15px; left: calc(50% + 20px); right: calc(-50% + 20px); height: 1px;}
+
+            .order-summary-card { position: static; margin-top: 2rem; }
+
+            #shipping-form, #payment-form, #confirmation-view { padding: 1.5rem; }
+            .form-section-title { margin-bottom: 1rem; font-size: 1.1rem;}
+            .checkout-navigation { flex-direction: column-reverse; gap: 1rem; }
+            .checkout-navigation .back-button { text-align: center; }
+        }
+
+        @media (max-width: 575px) {
+             .step { padding: 0 0.25rem; } /* Reduce padding between steps */
+             .step .step-label { white-space: normal; } /* Allow label wrapping */
+             .step:not(:last-child)::after { left: calc(50% + 15px); right: calc(-50% + 15px); }
+        }
+
+    </style>
+</head>
+<body>
+
+<header class="app-header">
+    <div class="container d-flex justify-content-between align-items-center py-2">
+        <a class="navbar-brand fw-bold fs-4" th:href="@{/catalogo}" style="color: var(--primary-color);">Golden Feets</a>
+        <div class="header-cart-icon fs-2" style="position: relative;">
+            <a th:href="@{/carrito}" class="text-decoration-none" style="color: #212529;"><i class="bi bi-cart3"></i></a>
+            <span id="cartCountBadge" class="badge rounded-pill text-white" style="position: absolute; top: -5px; right: -10px; background: var(--primary-gradient); font-size: 0.65rem; border: 1px solid white;">0</span>
+        </div>
+    </div>
+</header>
+
+<main class="container my-4">
+
+    <div class="checkout-steps row gx-0 p-3 mb-4 bg-white rounded-3 shadow-sm">
+        <div class="step col" data-step="review"><div class="step-icon"><i class="bi bi-cart-check"></i></div><span class="step-label">Revisar Carrito</span></div>
+        <div class="step col" data-step="shipping"><div class="step-icon"><i class="bi bi-truck"></i></div><span class="step-label">Envío</span></div>
+        <div class="step col" data-step="payment"><div class="step-icon"><i class="bi bi-credit-card"></i></div><span class="step-label">Pago</span></div>
+        <div class="step col" data-step="confirmation"><div class="step-icon"><i class="bi bi-check2-circle"></i></div><span class="step-label">Confirmación</span></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+
+            <div id="review" class="checkout-section">
+                <div class="bg-white p-4 rounded-3 shadow-sm border">
+                    <h2 class="form-section-title">Tu Carrito</h2>
+                    <div id="cart-items-container"></div>
+                    <div class="text-center mt-4 empty-cart-message hidden">
+                        <i class="bi bi-cart-x" style="font-size: 3rem;"></i>
+                        <p class="mt-2 mb-3">Tu carrito está vacío.</p>
+                        <a th:href="@{/catalogo}" class="btn checkout-button">Seguir Comprando</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="shipping" class="checkout-section hidden">
+                <div class="bg-white p-4 rounded-3 shadow-sm border">
+                    <h2 class="form-section-title">Información de Envío</h2>
+                    <form id="shippingAddressForm" class="needs-validation" novalidate>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label for="firstName" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="firstName" required th:value="${usuario?.nombre}">
+                                <div class="invalid-feedback">Nombre es requerido.</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="lastName" class="form-label">Apellido</label>
+                                <input type="text" class="form-control" id="lastName" required th:value="${usuario?.apellido}">
+                                <div class="invalid-feedback">Apellido es requerido.</div>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="address" class="form-label">Dirección</label>
+                                <input type="text" class="form-control" id="address" placeholder="Ej: Calle 123 # 45-67" required th:value="${usuario?.direccion}">
+                                <div class="invalid-feedback">Dirección es requerida.</div>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="additionalInfo" class="form-label">Información Adicional <span class="text-muted">(Opcional)</span></label>
+                                <input type="text" class="form-control" id="additionalInfo" placeholder="Ej: Apto 501, Torre 2, Conjunto Girasoles" th:value="${usuario?.informacionAdicional}">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="state" class="form-label">Departamento</label>
+                                <input type="text" class="form-control" id="state" placeholder="Cundinamarca" required th:value="${usuario?.departamento}">
+                                <div class="invalid-feedback">Departamento es requerido.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="city" class="form-label">Ciudad</label>
+                                <input type="text" class="form-control" id="city" placeholder="Bogotá" required th:value="${usuario?.ciudad}">
+                                <div class="invalid-feedback">Ciudad es requerida.</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="locality" class="form-label">Localidad</label>
+                                <input type="text" class="form-control" id="locality" placeholder="Ej: Suba, Usaquén" required th:value="${usuario?.localidad}">
+                                <div class="invalid-feedback">Localidad es requerida.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="neighborhood" class="form-label">Barrio</label>
+                                <input type="text" class="form-control" id="neighborhood" placeholder="Ej: La Colina Campestre" required th:value="${usuario?.barrio}">
+                                <div class="invalid-feedback">Barrio es requerido.</div>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div id="payment" class="checkout-section hidden">
+                <div class="bg-white p-4 rounded-3 shadow-sm border">
+                    <h2 class="form-section-title">Método de Pago</h2>
+                    <form id="paymentForm" class="needs-validation" novalidate>
+                        <div id="payment-options">
+                            <div class="payment-option active" data-payment-method="TARJETA">
+                                <input id="credit" name="paymentMethod" type="radio" class="form-check-input" value="TARJETA" checked>
+                                <label class="form-check-label ms-2 w-100" for="credit">
+                                    <i class="bi bi-credit-card me-2"></i>Tarjeta de Crédito/Débito
+                                </label>
+                            </div>
+                            <div class="payment-option" data-payment-method="EFECTIVO">
+                                <input id="cash" name="paymentMethod" type="radio" class="form-check-input" value="EFECTIVO">
+                                <label class="form-check-label ms-2 w-100" for="cash">
+                                    <i class="bi bi-cash-coin me-2"></i>Pago Contra Entrega
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="credit-card-details" class="mt-4 border p-3 rounded">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="cc-name" class="form-label">Nombre en la tarjeta</label>
+                                    <input type="text" class="form-control" id="cc-name" required>
+                                    <div class="invalid-feedback">El nombre es requerido.</div>
+                                </div>
+                                <div class="col-12">
+                                    <label for="cc-number" class="form-label">Número de tarjeta</label>
+                                    <input type="text" class="form-control" id="cc-number" required>
+                                    <div class="invalid-feedback">El número de tarjeta es requerido.</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="cc-expiration" class="form-label">Expiración (MM/AA)</label>
+                                    <input type="text" class="form-control" id="cc-expiration" placeholder="MM/AA" required>
+                                    <div class="invalid-feedback">La fecha de expiración es requerida.</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="cc-cvv" class="form-label">CVV</label>
+                                    <input type="text" class="form-control" id="cc-cvv" required>
+                                    <div class="invalid-feedback">El CVV es requerido.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div id="confirmation" class="checkout-section hidden text-center">
+                <div class="bg-white p-4 rounded-3 shadow-sm border">
+                    <div class="confirmation-icon"><i class="bi bi-check2-circle animate__animated animate__bounceIn"></i></div>
+                    <h2 class="form-section-title mb-3">¡Pedido Confirmado!</h2>
+                    <p class="lead">Gracias por tu compra.</p>
+                    <p>Tu número de pedido es <strong id="confirmation-order-id"></strong>. Hemos enviado un correo de confirmación a <strong id="confirmation-email"></strong>.</p>
+                    <a th:href="@{/catalogo}" class="btn checkout-button mt-4">Volver a la Tienda</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="order-summary-card">
+                <h4 class="summary-title">Resumen del Pedido</h4>
+                <table class="summary-table w-100">
+                    <tbody>
+                    <tr><td>Subtotal (<span id="summary-item-count">0</span> items)</td><td id="summary-subtotal" class="text-end fw-bold">$0</td></tr>
+                    <tr><td>Envío</td><td id="summary-shipping-cost" class="text-end fw-bold">Gratis</td></tr>
+                    <tr class="border-top mt-2 pt-2"><td class="fs-5 fw-bold">Total</td><td id="summary-total" class="text-end fw-bold fs-5">$0</td></tr>
+                    </tbody>
+                </table>
+                <div class="d-grid gap-2 mt-4 checkout-navigation">
+                    <button class="btn checkout-button"
+                            id="btn-next-step"
+                            th:data-autenticado="${usuarioAutenticado}"> <span id="btn-next-text" data-original-text="Continuar a Envío">Continuar a Envío</span>
+                        <span class="spinner-border spinner-border-sm hidden" role="status" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    class ShoppingCartApp {
+        constructor() {
+            this.cart = this.loadCart(); this.productDetails = {}; this.currentStep = 'review';
+            this.shippingAddress = {}; this.paymentMethod = 'TARJETA';
+            this.currencyFormatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+            this.init();
+        }
+
+        async init() {
+            await this.fetchProductDetails(); this.renderCartItems(); this.updateOrderSummary();
+            this.updateCartCountBadge(); this.setupEventListeners(); this.showStep(this.currentStep);
+        }
+
+        loadCart() { try { return JSON.parse(localStorage.getItem('goldenFeetsCart')) || {}; } catch (e) { return {}; } }
+        saveCart() { localStorage.setItem('goldenFeetsCart', JSON.stringify(this.cart)); }
+
+        async fetchProductDetails() {
+            const productIds = Object.keys(this.cart).map(key => parseInt(key.replace('P', '')));
+            if (productIds.length === 0) { this.productDetails = {}; return; }
+            try {
+                const response = await fetch('/api/productos/by-ids', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(productIds) });
+                if (!response.ok) throw new Error('No se pudo cargar la información de los productos.');
+                const productsFromServer = await response.json();
+                this.productDetails = productsFromServer.reduce((acc, p) => { acc[`P${p.id}`] = p; return acc; }, {});
+            } catch (error) { document.getElementById('cart-items-container').innerHTML = `<p class="text-danger text-center">${error.message}</p>`; }
+        }
+
+        renderCartItems() {
+            const container = document.getElementById('cart-items-container');
+            container.innerHTML = '';
+            const emptyCartMessage = document.querySelector('.empty-cart-message');
+            if (Object.keys(this.cart).length === 0) {
+                if(emptyCartMessage) emptyCartMessage.classList.remove('hidden'); return;
+            }
+            if(emptyCartMessage) emptyCartMessage.classList.add('hidden');
+            for (const key in this.cart) {
+                const item = this.cart[key]; const product = this.productDetails[key]; if (!product) continue;
+                const el = document.createElement('div'); el.className = 'cart-item'; el.dataset.productId = key;
+
+                // <-- CORRECCIÓN: Se restauró el HTML de los botones con las clases de CSS correctas.
+                // Esto arregla el diseño y permite que el JavaScript los encuentre.
+                el.innerHTML = `
+                    <div class="cart-item-image"><img src="${product.imagenUrl}" alt="${product.nombre}"></div>
+                    <div class="flex-grow-1">
+                        <h6 class="cart-item-title">${product.nombre}</h6>
+                        <div class="cart-item-price">${this.currencyFormatter.format(product.precio)}</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="quantity-selector mb-2">
+                            <button class="quantity-btn minus btn btn-sm btn-outline-secondary">-</button>
+                            <input type="number" class="quantity-input form-control form-control-sm text-center" value="${item.quantity}" min="1" readonly>
+                            <button class="quantity-btn plus btn btn-sm btn-outline-secondary">+</button>
+                        </div>
+                        <button class="remove-item-btn btn btn-link text-danger p-0 btn-sm">
+                            <i class="bi bi-trash3"></i> Eliminar
+                        </button>
+                    </div>`;
+                container.appendChild(el);
+            }
+        }
+
+        updateOrderSummary() {
+            let subtotal = 0, itemCount = 0;
+            for (const key in this.cart) {
+                const product = this.productDetails[key];
+                if (product) { subtotal += product.precio * this.cart[key].quantity; itemCount += this.cart[key].quantity; }
+            }
+            // <-- CORRECCIÓN: Se añaden verificaciones para evitar errores si los elementos no existen.
+            const itemCountEl = document.getElementById('summary-item-count');
+            if (itemCountEl) itemCountEl.textContent = itemCount;
+
+            const subtotalEl = document.getElementById('summary-subtotal');
+            if (subtotalEl) subtotalEl.textContent = this.currencyFormatter.format(subtotal);
+
+            const totalEl = document.getElementById('summary-total');
+            if (totalEl) totalEl.textContent = this.currencyFormatter.format(subtotal);
+
+            const nextBtn = document.getElementById('btn-next-step');
+            if (nextBtn) nextBtn.disabled = itemCount === 0;
+        }
+
+        updateCartCountBadge() {
+            const count = Object.values(this.cart).reduce((s, i) => s + (i.quantity || 0), 0);
+            const badge = document.getElementById('cartCountBadge');
+            if (badge) badge.textContent = count;
+        }
+
+        setupEventListeners() {
+            // <-- CORRECCIÓN: Se verifica que los elementos existan ANTES de añadirles un listener.
+            // Esto soluciona el error "Cannot read properties of null (reading 'addEventListener')"
+            const cartContainer = document.getElementById('cart-items-container');
+            if (cartContainer) {
+                cartContainer.addEventListener('click', (e) => {
+                    const itemEl = e.target.closest('.cart-item'); if (!itemEl) return;
+                    const pId = itemEl.dataset.productId;
+                    if (e.target.matches('.quantity-btn.minus')) this.updateQuantity(pId, this.cart[pId].quantity - 1);
+                    else if (e.target.matches('.quantity-btn.plus')) this.updateQuantity(pId, this.cart[pId].quantity + 1);
+                    else if (e.target.closest('.remove-item-btn')) this.removeItem(pId, itemEl);
+                });
+            }
+
+            const nextBtn = document.getElementById('btn-next-step');
+            if (nextBtn) {
+                // <-- CORRECCIÓN: Se restaura la lógica para redirigir a invitados.
+                nextBtn.addEventListener('click', (e) => {
+                    const boton = e.currentTarget;
+                    const estaAutenticado = boton.dataset.autenticado === 'true';
+                    if (this.currentStep === 'review' && !estaAutenticado) {
+                        alert("Por favor, inicia sesión para continuar con tu compra.");
+                        window.location.href = '/login?returnUrl=/carrito';
+                    } else {
+                        this.goToNextStep();
+                    }
+                });
+            }
+
+            const prevBtn = document.getElementById('btn-prev-step');
+            if (prevBtn) {
+                prevBtn.addEventListener('click', (e) => { e.preventDefault(); this.goToPrevStep(); });
+            }
+
+            const paymentOptions = document.getElementById('payment-options');
+            if (paymentOptions) {
+                paymentOptions.addEventListener('change', (e) => {
+                    if (e.target.name === 'paymentMethod') {
+                        this.paymentMethod = e.target.value;
+                        this.updatePaymentFormUI();
+                    }
+                });
+            }
+        }
+
+        updatePaymentFormUI() {
+            const ccDetails = document.getElementById('credit-card-details');
+            if (!ccDetails) return;
+            const ccInputs = ccDetails.querySelectorAll('input');
+            if (this.paymentMethod === 'TARJETA') {
+                ccDetails.classList.remove('hidden');
+                ccInputs.forEach(input => input.required = true);
+            } else {
+                ccDetails.classList.add('hidden');
+                ccInputs.forEach(input => input.required = false);
+            }
+            document.querySelectorAll('.payment-option').forEach(el => {
+                el.classList.toggle('active', el.dataset.paymentMethod === this.paymentMethod);
+            });
+        }
+
+        updateQuantity(productId, quantity) {
+            if (this.cart[productId]) {
+                 // <-- CORRECCIÓN: Si la cantidad llega a 0, se elimina el producto.
+                if (quantity <= 0) {
+                    const itemEl = document.querySelector(`.cart-item[data-product-id="${productId}"]`);
+                    this.removeItem(productId, itemEl, true); // true para no pedir confirmación
+                } else {
+                    this.cart[productId].quantity = quantity;
+                    this.saveCart();
+                    this.updateCartCountBadge();
+                    this.updateOrderSummary();
+                    const itemEl = document.querySelector(`.cart-item[data-product-id="${productId}"]`);
+                    if(itemEl) itemEl.querySelector('.quantity-input').value = quantity;
+                }
+            }
+        }
+
+        removeItem(productId, element, skipConfirmation = false) {
+             // <-- CORRECCIÓN: Se añade el parámetro 'skipConfirmation' para la función de arriba.
+            if (skipConfirmation || confirm(`¿Eliminar ${this.productDetails[productId]?.nombre} del carrito?`)) {
+                delete this.cart[productId];
+                this.saveCart();
+                element.classList.add('animate__animated', 'animate__fadeOut');
+                element.addEventListener('animationend', () => {
+                    this.renderCartItems();
+                    this.updateOrderSummary();
+                    this.updateCartCountBadge();
+                }, { once: true });
+            }
+        }
+
+        // --- El resto de tus funciones no necesitaban cambios ---
+        showStep(stepId){document.querySelectorAll('.checkout-section').forEach(sec=>sec.classList.add('hidden'));const currentStepEl=document.getElementById(stepId);if(currentStepEl)currentStepEl.classList.remove('hidden');let stepReached=false;document.querySelectorAll('.checkout-steps .step').forEach(stepEl=>{stepEl.classList.remove('active','completed');if(stepEl.dataset.step===stepId){stepEl.classList.add('active');stepReached=true}else if(!stepReached){stepEl.classList.add('completed')}});const btnNext=document.getElementById('btn-next-step'),btnPrev=document.getElementById('btn-prev-step');if(btnNext){const btnNextText=btnNext.querySelector('span:not(.spinner-border)');btnNext.classList.toggle('hidden',stepId==='confirmation');if(btnNextText){if(stepId==='review')btnNextText.textContent='Continuar a Envío';else if(stepId==='shipping')btnNextText.textContent='Continuar a Pago';else if(stepId==='payment')btnNextText.textContent='Realizar Pedido'}}
+        if(btnPrev){btnPrev.classList.toggle('hidden',stepId==='review'||stepId==='confirmation')}}
+        validateStep(stepId){let form;if(stepId==='shipping')form=document.getElementById('shippingAddressForm');else if(stepId==='payment'&&this.paymentMethod==='TARJETA')form=document.getElementById('paymentForm');else return true;if(!form)return false;form.classList.add('was-validated');return form.checkValidity()}
+        goToNextStep(){if(!this.validateStep(this.currentStep))return;if(this.currentStep==='payment'){this.placeOrder();return}
+        const steps=['review','shipping','payment','confirmation'],currentIndex=steps.indexOf(this.currentStep);if(currentIndex<steps.length-1){this.currentStep=steps[currentIndex+1];this.showStep(this.currentStep);window.scrollTo(0,0)}}
+        goToPrevStep(){const steps=['review','shipping','payment'],currentIndex=steps.indexOf(this.currentStep);if(currentIndex>0){this.currentStep=steps[currentIndex-1];this.showStep(this.currentStep);window.scrollTo(0,0)}}
+        async placeOrder(){const btn=document.getElementById('btn-next-step');if(btn)this.setButtonLoading(btn,true,'Procesando...');this.shippingAddress={nombre:document.getElementById('firstName')?.value,apellido:document.getElementById('lastName')?.value,direccion:document.getElementById('address')?.value,informacionAdicional:document.getElementById('additionalInfo')?.value,departamento:document.getElementById('state')?.value,ciudad:document.getElementById('city')?.value,localidad:document.getElementById('locality')?.value,barrio:document.getElementById('neighborhood')?.value};const itemsParaEnviar=Object.keys(this.cart).map(key=>({productoId:parseInt(key.replace('P','')),cantidad:this.cart[key].quantity}));const pedidoRequest={items:itemsParaEnviar,...this.shippingAddress,metodoPago:this.paymentMethod};try{const response=await fetch('/api/pedidos/crear',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(pedidoRequest)}),responseData=await response.json();if(!response.ok)throw new Error(responseData.error||'Error desconocido');this.populateConfirmationScreen(responseData);this.currentStep='confirmation';this.showStep(this.currentStep);window.scrollTo(0,0);this.cart={};this.saveCart();this.updateCartCountBadge()}catch(error){alert("Hubo un error al procesar tu pedido: "+error.message);if(btn)this.setButtonLoading(btn,false,'Realizar Pedido')}}
+        populateConfirmationScreen(ventaData){const orderIdEl=document.getElementById('confirmation-order-id');if(orderIdEl)orderIdEl.textContent=`#${ventaData.idVenta}`;const emailEl=document.getElementById('confirmation-email');if(emailEl)emailEl.textContent=ventaData.clienteEmail}
+        setButtonLoading(btn,isLoading,loadingText){if(!btn)return;const textSpan=btn.querySelector('span:not(.spinner-border)'),spinner=btn.querySelector('.spinner-border');if(textSpan&&!textSpan.dataset.originalText){textSpan.dataset.originalText=textSpan.textContent}
+        if(isLoading){btn.disabled=true;if(textSpan)textSpan.textContent=loadingText;if(spinner)spinner.classList.remove('hidden')}else{btn.disabled=false;if(textSpan)textSpan.textContent=textSpan.dataset.originalText;if(spinner)spinner.classList.add('hidden')}}
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { new ShoppingCartApp(); });
+
+</script>
+
+</body>
+</html>
