@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golden Feets - Crear Nuevo Usuario</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Poppins:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Variables y Estilos Compartidos */
+        :root {
+            --primary-color: #4D1C95;
+            --primary-dark: #3a146e;
+            --secondary-color: #6C4AB6;
+            --text-color: #2D2727;
+            --light-bg: #F5F5F5;
+            --card-shadow: 0 5px 15px rgba(0,0,0,0.05); /* Sombra más ligera para formularios */
+        }
+        body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); color: var(--text-color); }
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .brand-name { font-family: 'Playfair Display', serif; font-size: 1.5em; }
+        .logo-title { display: flex; align-items: center; gap: 15px; }
+        .delivery-icon { font-size: 1.5em; }
+
+        .container-form {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .card-form {
+            background-color: white;
+            box-shadow: var(--card-shadow);
+            border-radius: 15px;
+            padding: 30px;
+        }
+        .card-form-header {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .card-form-header h1 {
+            font-size: 24px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        /* Estilos de Botones */
+        .btn-golden {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(108, 74, 182, 0.3);
+        }
+        .btn-golden:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(108, 74, 182, 0.4);
+            color: white;
+        }
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            border-radius: 50px;
+            padding: 10px 25px;
+            transition: background-color 0.3s;
+        }
+        .btn-back:hover {
+            background-color: #5a6268;
+            color: white;
+        }
+
+        /* Formulario */
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.25rem rgba(108, 74, 182, 0.25);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a th:href="@{/admin/usuarios}" class="btn btn-light" title="Volver a Usuarios">
+        <i class="fas fa-arrow-left me-2"></i> Volver
+    </a>
+    <div class="logo-title">
+        <div class="delivery-icon">
+            <i class="fas fa-user-plus"></i>
+        </div>
+        <h2>Creación de Usuario</h2>
+    </div>
+
+    <form th:action="@{/logout}" method="post" class="d-inline">
+        <button type="submit" class="btn btn-danger" title="Cerrar Sesión">
+            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+        </button>
+    </form>
+</header>
+
+<div class="container-form">
+    <div class="card-form">
+        <div class="card-form-header">
+            <h1>Detalles del Nuevo Usuario</h1>
+        </div>
+
+        <form th:action="@{/admin/usuarios/guardar}" th:object="${nuevoUsuario}" method="post">
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label for="nombre" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="nombre" th:field="*{nombre}" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" th:field="*{email}" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" id="password" th:field="*{password}" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="telefono" class="form-label">Teléfono</label>
+                    <input type="tel" class="form-control" id="telefono" th:field="*{telefono}">
+                </div>
+
+                <div class="col-12">
+                    <label for="rolesId" class="form-label">Roles Asignados</label>
+                    <select id="rolesId" th:field="*{rolesId}" class="form-select" multiple required onchange="toggleLocalidadField()">
+                        <option th:each="rol : ${rolesTodos}"
+                                th:value="${rol.idRol}"
+                                th:text="${rol.nombre}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-12" id="localidad-form-group" style="display: none;">
+                    <label for="localidad" class="form-label">Localidad Asignada (Distribuidor)</label>
+                    <select class="form-select" id="localidad" th:field="*{localidad}">
+                        <option value="">-- Seleccione Localidad --</option>
+                        <option th:each="loc : ${localidades}"
+                                th:value="${loc}"
+                                th:text="${loc}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label for="direccion" class="form-label">Dirección</label>
+                    <input type="text" class="form-control" id="direccion" th:field="*{direccion}">
+                </div>
+
+                <input type="hidden" th:field="*{fecha_nacimiento}" value="">
+                <input type="hidden" th:field="*{tipo_documento}" value="">
+                <input type="hidden" th:field="*{numero_documento}" value="">
+
+                <div class="col-12 d-flex justify-content-end gap-3 mt-4">
+                    <a th:href="@{/admin/usuarios}" class="btn btn-back">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-golden">
+                        <i class="fas fa-save me-2"></i> Guardar Usuario
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function toggleLocalidadField() {
+        const rolesSelect = document.getElementById('rolesId');
+        const localidadDiv = document.getElementById('localidad-form-group');
+        if (!rolesSelect || !localidadDiv) return;
+
+        // Verifica si el rol 'ROLE_DISTRIBUIDOR' está seleccionado
+        let esDistribuidor = false;
+        for (const option of rolesSelect.options) {
+            // Asume que el texto del rol es 'ROLE_DISTRIBUIDOR'
+            if (option.selected && option.text.includes('DISTRIBUIDOR')) {
+                esDistribuidor = true;
+                break;
+            }
+        }
+        localidadDiv.style.display = esDistribuidor ? 'block' : 'none';
+    }
+
+    // Inicializa la función cuando la página carga y cuando el campo de roles cambia
+    document.addEventListener('DOMContentLoaded', toggleLocalidadField);
+</script>
+</body>
+</html>
