@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+<body>
+<header>
+    <div class="header-title"><i class="fas fa-truck"></i><h2>Portal de Entregas</h2></div>
+</header>
+
+<div class="container-main">
+    <div class="main-header">
+        <h1><i class="fas fa-ban me-2"></i>Cancelar Entrega</h1>
+    </div>
+    <div class="content-padding">
+        <h4 class="mb-3">Detalles de la Entrega #<span th:text="${entrega.idEntrega}"></span></h4>
+        <p>Estás a punto de cancelar esta entrega. Por favor, especifica el motivo.</p>
+
+        <form th:action="@{/gerente-entregas/cancelar}" method="post">
+            <input type="hidden" name="entregaId" th:value="${entrega.idEntrega}" />
+            <div class="mb-3">
+                <label for="motivo" class="form-label fs-5">Motivo de la Cancelación:</label>
+                <textarea id="motivo" name="motivo" class="form-control" rows="4" required placeholder="Escribe aquí por qué se cancela la entrega..."></textarea>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-danger">Confirmar Cancelación</button>
+                <a th:href="@{/gerente-entregas/dashboard}" class="btn btn-secondary">Volver</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
