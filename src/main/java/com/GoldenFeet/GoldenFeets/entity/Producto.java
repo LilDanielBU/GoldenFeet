@@ -1,60 +1,38 @@
 package com.GoldenFeet.GoldenFeets.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import java.math.BigDecimal;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "productos")
 public class Producto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // 💥 CORRECCIÓN CRÍTICA:
+    // Agregamos esto para que Hibernate encuentre la columna correcta
+    // y coincida con las referencias de DetalleVenta e Inventario.
     @Column(name = "id_producto")
-    private Integer id;
+    private Long id;
 
-    @Column(nullable = false)
     private String nombre;
 
-    @Column(length = 1000)
+    // A veces la descripción es larga, es bueno asegurar el tipo TEXT en la BD
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
 
-    @Column(nullable = false)
-    private BigDecimal precio;
-
-    @Column(name = "original_price")
-    private BigDecimal originalPrice;
-
-    @Column(name = "imagen_url")
-    private String imagenUrl;
-
-    @Column(name = "marca")
-    private String marca;
-
-    @Column(name = "rating", nullable = false)
-    private Float rating;
-
-    @Column(name = "destacado", nullable = false)
-    private Boolean destacado;
-
-    // --- NUEVO CAMPO AÑADIDO ---
-    @Column(name = "stock", nullable = false)
+    private Double precio;
+    private Double originalPrice;
     private Integer stock;
+    private String marca;
+    private Boolean destacado;
+    private Integer rating;
+
+    @Column(name = "imagen_nombre")
+    private String imagenNombre;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "categoria_id", nullable = false)
+    @JoinColumn(name = "categoria_id")
     private Categoria categoria;
-
-    // Se eliminó la relación con la entidad Inventario
-
-    public Producto() {
-        this.rating = 0.0f;
-        this.destacado = false;
-        this.stock = 0; // Se inicializa el stock en 0 por defecto
-    }
-
-    // Se eliminó el método @Transient getStock()
 }

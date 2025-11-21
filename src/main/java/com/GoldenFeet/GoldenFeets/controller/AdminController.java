@@ -4,6 +4,7 @@ import com.GoldenFeet.GoldenFeets.dto.AdminUsuarioUpdateDTO;
 import com.GoldenFeet.GoldenFeets.dto.ProductoDTO;
 import com.GoldenFeet.GoldenFeets.dto.UsuarioFormDTO;
 import com.GoldenFeet.GoldenFeets.dto.UsuarioRegistroDTO;
+import com.GoldenFeet.GoldenFeets.dto.VentaResponseDTO; // Importar VentaResponseDTO
 import com.GoldenFeet.GoldenFeets.entity.Producto;
 import com.GoldenFeet.GoldenFeets.entity.Rol;
 import com.GoldenFeet.GoldenFeets.entity.Usuario;
@@ -72,6 +73,19 @@ public class AdminController {
         // 🔹 Calculamos valor total de inventario
         double valorInventario = productoService.calcularValorTotalInventario();
 
+        // 🔹 Traemos las últimas ventas para la vista (CORRECCIÓN)
+        // Nota: Asume que tienes un método para listar las últimas ventas. Si no existe, usa listarTodos o créalo.
+        List<VentaResponseDTO> ultimasVentas = ventaService.obtenerTodasLasVentas().stream()
+                .limit(5)
+                .map(VentaResponseDTO::fromEntity) // Necesitarás un método de mapeo en VentaService si listarTodas retorna Venta
+                .collect(Collectors.toList());
+
+        // 💥 CORRECCIÓN: Aseguramos que la lista nunca sea null, resolviendo el error de Thymeleaf.
+        if (ultimasVentas == null) {
+            ultimasVentas = List.of();
+        }
+
+
         // 🔹 Agregamos todo al modelo
         model.addAttribute("totalUsuarios", totalUsuarios);
         model.addAttribute("usuariosActivos", usuariosActivos);
@@ -80,6 +94,9 @@ public class AdminController {
         model.addAttribute("totalIngresos", totalIngresos);
         model.addAttribute("productos", productos);
         model.addAttribute("valorInventario", valorInventario);
+
+        // Agregamos la lista de ventas corregida
+        model.addAttribute("ultimasVentas", ultimasVentas);
 
         return "admin-panel";
     }
@@ -105,7 +122,8 @@ public class AdminController {
         model.addAttribute("rolesTodos", rolesTodos);
         model.addAttribute("localidades", localidadesBogota);
 
-        return "admin-panel";
+        // 💥 CORRECCIÓN: Esta ruta debe mostrar la plantilla de usuarios, no el panel.
+        return "admin-usuarios";
     }
 
 
@@ -170,9 +188,6 @@ public class AdminController {
 
         return "redirect:/admin/usuarios";
     }
-
-
-
 
 
     @PostMapping("/usuarios/eliminar/{id}")

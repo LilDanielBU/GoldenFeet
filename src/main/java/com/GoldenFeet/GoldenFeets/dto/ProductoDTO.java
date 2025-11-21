@@ -5,9 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
-@Data
+@Data // Genera getters, setters, equals, hashCode, y toString
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor // Genera el constructor que usas en ProductoServiceImpl
 public class ProductoDTO {
 
     private Integer id;
@@ -19,9 +19,9 @@ public class ProductoDTO {
     private String imagenUrl;
     private String marca;
 
-    // --- CORRECCIÓN ---
-    private Integer categoriaId;    // Cambiado de Long a Integer
-    private String categoriaNombre;
+    // Campos de Categoría
+    private Integer categoriaId;
+    private String nombreCategoria; // Asegúrate de que coincida con el orden en tu Service
 
     private Boolean destacado;
     private Float rating;

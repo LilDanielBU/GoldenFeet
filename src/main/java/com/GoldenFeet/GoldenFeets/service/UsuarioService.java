@@ -9,6 +9,7 @@ import com.GoldenFeet.GoldenFeets.entity.Usuario;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface UsuarioService {
 
@@ -18,8 +19,8 @@ public interface UsuarioService {
     // SÓLO la declaración, sin implementación y SIN duplicidad
     List<Usuario> obtenerTodosLosUsuarios();
 
-
     long contarUsuariosActivos();
+    Optional<Usuario> buscarPorId(Integer id);
 
     // Métodos originales
     UsuarioResponseDTO actualizarPerfil(Integer idUsuario, UsuarioUpdateDTO request);

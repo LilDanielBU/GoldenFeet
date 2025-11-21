@@ -44,26 +44,33 @@ public class VentaServiceImpl implements VentaService {
         nuevaVenta.setDireccionEnvio(request.getDireccion());
         nuevaVenta.setCiudadEnvio(request.getCiudad() + ", " + request.getDepartamento());
         nuevaVenta.setMetodoPago(request.getMetodoPago());
-        nuevaVenta.setLocalidad(request.getLocalidad()); // <-- LÍNEA AÑADIDA
+        nuevaVenta.setLocalidad(request.getLocalidad());
         // --- FIN DE DATOS DE ENVÍO ---
 
         List<DetalleVenta> detalles = new ArrayList<>();
         BigDecimal totalVenta = BigDecimal.ZERO;
 
         for (ItemVentaDTO itemDTO : request.getItems()) {
-            Producto producto = productoRepository.findById(itemDTO.productoId())
+            // Aseguramos conversión a Long para el ID
+            Producto producto = productoRepository.findById(Long.valueOf(itemDTO.productoId()))
                     .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado: " + itemDTO.productoId()));
 
             if (producto.getStock() < itemDTO.cantidad()) {
                 throw new IllegalStateException("Stock insuficiente para: " + producto.getNombre());
             }
-            // Lógica de stock a futuro...
+            // Aquí iría la lógica de descuento de stock...
 
             DetalleVenta detalle = new DetalleVenta();
             detalle.setProducto(producto);
             detalle.setCantidad(itemDTO.cantidad());
-            detalle.setPrecioUnitario(producto.getPrecio());
-            BigDecimal subtotal = producto.getPrecio().multiply(new BigDecimal(itemDTO.cantidad()));
+
+            // 💥 CORRECCIÓN 1: Convertir Double a BigDecimal de forma segura
+            BigDecimal precioUnitario = BigDecimal.valueOf(producto.getPrecio());
+            detalle.setPrecioUnitario(precioUnitario);
+
+            // 💥 CORRECCIÓN 2: Usar el BigDecimal convertido para multiplicar
+            BigDecimal subtotal = precioUnitario.multiply(new BigDecimal(itemDTO.cantidad()));
+
             detalle.setSubtotal(subtotal);
             detalle.setVenta(nuevaVenta);
             detalles.add(detalle);
@@ -79,7 +86,7 @@ public class VentaServiceImpl implements VentaService {
         nuevaEntrega.setVenta(ventaGuardada);
         nuevaEntrega.setEstado("PENDIENTE");
         nuevaEntrega.setFechaCreacion(LocalDateTime.now());
-        nuevaEntrega.setLocalidad(ventaGuardada.getLocalidad()); // <-- LÍNEA AÑADIDA
+        nuevaEntrega.setLocalidad(ventaGuardada.getLocalidad());
         entregaService.guardar(nuevaEntrega);
         // --- FIN DE CREACIÓN DE ENTREGA ---
 
@@ -111,7 +118,10 @@ public class VentaServiceImpl implements VentaService {
 
     @Override
     public List<VentaResponseDTO> findAllVentas() {
-        return List.of(); // Implementación pendiente
+        // Retorna lista vacía o implementa la conversión real si la necesitas
+        return ventaRepository.findAll().stream()
+                .map(this::convertirAVentaResponseDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
