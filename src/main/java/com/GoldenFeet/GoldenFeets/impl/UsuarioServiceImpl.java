@@ -31,6 +31,11 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
+    public Optional<Usuario> buscarPorId(Integer id) {
+        return Optional.empty();
+    }
+
+    @Override
     public UsuarioResponseDTO actualizarPerfil(Integer idUsuario, UsuarioUpdateDTO request) {
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));

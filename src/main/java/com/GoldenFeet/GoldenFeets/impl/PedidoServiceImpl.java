@@ -2,21 +2,31 @@ package com.GoldenFeet.GoldenFeets.impl;
 
 import com.GoldenFeet.GoldenFeets.dto.PedidoRequestDTO;
 import com.GoldenFeet.GoldenFeets.entity.DetalleVenta;
+import com.GoldenFeet.GoldenFeets.entity.InventarioMovimiento;
 import com.GoldenFeet.GoldenFeets.entity.Producto;
 import com.GoldenFeet.GoldenFeets.entity.Venta;
+import com.GoldenFeet.GoldenFeets.entity.Usuario;
+import com.GoldenFeet.GoldenFeets.entity.Entrega;
 import com.GoldenFeet.GoldenFeets.repository.ProductoRepository;
 import com.GoldenFeet.GoldenFeets.repository.VentaRepository;
+import com.GoldenFeet.GoldenFeets.repository.InventarioMovimientoRepository;
+import com.GoldenFeet.GoldenFeets.repository.EntregaRepository;
 import com.GoldenFeet.GoldenFeets.service.PedidoService;
+import com.GoldenFeet.GoldenFeets.service.UsuarioService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -26,55 +36,106 @@ public class PedidoServiceImpl implements PedidoService {
 
     private final VentaRepository ventaRepository;
     private final ProductoRepository productoRepository;
-    // Si tienes un servicio de usuarios, inyéctalo aquí para buscar el cliente
-    // private final UsuarioService usuarioService;
+    private final InventarioMovimientoRepository inventarioMovimientoRepository;
+    private final UsuarioService usuarioService;
+    private final EntregaRepository entregaRepository;
 
     @Override
-    @Transactional // Esto asegura que toda la operación sea atómica (o todo o nada)
+    @Transactional
     public Venta crearPedido(PedidoRequestDTO pedidoRequest) {
 
-        // Busca todos los productos necesarios en una sola consulta a la BD
-        List<Long> productoIds = pedidoRequest.getItems().stream().map(item -> item.getProductoId()).collect(Collectors.toList());
-        Map<Integer, Producto> productosMap = productoRepository.findAllById(productoIds).stream()
+        // 1. Convertir IDs de Producto (Integer del DTO) a List<Long>
+        List<Long> productoIdsLong = pedidoRequest.getItems().stream()
+                .map(item -> item.getProductoId().longValue())
+                .collect(Collectors.toList());
+
+        // Mapa de productos para búsqueda rápida
+        Map<Long, Producto> productosMap = productoRepository.findAllById(productoIdsLong).stream()
                 .collect(Collectors.toMap(Producto::getId, Function.identity()));
 
-        // Crea la entidad Venta principal
+
         Venta nuevaVenta = new Venta();
         nuevaVenta.setFechaVenta(LocalDate.now());
         nuevaVenta.setEstado("PROCESANDO");
-        // Aquí buscarías y asignarías el usuario real
-        // Usuario cliente = usuarioService.buscarPorId(pedidoRequest.getClienteId());
-        // nuevaVenta.setCliente(cliente);
+
+        // 2. Asignar el cliente
+        Usuario cliente = usuarioService.buscarPorId(pedidoRequest.getClienteId())
+                .orElseThrow(() -> new EntityNotFoundException("Cliente no encontrado con ID: " + pedidoRequest.getClienteId()));
+
+        nuevaVenta.setCliente(cliente);
+
+        // 3. Inicializar campos de Venta
+        String localidadVenta = pedidoRequest.getLocalidad() != null ? pedidoRequest.getLocalidad() : cliente.getLocalidad();
+
+        nuevaVenta.setDireccionEnvio(pedidoRequest.getDireccionEnvio() != null ? pedidoRequest.getDireccionEnvio() : cliente.getDireccion());
+        nuevaVenta.setCiudadEnvio(pedidoRequest.getCiudadEnvio() != null ? pedidoRequest.getCiudadEnvio() : cliente.getCiudad());
+        nuevaVenta.setLocalidad(localidadVenta);
+        nuevaVenta.setMetodoPago(pedidoRequest.getMetodoPago() != null ? pedidoRequest.getMetodoPago() : "PENDIENTE_PAGO");
+        nuevaVenta.setIdTransaccion(pedidoRequest.getIdTransaccion() != null ? pedidoRequest.getIdTransaccion() : "N/A-" + UUID.randomUUID().toString());
 
         Set<DetalleVenta> detalles = new HashSet<>();
         BigDecimal totalPedido = BigDecimal.ZERO;
 
-        // Crea cada detalle de la venta
         for (var itemDTO : pedidoRequest.getItems()) {
-            Producto producto = productosMap.get(itemDTO.getProductoId());
+
+            // Usamos Long para buscar en el mapa
+            Producto producto = productosMap.get(itemDTO.getProductoId().longValue());
             if (producto == null) throw new RuntimeException("Producto no encontrado con ID: " + itemDTO.getProductoId());
 
+            int stockActual = producto.getStock() != null ? producto.getStock() : 0;
+            int cantidadPedida = itemDTO.getCantidad();
+
+            if (stockActual < cantidadPedida) {
+                throw new RuntimeException("Stock insuficiente para: " + producto.getNombre() + ". Stock actual: " + stockActual);
+            }
+
+            // 4. REDUCCIÓN DE STOCK
+            producto.setStock(stockActual - cantidadPedida);
+            productoRepository.save(producto);
+
+            // 5. REGISTRO DE MOVIMIENTO
+            InventarioMovimiento movimiento = new InventarioMovimiento();
+            movimiento.setProducto(producto);
+            movimiento.setTipoMovimiento("VENTA");
+            movimiento.setCantidad(cantidadPedida);
+            movimiento.setMotivo("Venta de producto registrada.");
+            movimiento.setFecha(LocalDateTime.now());
+            inventarioMovimientoRepository.save(movimiento);
+
+            // 6. CREACIÓN DE DETALLE
             DetalleVenta detalle = new DetalleVenta();
             detalle.setProducto(producto);
-            detalle.setCantidad(itemDTO.getCantidad());
-            detalle.setPrecioUnitario(producto.getPrecio());
-            detalle.setSubtotal(producto.getPrecio().multiply(new BigDecimal(itemDTO.getCantidad())));
-            detalle.setVenta(nuevaVenta); // Enlaza el detalle con la venta
+            detalle.setCantidad(cantidadPedida);
+
+            // 💥 CORRECCIÓN 1: Convertir Double a BigDecimal
+            BigDecimal precioUnitario = BigDecimal.valueOf(producto.getPrecio());
+            detalle.setPrecioUnitario(precioUnitario);
+
+            // 💥 CORRECCIÓN 2: Usar el BigDecimal convertido para multiplicar
+            // (Double no tiene método .multiply())
+            BigDecimal subtotal = precioUnitario.multiply(new BigDecimal(cantidadPedida));
+            detalle.setSubtotal(subtotal);
+
+            detalle.setVenta(nuevaVenta);
 
             detalles.add(detalle);
             totalPedido = totalPedido.add(detalle.getSubtotal());
-
-            // Lógica para actualizar el stock del producto
-            // int nuevoStock = producto.getStock() - itemDTO.getCantidad();
-            // if (nuevoStock < 0) throw new RuntimeException("Stock insuficiente para: " + producto.getNombre());
-            // producto.setStock(nuevoStock);
-            // productoRepository.save(producto);
         }
 
-        nuevaVenta.setDetallesVenta((List<DetalleVenta>) detalles);
+        nuevaVenta.setDetallesVenta(new ArrayList<>(detalles));
         nuevaVenta.setTotal(totalPedido);
 
-        // Guarda la Venta y sus Detalles en la base de datos
-        return ventaRepository.save(nuevaVenta);
+        // 7. Guardamos la Venta
+        Venta ventaGuardada = ventaRepository.save(nuevaVenta);
+
+        // 8. Creación EXPLÍCITA de Entrega
+        Entrega nuevaEntrega = new Entrega();
+        nuevaEntrega.setVenta(ventaGuardada);
+        nuevaEntrega.setLocalidad(ventaGuardada.getLocalidad());
+
+        // 9. Guardamos la Entrega.
+        entregaRepository.save(nuevaEntrega);
+
+        return ventaGuardada;
     }
 }

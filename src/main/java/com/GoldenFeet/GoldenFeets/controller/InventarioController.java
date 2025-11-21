@@ -1,11 +1,15 @@
 package com.GoldenFeet.GoldenFeets.controller;
 
+import com.GoldenFeet.GoldenFeets.dto.IngresoDTO;
 import com.GoldenFeet.GoldenFeets.dto.ProductoCreateDTO;
 import com.GoldenFeet.GoldenFeets.dto.ProductoDTO;
 import com.GoldenFeet.GoldenFeets.dto.ProductoUpdateDTO;
 import com.GoldenFeet.GoldenFeets.entity.Categoria;
 import com.GoldenFeet.GoldenFeets.repository.CategoriaRepository;
+import com.GoldenFeet.GoldenFeets.service.AlmacenamientoService;
+import com.GoldenFeet.GoldenFeets.service.InventarioMovimientoService;
 import com.GoldenFeet.GoldenFeets.service.ProductoService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,15 +30,96 @@ public class InventarioController {
 
     private final ProductoService productoService;
     private final CategoriaRepository categoriaRepository;
+    private final AlmacenamientoService almacenamientoService;
+    private final InventarioMovimientoService inventarioMovimientoService;
 
-    // ... (otros métodos sin cambios)
+    /**
+     * Muestra la tabla principal de productos y gestiona los errores de redirección.
+     */
     @GetMapping("/panel")
     public String mostrarPanelInventario(Model model) {
         List<ProductoDTO> listaProductos = productoService.listarTodos();
         model.addAttribute("productos", listaProductos);
         model.addAttribute("titulo", "Panel de Gestión de Inventario");
+
+        // FIX CLAVE: Inicializa el DTO para el formulario modal de ingreso/salida (Thymeleaf)
+        if (!model.containsAttribute("ingresoDTO")) {
+            model.addAttribute("ingresoDTO", new IngresoDTO());
+        }
+
         return "inventario-panel";
     }
+
+    // =============================================================
+    // 1. REGISTRO DE INGRESO (SUMA) DE STOCK
+    // =============================================================
+
+    @PostMapping("/ingreso-stock")
+    public String registrarIngresoStock(@Valid @ModelAttribute("ingresoDTO") IngresoDTO ingresoDTO,
+                                        BindingResult bindingResult,
+                                        RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Error de validación en ingreso: La cantidad debe ser mayor o igual a 1 y el motivo es obligatorio.");
+            return "redirect:/inventario/panel";
+        }
+
+        try {
+            inventarioMovimientoService.registrarIngreso(ingresoDTO);
+
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "¡Stock agregado exitosamente! Se sumaron " + ingresoDTO.getCantidad() +
+                            " unidades al Producto ID " + ingresoDTO.getProductoId() + ".");
+
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: Producto no encontrado con el ID especificado.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error de negocio: " + e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al procesar el ingreso de stock: " + e.getMessage());
+        }
+
+        return "redirect:/inventario/panel";
+    }
+
+    // =============================================================
+    // 2. REGISTRO DE SALIDA (RESTA) DE STOCK
+    // =============================================================
+
+    @PostMapping("/salida-stock")
+    public String registrarSalidaStock(@Valid @ModelAttribute("ingresoDTO") IngresoDTO salidaDTO,
+                                       BindingResult bindingResult,
+                                       RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Error de validación en salida: La cantidad debe ser >= 1 y el motivo es obligatorio.");
+            return "redirect:/inventario/panel";
+        }
+
+        try {
+            inventarioMovimientoService.registrarSalida(salidaDTO);
+
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "¡Éxito! Se han retirado " + salidaDTO.getCantidad() +
+                            " unidades del producto ID " + salidaDTO.getProductoId() + ".");
+
+        } catch (EntityNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: Producto no encontrado.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: " + e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al registrar la salida: " + e.getMessage());
+        }
+
+        return "redirect:/inventario/panel";
+    }
+
+
+    // =============================================================
+    // MÉTODOS DE GESTIÓN DE PRODUCTOS (Crear, Editar, Eliminar)
+    // =============================================================
 
     @GetMapping("/productos/nuevo")
     public String mostrarFormularioDeProducto(Model model) {
@@ -73,15 +158,18 @@ public class InventarioController {
 
         ProductoDTO productoDTO = productoOpt.get();
         ProductoUpdateDTO updateDTO = new ProductoUpdateDTO();
+
+        // Mapeo de ProductoDTO a ProductoUpdateDTO
         updateDTO.setId(productoDTO.getId());
         updateDTO.setNombre(productoDTO.getNombre());
         updateDTO.setDescripcion(productoDTO.getDescripcion());
         updateDTO.setPrecio(productoDTO.getPrecio());
         updateDTO.setOriginalPrice(productoDTO.getOriginalPrice());
-        updateDTO.setStock(productoDTO.getStock());
-        updateDTO.setImagenUrl(productoDTO.getImagenUrl());
+
+        // --- CORRECCIÓN ---
+        // updateDTO.setStock(productoDTO.getStock()); // <-- ELIMINADO (Causaba el error de compilación)
+
         updateDTO.setMarca(productoDTO.getMarca());
-        updateDTO.setRating(productoDTO.getRating());
         updateDTO.setDestacado(productoDTO.getDestacado());
         updateDTO.setCategoriaId(productoDTO.getCategoriaId());
 
@@ -89,30 +177,24 @@ public class InventarioController {
         model.addAttribute("categorias", categoriaRepository.findAll());
         model.addAttribute("titulo", "Editar Producto");
         model.addAttribute("isEditMode", true);
+        model.addAttribute("imagenActualUrl", productoDTO.getImagenUrl());
+
         return "producto-form";
     }
 
-    // --- MÉTODO CON DEPURACIÓN AÑADIDA ---
     @PostMapping("/productos/actualizar/{id}")
     public String procesarActualizacion(@PathVariable("id") Integer id,
                                         @Valid @ModelAttribute("productoDTO") ProductoUpdateDTO productoDTO,
                                         BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
 
-        // --- LÍNEAS DE DIAGNÓSTICO ---
-        System.out.println("--- INTENTANDO ACTUALIZAR PRODUCTO ---");
-        System.out.println("ID a actualizar: " + id);
-        System.out.println("Datos recibidos en DTO: " + productoDTO.toString());
-        // -----------------------------
-
         if (bindingResult.hasErrors()) {
-            System.out.println("Error de validación: " + bindingResult.getAllErrors());
             model.addAttribute("categorias", categoriaRepository.findAll());
             model.addAttribute("titulo", "Editar Producto");
             model.addAttribute("isEditMode", true);
+            productoService.buscarPorId(id).ifPresent(p -> model.addAttribute("imagenActualUrl", p.getImagenUrl()));
             return "producto-form";
         }
         try {
-            productoDTO.setId(id);
             productoService.actualizarProducto(id, productoDTO);
             redirectAttributes.addFlashAttribute("successMessage", "¡Producto actualizado exitosamente!");
             return "redirect:/inventario/panel";

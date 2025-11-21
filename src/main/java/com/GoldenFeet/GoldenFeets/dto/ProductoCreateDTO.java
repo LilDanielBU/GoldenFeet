@@ -2,6 +2,7 @@ package com.GoldenFeet.GoldenFeets.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile; // ⚠️ Importante para subir imágenes
 import java.math.BigDecimal;
 
 @Data
@@ -22,12 +23,15 @@ public class ProductoCreateDTO {
     @DecimalMin(value = "0.0", message = "El precio original no puede ser negativo.")
     private BigDecimal originalPrice;
 
-    @NotNull(message = "El stock es obligatorio.")
+    // Nota: En tu servicio actual el stock se inicializa en 0,
+    // pero dejamos este campo por si decides cambiar esa lógica después.
     @Min(value = 0, message = "El stock no puede ser negativo.")
     private Integer stock;
 
-    @Size(max = 255, message = "La URL de la imagen es demasiado larga.")
-    private String imagenUrl;
+    // 💥 CAMBIO IMPORTANTE: Usamos MultipartFile para recibir el archivo real
+    // No ponemos validaciones @NotNull aquí para que sea opcional si así lo deseas,
+    // o puedes agregar @NotNull(message = "La imagen es obligatoria") si es requerida.
+    private MultipartFile imagenArchivo;
 
     @Size(max = 255, message = "La marca es demasiado larga.")
     private String marca;
@@ -39,5 +43,5 @@ public class ProductoCreateDTO {
     private boolean destacado = false;
 
     @NotNull(message = "Debes seleccionar una categoría.")
-    private Long categoriaId;
+    private Integer categoriaId; // Usamos Integer para coincidir con la Entidad Categoria
 }

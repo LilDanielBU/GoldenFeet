@@ -59,8 +59,7 @@ public final class VentaResponseDTO {
  * DTO para cada detalle en la respuesta.
  */
 final class DetalleVentaResponseDTO {
-    // --- CORRECCIÓN AQUÍ ---
-    private final Integer productoId; // Cambiado de Long a Integer
+    private final Integer productoId;
     private final String nombreProducto;
     private final int cantidad;
     private final BigDecimal precioUnitario;
@@ -79,7 +78,9 @@ final class DetalleVentaResponseDTO {
      */
     public static DetalleVentaResponseDTO fromEntity(DetalleVenta detalle) {
         return new DetalleVentaResponseDTO(
-                detalle.getProducto().getId(),
+                // 💥 CORRECCIÓN AQUÍ: Convertimos Long a Integer
+                detalle.getProducto().getId().intValue(),
+
                 detalle.getProducto().getNombre(),
                 detalle.getCantidad(),
                 detalle.getPrecioUnitario(),
@@ -88,7 +89,7 @@ final class DetalleVentaResponseDTO {
     }
 
     // Getters
-    public Integer getProductoId() { return productoId; } // Tipo de retorno también cambiado
+    public Integer getProductoId() { return productoId; }
     public String getNombreProducto() { return nombreProducto; }
     public int getCantidad() { return cantidad; }
     public BigDecimal getPrecioUnitario() { return precioUnitario; }

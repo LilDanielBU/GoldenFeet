@@ -11,16 +11,17 @@ public class Categoria {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    // --- CORRECCIÓN AQUÍ ---
-    @Column(name = "id_categoria") // Es bueno ser explícito con el nombre de la columna
-    private Integer idCategoria; // Cambiado de Long a Integer
+    @Column(name = "id_categoria")
+    private Integer idCategoria;
 
     private String nombre;
 
     private String descripcion;
 
-    @Column(name = "imagen_url")
-    private String imagenUrl;
+    // 💥 CAMBIO REALIZADO: De 'imagenUrl' a 'imagenNombre'
+    // Esto genera automáticamente los métodos getImagenNombre() y setImagenNombre() gracias a @Data
+    @Column(name = "imagen_nombre")
+    private String imagenNombre;
 
     @OneToMany(mappedBy = "categoria", fetch = FetchType.LAZY)
     private List<Producto> productos;

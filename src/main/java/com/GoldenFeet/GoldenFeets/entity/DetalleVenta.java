@@ -19,9 +19,10 @@ public class DetalleVenta {
     private Venta venta;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    // --- CORRECCIÓN AQUÍ ---
-    // Se añade 'referencedColumnName' para que apunte a la columna correcta en 'productos'
-    @JoinColumn(name = "id_producto", referencedColumnName = "id_producto", nullable = false)
+    // 💥 CORRECCIÓN: Eliminamos 'referencedColumnName'.
+    // Solo indicamos que la columna (FK) en ESTA tabla se llama 'id_producto'.
+    // Hibernate buscará automáticamente el @Id en la entidad Producto.
+    @JoinColumn(name = "id_producto", nullable = false)
     private Producto producto;
 
     @Column(name = "cantidad", nullable = false)
@@ -33,7 +34,7 @@ public class DetalleVenta {
     @Column(name = "subtotal")
     private BigDecimal subtotal;
 
-    // Constructores
+    // --- Constructores ---
     public DetalleVenta() {
     }
 
@@ -42,28 +43,66 @@ public class DetalleVenta {
         this.producto = producto;
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
-        this.subtotal = precioUnitario.multiply(new BigDecimal(cantidad));
+        if (precioUnitario != null && cantidad != null) {
+            this.subtotal = precioUnitario.multiply(new BigDecimal(cantidad));
+        }
     }
 
-    // Getters y Setters...
-    public Long getIdDetalle() { return idDetalle; }
-    public void setIdDetalle(Long idDetalle) { this.idDetalle = idDetalle; }
-    public Venta getVenta() { return venta; }
-    public void setVenta(Venta venta) { this.venta = venta; }
-    public Producto getProducto() { return producto; }
-    public void setProducto(Producto producto) { this.producto = producto; }
-    public Integer getCantidad() { return cantidad; }
+    // --- Getters y Setters ---
+
+    public Long getIdDetalle() {
+        return idDetalle;
+    }
+
+    public void setIdDetalle(Long idDetalle) {
+        this.idDetalle = idDetalle;
+    }
+
+    public Venta getVenta() {
+        return venta;
+    }
+
+    public void setVenta(Venta venta) {
+        this.venta = venta;
+    }
+
+    public Producto getProducto() {
+        return producto;
+    }
+
+    public void setProducto(Producto producto) {
+        this.producto = producto;
+    }
+
+    public Integer getCantidad() {
+        return cantidad;
+    }
+
     public void setCantidad(Integer cantidad) {
         this.cantidad = cantidad;
-        if (this.precioUnitario != null) { this.subtotal = this.precioUnitario.multiply(new BigDecimal(cantidad)); }
+        if (this.precioUnitario != null && cantidad != null) {
+            this.subtotal = this.precioUnitario.multiply(new BigDecimal(cantidad));
+        }
     }
-    public BigDecimal getPrecioUnitario() { return precioUnitario; }
+
+    public BigDecimal getPrecioUnitario() {
+        return precioUnitario;
+    }
+
     public void setPrecioUnitario(BigDecimal precioUnitario) {
         this.precioUnitario = precioUnitario;
-        if (this.cantidad != null) { this.subtotal = precioUnitario.multiply(new BigDecimal(cantidad)); }
+        if (this.cantidad != null && precioUnitario != null) {
+            this.subtotal = precioUnitario.multiply(new BigDecimal(cantidad));
+        }
     }
-    public BigDecimal getSubtotal() { return subtotal; }
-    public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
+
+    public BigDecimal getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(BigDecimal subtotal) {
+        this.subtotal = subtotal;
+    }
 
     @Override
     public String toString() {
