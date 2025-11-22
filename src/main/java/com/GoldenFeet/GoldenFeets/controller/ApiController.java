@@ -23,13 +23,11 @@ public class ApiController {
      * Obtiene los detalles de un producto por su ID.
      */
     @GetMapping("/productos/{id}")
-    // --- CORRECCIÓN: Cambiado de Long a Integer ---
     public ResponseEntity<ProductoDTO> obtenerProducto(@PathVariable Integer id) {
         return productoService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
     /**
      * Recibe una lista de IDs de productos y devuelve los detalles de cada uno.
      */

@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - Golden Feets</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        /* ... TUS ESTILOS CSS ... */
+         :root {
+            --purple-900: #3B1C5F;
+            --purple-700: #5B21B6;
+            --purple-600: #6D28D9;
+            --purple-500: #7C3AED;
+            --purple-100: #EDE9FE;
+            --purple-50: #F5F3FF;
+            --gray-900: #111827;
+            --gray-600: #4B5563;
+            --gray-100: #F3F4F6;
+            --white: #FFFFFF;
+            --gradient-primary: linear-gradient(135deg, var(--purple-600), var(--purple-900));
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(109, 40, 217, 0.3);
+            --radius-card: 20px;
+            --font-sans: 'Inter', sans-serif;
+            --font-serif: 'Playfair Display', serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: #FAFAFA;
+            color: var(--gray-900);
+        }
+
+        /* === HEADER PREMIUM === */
+        .header-premium {
+            background: linear-gradient(135deg, #2D1548 0%, #4C1D95 50%, #3B1C5F 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 1rem 0;
+        }
+
+        .brand-premium {
+            font-family: var(--font-serif);
+            font-weight: 900;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #fff 0%, #E9D5FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+
+        .nav-btn-premium {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            border-radius: 12px;
+        }
+        .nav-btn-premium:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        /* === DASHBOARD LAYOUT === */
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar-menu { display: none; }
+            .mobile-menu { display: block !important; }
+        }
+
+        /* === SIDEBAR === */
+        .sidebar-menu {
+            background: var(--white);
+            border-radius: var(--radius-card);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-card);
+            position: sticky;
+            top: 2rem;
+            height: fit-content;
+        }
+
+        .user-profile-section {
+            text-align: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--purple-100);
+            margin-bottom: 1.5rem;
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0 auto 1rem;
+            border: 4px solid var(--purple-100);
+        }
+
+        .user-name {
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .user-email {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 1rem;
+            border-radius: 12px;
+            color: var(--gray-600);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background: var(--purple-50);
+            color: var(--purple-700);
+            transform: translateX(5px);
+        }
+
+        .menu-item.active {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+        }
+
+        .menu-item i {
+            font-size: 1.2rem;
+            width: 24px;
+        }
+
+        /* === CONTENT SECTIONS === */
+        .content-area {
+            min-height: 600px;
+        }
+
+        .section-content {
+            display: none;
+        }
+
+        .section-content.active {
+            display: block;
+        }
+
+        .content-card {
+            background: var(--white);
+            border-radius: var(--radius-card);
+            padding: 2rem;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-family: var(--font-serif);
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--purple-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            color: var(--gray-600);
+            font-size: 0.95rem;
+        }
+
+        /* === STATS CARDS === */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-card);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-card);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--purple-600);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: var(--purple-100);
+            color: var(--purple-600);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* === FORM STYLES === */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            display: block;
+        }
+
+        .form-control {
+            border: 2px solid var(--gray-100);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--purple-600);
+            box-shadow: 0 0 0 4px var(--purple-50);
+            outline: none;
+        }
+
+        .btn-primary-custom {
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 12px;
+            padding: 0.9rem 2rem;
+            color: white;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(109, 40, 217, 0.4);
+        }
+
+        .btn-secondary-custom {
+            background: white;
+            border: 2px solid var(--gray-100);
+            border-radius: 12px;
+            padding: 0.9rem 2rem;
+            color: var(--gray-600);
+            font-weight: 700;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-secondary-custom:hover {
+            border-color: var(--purple-600);
+            color: var(--purple-600);
+            background: var(--purple-50);
+        }
+
+        /* === ORDER CARD === */
+        .order-card {
+            background: var(--white);
+            border: 2px solid var(--gray-100);
+            border-radius: var(--radius-card);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .order-card:hover {
+            border-color: var(--purple-600);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--purple-100);
+        }
+
+        .order-number {
+            font-weight: 800;
+            color: var(--gray-900);
+        }
+
+        .order-status {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .status-pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-processing {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .status-shipped {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-delivered {
+            background: var(--purple-100);
+            color: var(--purple-900);
+        }
+
+        .status-cancelled {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .order-item {
+            display: flex;
+            gap: 1rem;
+            padding: 0.75rem 0;
+        }
+
+        .order-item-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--gray-100);
+        }
+
+        .order-item-details {
+            flex: 1;
+        }
+
+        .order-item-name {
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .order-item-meta {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+        }
+
+        .order-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--purple-100);
+        }
+
+        .order-total-label {
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .order-total-value {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--purple-600);
+        }
+
+        /* === ALERT === */
+        .alert-custom {
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border: none;
+        }
+
+        .alert-success-custom {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .alert-danger-custom {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        /* === MOBILE MENU === */
+        .mobile-menu {
+            display: none;
+            background: var(--white);
+            border-radius: var(--radius-card);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-card);
+        }
+
+        .mobile-menu select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 12px;
+            border: 2px solid var(--gray-100);
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        /* === PROGRESS BAR === */
+        .progress-custom {
+            height: 8px;
+            border-radius: 10px;
+            background: var(--gray-100);
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-bar-custom {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+<header class="header-premium sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="brand-premium d-flex align-items-center gap-2" th:href="@{/}">
+                <i class="bi bi-gem" style="font-size: 1.5rem; -webkit-text-fill-color: #fff;"></i>
+                Golden Feets
+            </a>
+
+            <div class="d-flex align-items-center gap-3">
+                <a th:href="@{/catalogo}" class="btn nav-btn-premium d-flex align-items-center gap-2 px-3 py-2">
+                    <i class="bi bi-shop"></i>
+                    <span class="d-none d-md-inline">Tienda</span>
+                </a>
+                <a th:href="@{/carrito}" class="btn nav-btn-premium d-flex align-items-center gap-2 px-3 py-2">
+                    <i class="bi bi-bag"></i>
+                    <span class="d-none d-md-inline">Carrito</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<div class="dashboard-container">
+
+    <aside class="sidebar-menu">
+        <div class="user-profile-section">
+            <div class="user-avatar" th:text="${usuario.nombre != null ? usuario.nombre.substring(0,1).toUpperCase() : 'U'}">U</div>
+            <div class="user-name" th:text="${usuario.nombre + ' ' + usuario.apellido}">Usuario</div>
+            <div class="user-email" th:text="${usuario.email}">email@example.com</div>
+        </div>
+
+        <nav>
+            <a class="menu-item active" data-section="overview">
+                <i class="bi bi-grid"></i>
+                <span>Resumen</span>
+            </a>
+            <a class="menu-item" data-section="orders">
+                <i class="bi bi-box-seam"></i>
+                <span>Mis Pedidos</span>
+            </a>
+            <a class="menu-item" data-section="profile">
+                <i class="bi bi-person"></i>
+                <span>Datos Personales</span>
+            </a>
+            <a class="menu-item" data-section="addresses">
+                <i class="bi bi-geo-alt"></i>
+                <span>Direcciones</span>
+            </a>
+            <a class="menu-item" data-section="security">
+                <i class="bi bi-shield-lock"></i>
+                <span>Seguridad</span>
+            </a>
+            <a th:href="@{/logout}" class="menu-item" style="margin-top: 2rem; color: #DC2626;">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Cerrar Sesión</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="mobile-menu">
+        <select id="mobile-section-select" class="form-select">
+            <option value="overview">Resumen</option>
+            <option value="orders">Mis Pedidos</option>
+            <option value="profile">Datos Personales</option>
+            <option value="addresses">Direcciones</option>
+            <option value="security">Seguridad</option>
+        </select>
+    </div>
+
+    <main class="content-area">
+
+        <section class="section-content active" id="overview">
+            <div class="section-header">
+                <h1 class="section-title">¡Bienvenido, <span th:text="${usuario.nombre}">Usuario</span>!</h1>
+                <p class="section-subtitle">Aquí está un resumen de tu cuenta</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+                    <div class="stat-value" th:text="${estadisticas.totalPedidos}">0</div>
+                    <div class="stat-label">Pedidos Totales</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="bi bi-truck"></i></div>
+                    <div class="stat-value" th:text="${estadisticas.pedidosEnCamino}">0</div>
+                    <div class="stat-label">En Camino</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="bi bi-heart-fill"></i></div>
+                    <div class="stat-value" th:text="${estadisticas.totalFavoritos}">0</div>
+                    <div class="stat-label">Favoritos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="bi bi-wallet2"></i></div>
+                    <div class="stat-value">$<span th:text="${#numbers.formatDecimal(estadisticas.totalGastado, 1, 'POINT', 0, 'COMMA')}">0</span></div>
+                    <div class="stat-label">Total Gastado</div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <h3 style="font-weight: 800; margin-bottom: 1.5rem; color: var(--gray-900);">Último Pedido</h3>
+
+                <div th:if="${#lists.isEmpty(listaVentas)}">
+                    <p class="text-muted">Aún no has realizado compras.</p>
+                </div>
+
+                <div th:each="venta, iter : ${listaVentas}" th:if="${iter.index < 1}" class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <div class="order-number" th:text="'#GF-' + ${venta.idVenta}">#GF-00000</div>
+                            <small class="text-muted" th:text="${venta.fechaVenta}">Fecha</small>
+                        </div>
+                        <span class="order-status"
+                              th:classappend="${venta.estado == 'Entregado' ? 'status-delivered' : (venta.estado == 'En Camino' ? 'status-shipped' : 'status-pending')}"
+                              th:text="${venta.estado}">Estado</span>
+                    </div>
+
+                    <div th:each="detalle : ${venta.detallesVenta}" class="order-item">
+                        <img src="https://via.placeholder.com/60" alt="Producto" class="order-item-img">
+                        <div class="order-item-details">
+                            <div class="order-item-name" th:text="${detalle.producto != null ? detalle.producto.nombre : 'Producto'}">Producto</div>
+                            <div class="order-item-meta">Cantidad: <span th:text="${detalle.cantidad}">1</span> • Precio: <span th:text="${detalle.precioUnitario}">0</span></div>
+                        </div>
+                    </div>
+
+                    <div class="order-total">
+                        <span class="order-total-label">Total:</span>
+                        <span class="order-total-value">$<span th:text="${#numbers.formatDecimal(venta.total, 0, 'POINT', 0, 'COMMA')}">0</span></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-content" id="orders">
+            <div class="section-header">
+                <h1 class="section-title">Mis Pedidos</h1>
+                <p class="section-subtitle">Historial completo de tus compras</p>
+            </div>
+
+            <div class="content-card">
+                <div th:if="${#lists.isEmpty(listaVentas)}" class="text-center py-5">
+                    <i class="bi bi-cart-x" style="font-size: 3rem; color: var(--gray-300);"></i>
+                    <p class="mt-3 text-muted">No hay pedidos registrados.</p>
+                    <a th:href="@{/catalogo}" class="btn btn-primary-custom mt-2">Ir a comprar</a>
+                </div>
+
+                <div th:each="venta : ${listaVentas}" class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <div class="order-number" th:text="'#GF-' + ${venta.idVenta}">#GF-000</div>
+                            <small class="text-muted" th:text="${venta.fechaVenta}">Fecha</small>
+                        </div>
+                        <span class="order-status"
+                              th:classappend="${venta.estado == 'Entregado' ? 'status-delivered' :
+                                             (venta.estado == 'En Camino' ? 'status-shipped' :
+                                             (venta.estado == 'Cancelado' ? 'status-cancelled' : 'status-pending'))}"
+                              th:text="${venta.estado}">Estado</span>
+                    </div>
+
+                    <div th:each="detalle : ${venta.detallesVenta}" class="order-item">
+                        <img src="https://via.placeholder.com/60" alt="Producto" class="order-item-img">
+                        <div class="order-item-details">
+                            <div class="order-item-name" th:text="${detalle.producto != null ? detalle.producto.nombre : 'Producto'}">Nombre Producto</div>
+                            <div class="order-item-meta">
+                                Cant: <span th:text="${detalle.cantidad}">0</span>
+                                • Subtotal: <span th:text="${detalle.subtotal}">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="order-total">
+                        <span class="order-total-label">Total Pagado:</span>
+                        <span class="order-total-value">$<span th:text="${#numbers.formatDecimal(venta.total, 0, 'POINT', 0, 'COMMA')}">0</span></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section-content" id="profile">
+            <div class="section-header">
+                <h1 class="section-title">Datos Personales</h1>
+                <p class="section-subtitle">Mantén tu información actualizada</p>
+            </div>
+
+            <div th:if="${successMessage}" class="alert-custom alert-success-custom">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${successMessage}"></span>
+            </div>
+
+            <div class="content-card">
+                <form th:action="@{/perfil/actualizar}" th:object="${usuario}" method="post">
+                    <input type="hidden" th:field="*{idUsuario}">
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" class="form-control" th:field="*{nombre}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Apellido</label>
+                                <input type="text" class="form-control" th:field="*{apellido}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" th:field="*{email}" readonly style="background: var(--gray-100);">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" th:field="*{telefono}">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="form-label">Información Adicional</label>
+                                <textarea class="form-control" th:field="*{informacionAdicional}" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn-primary-custom">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="section-content" id="addresses">
+            <div class="section-header">
+                <h1 class="section-title">Mis Direcciones</h1>
+                <p class="section-subtitle">Gestiona tus datos de envío</p>
+            </div>
+
+            <div class="content-card">
+                <form th:action="@{/perfil/actualizar-direccion}" th:object="${usuario}" method="post">
+                    <input type="hidden" th:field="*{idUsuario}">
+
+                    <h4 style="font-weight: 800; margin-bottom: 1.5rem; color: var(--purple-900);">Dirección Principal</h4>
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label">Dirección Completa</label>
+                                <input type="text" class="form-control" th:field="*{direccion}" placeholder="Calle 123 #45-67">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Departamento</label>
+                                <input type="text" class="form-control" th:field="*{departamento}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Ciudad</label>
+                                <input type="text" class="form-control" th:field="*{ciudad}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Localidad</label>
+                                <input type="text" class="form-control" th:field="*{localidad}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Barrio</label>
+                                <input type="text" class="form-control" th:field="*{barrio}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn-primary-custom">Actualizar Dirección</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="section-content" id="favorites">
+            <div class="section-header">
+                <h1 class="section-title">Mis Favoritos</h1>
+                <p class="section-subtitle">Próximamente...</p>
+            </div>
+            <div class="content-card text-center">
+                <p>Funcionalidad de favoritos pendiente de implementar en base de datos.</p>
+            </div>
+        </section>
+
+        <section class="section-content" id="security">
+            <div class="section-header">
+                <h1 class="section-title">Seguridad</h1>
+                <p class="section-subtitle">Protege tu cuenta</p>
+            </div>
+
+            <div class="content-card">
+                <h4 style="font-weight: 800; margin-bottom: 1.5rem; color: var(--purple-900);">Cambiar Contraseña</h4>
+                <form th:action="@{/perfil/cambiar-password}" method="post">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label">Contraseña Actual</label>
+                                <input type="password" name="passwordActual" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Nueva Contraseña</label>
+                                <input type="password" name="passwordNueva" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Confirmar Nueva Contraseña</label>
+                                <input type="password" name="passwordConfirmar" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn-primary-custom">Actualizar Contraseña</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Navegación entre secciones
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            if(this.getAttribute('href')) return;
+
+            e.preventDefault();
+            const sectionId = this.dataset.section;
+
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+
+            document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        });
+    });
+
+    // Mobile menu
+    const mobileSelect = document.getElementById('mobile-section-select');
+    if(mobileSelect) {
+        mobileSelect.addEventListener('change', function() {
+            const sectionId = this.value;
+            document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        });
+    }
+
+    // Animación
+    document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.content-card, .stat-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+</script>
+
+</body>
+</html>

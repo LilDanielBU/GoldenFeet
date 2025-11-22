@@ -3,497 +3,628 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Golden Feets - Catálogo de Calzado</title>
+    <title>Catálogo Premium - Golden Feets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
     <style>
-        /* ================================== */
-        /* ===== ESTILOS CSS MEJORADOS ===== */
-        /* ================================== */
         :root {
-            --primary-color: #6a5af9;
-            --secondary-color: #d73bf6;
-            --primary-gradient: linear-gradient(135deg, #6a5af9, #d73bf6);
-            --hover-shadow-soft: 0 8px 16px rgba(106, 90, 249, 0.1);
-            --icon-bg: #eef2ff;
-            --text-color: #343a40;
-            --text-muted-color: #6c757d;
-            --accent-color: #ff6b6b; /* Usado para Oferta/Favoritos */
-            --background-color: #f8f9fa;
-            --white: #ffffff;
-            --border-color: #e9ecef;
-            --shadow-light: 0 4px 8px rgba(0, 0, 0, 0.05);
-            --shadow-medium: 0 6px 12px rgba(0, 0, 0, 0.08);
-            --success-color: #10b981;
-            --warning-color: #f59e0b; /* Usado para estrellas */
-            --danger-color: #ef4444;
-            --default-border-radius: 8px; /* Añadido para consistencia */
+            --purple-900: #3B1C5F;
+            --purple-700: #5B21B6;
+            --purple-600: #6D28D9;
+            --purple-500: #7C3AED;
+            --purple-100: #EDE9FE;
+            --purple-50: #F5F3FF;
 
-             /* --- Colores UI - Modo Oscuro --- */
-             --dark-bg: #181818;
-             --dark-card-bg: #2c2c2c;
-             --dark-text: #f0f0f0;
-             --dark-text-muted: #aaa;
-             --dark-border: #444;
-             --dark-hover-bg: #3c3c3c;
-             --dark-form-bg: #333;
+            --gray-900: #111827;
+            --gray-600: #4B5563;
+            --gray-100: #F3F4F6;
+            --white: #FFFFFF;
+
+            --gradient-primary: linear-gradient(135deg, var(--purple-600), var(--purple-900));
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(109, 40, 217, 0.3);
+
+            --radius-card: 20px;
+            --font-sans: 'Inter', sans-serif;
+            --font-serif: 'Playfair Display', serif;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body { font-family: 'Poppins', sans-serif; background-color: var(--background-color); color: var(--text-color); line-height: 1.6; font-size: 15px; transition: background-color 0.3s ease, color 0.3s ease; }
-        h1, h2, h3, h4, h5, h6 { font-weight: 600; margin-top: 1rem; margin-bottom: 0.8rem; }
-        a { color: var(--primary-color); text-decoration: none; transition: color 0.2s ease; }
-        a:hover { color: var(--secondary-color); }
-
-        /* --- Botones Mejorados --- */
-        .btn { border-radius: 20px; padding: 0.5rem 1.2rem; font-weight: 500; font-size: 0.9rem; transition: all 0.3s ease; border: none; box-shadow: var(--shadow-light); }
-        .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-medium); }
-        .btn:active { transform: translateY(0); box-shadow: var(--shadow-light); }
-        .btn-primary { background: var(--primary-gradient); color: var(--white); border: none; }
-        .btn-primary:hover { opacity: 0.9; color: var(--white); }
-        .btn-secondary { background-color: #6c757d; color: var(--white); }
-        .btn-secondary:hover { background-color: #5a6268; color: var(--white); }
-        .btn-outline-primary { border: 1px solid var(--primary-color); color: var(--primary-color); background-color: transparent; box-shadow: none; }
-        .btn-outline-primary:hover { background-color: var(--primary-color); color: var(--white); box-shadow: var(--shadow-light); }
-        .btn-outline-secondary { border: 1px solid var(--border-color); color: var(--text-muted-color); background-color: transparent; box-shadow: none; }
-        .btn-outline-secondary:hover { background-color: var(--icon-bg); border-color: var(--primary-color); color: var(--primary-color); box-shadow: var(--shadow-light); }
-        .btn-outline-dark { border: 1px solid var(--border-color); color: var(--text-muted-color); background-color: transparent; box-shadow: none; }
-        .btn-outline-dark:hover { background-color: var(--bs-light-bg-subtle); color: var(--text-color); border-color: #adb5bd; box-shadow: var(--shadow-light); }
-         .btn-outline-danger { border: 1px solid var(--danger-color); color: var(--danger-color); background-color: transparent; box-shadow: none; }
-         .btn-outline-danger:hover { background-color: var(--danger-color); color: var(--white); box-shadow: var(--shadow-light); }
-        .btn-sm { padding: 0.25rem 0.8rem; font-size: 0.8rem; border-radius: 15px; }
-        .btn-light { background-color: var(--white); border: 1px solid var(--border-color); color: var(--text-color); }
-        .btn-light:hover { background-color: #e9ecef; }
-        .btn-success { background-color: var(--success-color); color: var(--white); border: none; }
-        .btn-success:hover { background-color: #0f9b6b; color: var(--white); }
-
-        /* --- Barra de Navegación --- */
-        .navbar { background-color: var(--white) !important; border-bottom: 1px solid var(--border-color); box-shadow: var(--shadow-medium); transition: background-color 0.3s ease, border-color 0.3s ease; padding-top: 0.5rem; padding-bottom: 0.5rem; }
-        .navbar .navbar-brand img { transition: transform 0.3s ease; }
-        .navbar .navbar-brand:hover img { transform: scale(1.05); }
-
-        /* --- Barra de Búsqueda Navbar --- */
-        .navbar .input-group { position: relative; }
-        .navbar .input-group > i.bi-search { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted-color); font-size: 0.9rem; z-index: 3; pointer-events: none; }
-        .navbar .search-input { padding-left: 40px; border-radius: 20px 0 0 20px; background-color: var(--background-color); border: 1px solid var(--border-color); transition: all 0.3s ease; font-size: 0.9rem; height: calc(1.6em + 0.9rem + 2px); }
-        .navbar .search-input:focus { background-color: var(--white); border-color: var(--primary-color); box-shadow: 0 0 0 0.2rem rgba(106, 90, 249, 0.15); }
-        .navbar .input-group .btn { border-radius: 0 20px 20px 0; height: calc(1.6em + 0.9rem + 2px); box-shadow: none; }
-
-        /* --- Tarjeta de Producto --- */
-        .product-card { background-color: var(--white); border: 1px solid var(--border-color); border-radius: var(--default-border-radius, 12px); box-shadow: var(--shadow-light); height: 100%; display: flex; flex-direction: column; transition: all 0.3s ease; overflow: hidden; }
-        .product-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-medium); border-color: var(--primary-color); }
-        .product-card .card-img-top { height: 230px; object-fit: cover; border-bottom: 1px solid var(--border-color); }
-        .product-card .card-body { display: flex; flex-direction: column; flex-grow: 1; padding: 1rem 1.1rem; }
-        .product-card .card-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-color); }
-        .product-card .card-text { font-size: 0.85rem; color: var(--text-muted-color); flex-grow: 1; margin-bottom: 1rem; line-height: 1.5; }
-        .product-card .h5 { color: var(--primary-color); font-weight: 700; font-size: 1.15rem; }
-        .product-card .text-decoration-line-through { font-size: 0.85rem; }
-        .product-card .product-rating i { font-size: 0.85rem; }
-        .product-card .btn-add-cart { background: var(--primary-gradient); border: none; color: var(--white); box-shadow: none; }
-        .product-card .btn-add-cart:hover { opacity: 0.9; box-shadow: 0 4px 8px rgba(106, 90, 249, 0.2); }
-        .product-card .btn-outline-secondary { box-shadow: none; }
-
-        /* --- Filtros Laterales --- */
-        .filter-container { background-color: var(--white); border-radius: var(--default-border-radius, 12px); padding: 25px; margin-bottom: 20px; box-shadow: var(--shadow-light); border: 1px solid var(--border-color); transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
-        .filter-section { margin-bottom: 1.8rem; padding-bottom: 1.2rem; }
-        .filter-section:last-child { margin-bottom: 0; padding-bottom: 0; }
-        .filter-section h5 { font-size: 1.15rem; margin-bottom: 1.2rem; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border-color); color: var(--primary-color); }
-        .category-list .list-group-item { border: none; padding: 0.7rem 0.5rem; font-size: 0.95rem; transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, padding-left 0.2s ease; cursor: pointer; border-radius: 6px; margin-bottom: 4px; border-left: 3px solid transparent; }
-        .category-list .list-group-item:hover { background-color: var(--icon-bg); color: var(--primary-color); transform: translateX(3px); padding-left: 1rem; border-left-color: var(--secondary-color); }
-        .category-list .list-group-item.active { background-color: var(--primary-color); color: var(--white); font-weight: 500; border-left-color: var(--primary-color); padding-left: 1rem; }
-        .filter-section .form-label { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.4rem; color: var(--text-muted-color); }
-        .filter-section .form-range { cursor: pointer; }
-        .filter-section .form-check-label { font-size: 0.9rem; }
-        #price-range-value-desktop, #price-range-value-mobile { font-weight: 600; color: var(--primary-color); } /* Selectores para ambos */
-        .filter-section .form-check { margin-bottom: 0.4rem; }
-
-        /* Botones de Talla */
-        .size-btn { width: 36px; height: 36px; margin: 3px; border-radius: 50%; background-color: var(--background-color); border: 1px solid var(--border-color); color: var(--text-muted-color); font-size: 0.8rem; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; }
-        .size-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background-color: var(--white); }
-        .size-btn.active { background-color: var(--primary-color); color: var(--white); border-color: var(--primary-color); font-weight: 500; }
-
-        /* Botón Favoritos/Wishlist */
-        .favorite-btn { position: absolute; top: 10px; left: 10px; background-color: rgba(255,255,255,0.7); border: 1px solid var(--border-color); border-radius: 50%; width: 32px; height: 32px; color: var(--text-muted-color); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; z-index: 2; }
-        .favorite-btn i { font-size: 0.9rem; line-height: 1; }
-        .favorite-btn:hover { background-color: var(--white); color: var(--accent-color); border-color: var(--accent-color); transform: scale(1.15); box-shadow: var(--shadow-light); }
-        .favorite-btn.active { background-color: var(--accent-color); border-color: var(--accent-color); color: var(--white); }
-        .favorite-btn.active i { color: var(--white); }
-
-        /* Badge Oferta */
-        .sale-badge { position: absolute; top: 10px; right: 10px; background-color: var(--accent-color); color: var(--white); padding: 3px 7px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; z-index: 2; }
-
-        /* Notificación */
-        .notification { position: fixed; top: 80px; right: 20px; padding: 0.8rem 1.2rem; background-color: var(--success-color); color: var(--white); border-radius: var(--default-border-radius, 8px); box-shadow: 0 5px 15px rgba(0,0,0,0.15); z-index: 1055; transform: translateX(120%); transition: transform 0.4s ease-in-out, opacity 0.4s ease, visibility 0.4s; visibility: hidden; opacity: 0; font-size: 0.9rem; }
-        .notification.show { transform: translateX(0); visibility: visible; opacity: 1; }
-
-        /* Cantidad en Modal */
-        .btn-quantity { width: 30px; height: 30px; padding: 0; display: flex; align-items: center; justify-content: center; border-color: var(--border-color); color: var(--text-muted-color); background-color: var(--white); border-radius: 50% !important; box-shadow: var(--shadow-light); }
-        .btn-quantity:hover { color: var(--primary-color); border-color: var(--primary-color); background-color: var(--icon-bg); }
-        .input-group .form-control[readonly] { background-color: var(--white); }
-        .input-group-sm > .form-control, .input-group-sm > .btn { height: 30px; }
-
-        /* Carrusel */
-        .featured-section { margin-bottom: 2.5rem; }
-        #featured-products h2 { margin-bottom: 1.5rem; color: var(--primary-color); font-size: 1.6rem; /* Ligeramente más grande */ }
-        #productCarousel .carousel-inner { border-radius: var(--default-border-radius, 12px); overflow: hidden; box-shadow: var(--shadow-medium); }
-        #productCarousel .carousel-item { min-height: 380px; background-color: #343a40; position: relative; color: var(--white); transition: opacity 0.6s ease-in-out; }
-        #productCarousel .carousel-item::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to right, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0) 100%); z-index: 1; }
-        #productCarousel .carousel-caption-custom { position: absolute; top: 50%; left: 5%; transform: translateY(-50%); z-index: 2; color: var(--white); text-align: left; width: 60%; padding: 1.5rem; }
-        #productCarousel .carousel-caption-custom h3 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.8rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); color: var(--white); }
-        #productCarousel .carousel-caption-custom p { font-size: 1rem; margin-bottom: 1rem; max-width: 400px; color: rgba(255, 255, 255, 0.9); }
-        #productCarousel .carousel-item-bg-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; opacity: 0.8; }
-        #productCarousel .carousel-caption-custom .btn { margin-right: 0.5rem; padding: 0.5rem 1rem; font-size: 0.9rem; border-radius: 20px; border-width: 2px; }
-        #productCarousel .carousel-caption-custom .btn-primary { background: var(--primary-gradient); border: none; }
-        #productCarousel .carousel-caption-custom .btn-primary:hover { opacity: 0.9; box-shadow: none; }
-        #productCarousel .carousel-caption-custom .btn-outline-light { border-color: var(--white); color: var(--white); background-color: transparent; box-shadow: none; }
-        #productCarousel .carousel-caption-custom .btn-outline-light:hover { background-color: var(--white); color: var(--text-color); box-shadow: var(--shadow-light); }
-        #productCarousel .carousel-indicators button { width: 10px; height: 10px; border-radius: 50%; background-color: rgba(255, 255, 255, 0.5); border: none; margin: 0 4px; transition: background-color 0.2s ease; }
-        #productCarousel .carousel-indicators .active { background-color: var(--white); }
-        #productCarousel .carousel-control-prev, #productCarousel .carousel-control-next { width: 8%; opacity: 0.7; transition: opacity 0.2s ease; }
-        #productCarousel .carousel-control-prev:hover, #productCarousel .carousel-control-next:hover { opacity: 1; }
-        #productCarousel .carousel-control-prev-icon, #productCarousel .carousel-control-next-icon { background-color: rgba(0, 0, 0, 0.4); border-radius: 50%; padding: 1rem; background-size: 50% 50%; }
-
-        /* Modal */
-        .modal-content { border-radius: 1rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); }
-        .modal-header { background: var(--primary-gradient); color: var(--white); border-bottom: none; padding: 1.2rem 1.5rem; }
-        .modal-header .modal-title { font-weight: 600; font-size: 1.2rem; }
-        .modal-header .btn-close { filter: brightness(0) invert(1); opacity: 0.8; transition: opacity 0.2s ease; font-size: 0.8rem; }
-        .modal-footer { background-color: var(--background-color); border-top: 1px solid var(--border-color); }
-        .modal .form-label { font-weight: 500; margin-bottom: 0.3rem; font-size: 0.85rem; color: var(--text-muted-color); }
-        .modal .form-control, .modal .form-select { border-radius: 6px; font-size: 0.9rem; }
-
-        /* --- Modo Oscuro --- */
-        body.dark-mode { background-color: var(--dark-bg); color: var(--dark-text); }
-        body.dark-mode a { color: #b3a1f7; }
-        body.dark-mode a:hover { color: #d8cfff; }
-        body.dark-mode .navbar { background-color: var(--dark-card-bg) !important; border-color: var(--dark-border) !important; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        body.dark-mode .filter-container, body.dark-mode .modal-content, body.dark-mode .offcanvas { background-color: var(--dark-card-bg) !important; color: var(--dark-text); border-color: var(--dark-border) !important; }
-        body.dark-mode .product-card { background-color: var(--dark-card-bg); color: var(--dark-text); border-color: var(--dark-border); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-        body.dark-mode .product-card:hover { box-shadow: 0 8px 16px rgba(0,0,0,0.3); border-color: var(--primary-color); }
-        body.dark-mode .product-card .card-text { color: var(--dark-text-muted); }
-        body.dark-mode .product-card .card-title { color: var(--dark-text); }
-        body.dark-mode .category-list .list-group-item { color: var(--dark-text); border-left-color: transparent; }
-        body.dark-mode .category-list .list-group-item:hover { background-color: var(--dark-hover-bg); color: var(--white); border-left-color: var(--secondary-color); }
-        body.dark-mode .category-list .list-group-item.active { background-color: var(--primary-color); color: var(--white); border-left-color: var(--primary-color); }
-        body.dark-mode .form-control, body.dark-mode .form-select, body.dark-mode .input-group .form-control[readonly], body.dark-mode .navbar .search-input { background-color: var(--dark-form-bg); color: var(--dark-text); border-color: var(--dark-border); }
-        body.dark-mode .form-control::placeholder { color: var(--dark-text-muted); }
-        body.dark-mode .form-range::-webkit-slider-thumb { background: var(--primary-color); }
-        body.dark-mode .form-range::-moz-range-thumb { background: var(--primary-color); }
-        body.dark-mode .input-group .btn-outline-secondary { border-color: var(--dark-border); color: var(--dark-text-muted); }
-        body.dark-mode .input-group .btn-outline-secondary:hover { background-color: var(--dark-hover-bg); color: var(--dark-text); }
-        body.dark-mode .btn-outline-dark { border-color: var(--dark-border); color: var(--dark-text-muted); }
-        body.dark-mode .btn-outline-dark:hover { background-color: var(--dark-hover-bg); color: var(--dark-text); border-color: #6c757d;}
-        body.dark-mode .text-muted { color: var(--dark-text-muted) !important; }
-        body.dark-mode .favorite-btn { background-color: rgba(44,44,44,0.7); color: var(--dark-text-muted); border-color: var(--dark-border); }
-        body.dark-mode .favorite-btn:hover { background-color: rgba(60,60,60,1); color: var(--accent-color); border-color: var(--accent-color); }
-        body.dark-mode .favorite-btn.active { background-color: var(--accent-color); border-color: var(--accent-color); color: var(--white); }
-        body.dark-mode .favorite-btn.active i { color: var(--white); }
-        body.dark-mode .size-btn { background-color: var(--dark-form-bg); border-color: var(--dark-border); color: var(--dark-text-muted); }
-        body.dark-mode .size-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background-color: var(--dark-hover-bg); }
-        body.dark-mode .size-btn.active { background-color: var(--primary-color); color: var(--white); border-color: var(--primary-color); }
-        body.dark-mode .btn-quantity { border-color: var(--dark-border); color: var(--dark-text-muted); background-color: var(--dark-form-bg); }
-        body.dark-mode .btn-quantity:hover { color: var(--primary-color); border-color: var(--primary-color); background-color: var(--dark-hover-bg); }
-        body.dark-mode #productCarousel .carousel-item { background-color: #000; }
-        body.dark-mode #productCarousel .carousel-item::before { background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0) 100%); }
-        body.dark-mode #productCarousel .carousel-caption-custom .btn-outline-light:hover { background-color: var(--white); color: #333; }
-        body.dark-mode #productCarousel .carousel-indicators button { background-color: rgba(0, 0, 0, 0.5); }
-        body.dark-mode #productCarousel .carousel-indicators .active { background-color: rgba(255, 255, 255, 0.7); }
-        body.dark-mode footer { background-color: #111; color: var(--dark-text-muted); border-top: 1px solid var(--dark-border); }
-        body.dark-mode footer a { color: var(--dark-text); }
-        body.dark-mode footer a:hover { color: var(--white); }
-        body.dark-mode .modal-footer { background-color: var(--dark-hover-bg); border-top-color: var(--dark-border); }
-        body.dark-mode .modal .form-label { color: var(--dark-text-muted); }
-        body.dark-mode .modal .form-control[readonly] { background-color: #495057; opacity: 0.8; }
-        body.dark-mode ::-webkit-scrollbar-track { background: var(--dark-card-bg); }
-        body.dark-mode ::-webkit-scrollbar-thumb { background: #555; }
-        body.dark-mode ::-webkit-scrollbar-thumb:hover { background: #777; }
-        body.dark-mode .offcanvas { background-color: var(--dark-bg); color: var(--dark-text); }
-        body.dark-mode .offcanvas-header { border-bottom-color: var(--dark-border); }
-        body.dark-mode .offcanvas .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
-
-        /* --- Media Queries (Responsivo) --- */
-        @media (max-width: 768px) {
-             main { padding-top: 110px; /* Ajustar según altura final del header */ }
-             header .container > .navbar-collapse > .d-flex { flex-direction: column; align-items: stretch !important; }
-             header .container .navbar-collapse .d-flex > .d-flex { width: 100%; display: flex; flex-wrap: nowrap; align-items: center; gap: 0.5rem !important; margin-bottom: 0.5rem; }
-             header .container .navbar-collapse .d-flex > .d-flex:last-child { margin-bottom: 0; justify-content: flex-end; }
-              .navbar .input-group { order: 1; flex-grow: 1; max-width: none; margin-right: 0 !important; margin-bottom: 0 !important; }
-             .navbar .btn { order: 2; margin-bottom: 0 !important; flex-shrink: 0; }
-             #dark-mode-text { display: none; }
-             .navbar .btn > span.d-none.d-lg-inline { display: none !important; }
-             .navbar .btn-sm { padding: 0.25rem 0.5rem; }
-             .navbar .btn-sm i { margin-right: 0 !important; }
-             .navbar .d-flex > .d-flex:last-child .btn { min-width: 40px; text-align: center; }
+        body {
+            font-family: var(--font-sans);
+            background-color: #FAFAFA;
+            color: var(--gray-900);
         }
-        @media (max-width: 576px) {
-             main { padding-top: 100px; } /* Podría necesitar ajuste fino */
-             .product-card .card-body { padding: 0.8rem; }
-             .product-card .card-title { font-size: 1rem; }
-             .product-card .h5 { font-size: 1.05rem; }
-             .product-card .btn-sm { font-size: 0.75rem; padding: 0.3rem 0.6rem; }
-             #productCarousel .carousel-item { min-height: 320px; }
-             #productCarousel .carousel-caption-custom h3 { font-size: 1.5rem; }
-             #productCarousel .carousel-caption-custom p { font-size: 0.9rem; }
-             #productCarousel .carousel-caption-custom .btn { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+
+        /* === HEADER PREMIUM === */
+        .header-premium {
+            background: linear-gradient(135deg, #2D1548 0%, #4C1D95 50%, #3B1C5F 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 1rem 0;
         }
+
+        .brand-premium {
+            font-family: var(--font-serif);
+            font-weight: 900;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #fff 0%, #E9D5FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+
+        .search-premium .input-group-text {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-right: none;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .search-premium input {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-left: none;
+            color: white;
+        }
+        .search-premium input::placeholder { color: rgba(255, 255, 255, 0.5); }
+        .search-premium input:focus {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            box-shadow: none;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-btn-premium {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            border-radius: 12px;
+        }
+        .nav-btn-premium:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            color: white;
+        }
+        .nav-btn-premium .badge {
+            background: var(--purple-500) !important;
+            border: 2px solid var(--purple-900);
+        }
+
+        /* === SIDEBAR FILTROS === */
+        .filter-card {
+            background: var(--white);
+            border-radius: var(--radius-card);
+            border: 1px solid var(--gray-100);
+            box-shadow: var(--shadow-card);
+            position: sticky;
+            top: 2rem;
+        }
+        .filter-header { border-bottom: 2px solid var(--purple-100); }
+        .filter-title { font-family: var(--font-serif); color: var(--purple-900); font-weight: 800; }
+
+        .category-link {
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            color: var(--gray-600);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: block;
+            text-decoration: none;
+            border: 1px solid transparent;
+            margin-bottom: 0.5rem;
+        }
+        .category-link:hover {
+            background: var(--purple-50);
+            color: var(--purple-700);
+            transform: translateX(5px);
+        }
+        .category-link.active {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+        }
+
+        input[type=range] {
+            accent-color: var(--purple-600);
+            height: 6px;
+            background: var(--purple-100);
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        /* === CARD PRODUCTO PREMIUM === */
+        .product-card-premium {
+            background: var(--white);
+            border-radius: var(--radius-card);
+            border: 1px solid var(--gray-100);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card-premium:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+            border-color: transparent;
+        }
+
+        .product-card-premium::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--radius-card);
+            padding: 2px;
+            background: var(--gradient-primary);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
+        .product-card-premium:hover::before { opacity: 1; }
+
+        .card-img-wrapper {
+            position: relative;
+            aspect-ratio: 1;
+            overflow: hidden;
+            background: var(--gray-100);
+        }
+        .card-img-top {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .product-card-premium:hover .card-img-top { transform: scale(1.08); }
+
+        .badge-discount {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #EF4444, #B91C1C);
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
+            border-radius: 8px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            padding: 0.5rem 0.8rem;
+            z-index: 2;
+            color: white;
+        }
+
+        .btn-favorite {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            color: var(--gray-600);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 2;
+        }
+        .btn-favorite:hover { transform: scale(1.15); color: #EF4444; }
+        .btn-favorite.active { background: #EF4444; color: white; }
+
+        .card-body-premium {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-grow: 1;
+        }
+        .product-category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--gray-600);
+            letter-spacing: 0.1em;
+        }
+        .product-title {
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin: 0;
+            color: var(--gray-900);
+        }
+
+        .price-box {
+            margin-top: auto;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            padding-top: 1rem;
+        }
+        .price-current {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--purple-600);
+        }
+        .price-old {
+            text-decoration: line-through;
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .btn-add-cart {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            padding: 0.7rem;
+            transition: 0.3s;
+        }
+        .btn-add-cart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(109, 40, 217, 0.4);
+        }
+        .btn-quick-view {
+            background: white;
+            border: 2px solid var(--gray-100);
+            border-radius: 12px;
+            width: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-600);
+            transition: 0.3s;
+        }
+        .btn-quick-view:hover {
+            border-color: var(--purple-600);
+            color: var(--purple-600);
+            background: var(--purple-50);
+        }
+
+        /* === MODAL PREMIUM === */
+        .modal-content-premium {
+            border-radius: 24px;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+        .modal-body-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        @media (max-width: 992px) {
+            .modal-body-grid { grid-template-columns: 1fr; }
+        }
+
+        .gallery-section {
+            background: var(--gray-100);
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .main-img-box {
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            background: white;
+            aspect-ratio: 1;
+        }
+        .main-img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .details-section {
+            padding: 2.5rem;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            box-shadow: var(--shadow-card);
+            z-index: 10;
+            transition: 0.3s;
+        }
+        .modal-close-btn:hover {
+            transform: rotate(90deg);
+            color: var(--purple-600);
+        }
+
+        .modal-title-lg {
+            font-family: var(--font-serif);
+            font-size: 2.2rem;
+            font-weight: 900;
+            line-height: 1.1;
+            color: var(--gray-900);
+        }
+        .spec-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            background: var(--purple-50);
+            padding: 1.5rem;
+            border-radius: 16px;
+        }
+        .spec-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 800;
+            color: var(--purple-700);
+        }
+        .spec-value {
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up { animation: fadeInUp 0.6s ease forwards; }
     </style>
 </head>
 <body>
 
-<header class="sticky-top shadow-sm">
-    <nav class="navbar navbar-expand-lg navbar-light">
+<header class="header-premium sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand" th:href="@{/}">
-                <span>Golden Feets</span>            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbarContent" aria-controls="mainNavbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <a class="brand-premium d-flex align-items-center gap-2" th:href="@{/}">
+                <i class="bi bi-gem" style="font-size: 1.5rem; -webkit-text-fill-color: #fff;"></i>
+                Golden Feets
+            </a>
+
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbarContent">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse justify-content-end" id="mainNavbarContent">
-                <div class="d-flex align-items-center flex-column flex-lg-row mt-3 mt-lg-0 w-100">
-                    <div class="d-flex align-items-center flex-grow-1 flex-column flex-lg-row w-100">
 
-                        <form th:action="@{/catalogo}" method="get" class="input-group me-lg-auto mb-2 mb-lg-0">
-                            <i class="bi bi-search"></i>
-                            <input type="text" name="busqueda" class="form-control form-control-sm search-input" placeholder="Buscar por nombre..."
-                                   th:value="${param.busqueda}" aria-label="Buscar">
-                            <button class="btn btn-outline-secondary btn-sm" type="submit">
-                                <i class="bi bi-search d-lg-none"></i>
-                                <span class="d-none d-lg-inline">Buscar</span>
-                            </button>
-                        </form>
-                        <div class="d-flex align-items-center gap-2 ms-lg-3 mt-2 mt-lg-0">
-                            <a th:href="@{/lista_deseos}" class="btn btn-outline-danger btn-sm flex-shrink-0 position-relative" title="Lista de Deseos">
-                                <i class="bi bi-heart-fill me-1"></i><span class="d-none d-lg-inline">Deseos</span>
-                                <span id="wishlist-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-                            </a>
-                            <a th:href="@{/carrito}" class="btn btn-primary btn-sm position-relative flex-shrink-0">
-                                <i class="bi bi-cart me-1"></i><span class="d-none d-lg-inline">Carrito</span>
-                                <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+            <div class="collapse navbar-collapse" id="mainNavbarContent">
+                <div class="d-flex flex-column flex-lg-row align-items-center w-100 mt-3 mt-lg-0 gap-3">
+
+                    <form th:action="@{/catalogo}" method="get" class="mx-lg-auto w-100" style="max-width: 500px;">
+                        <div class="input-group search-premium">
+                            <span class="input-group-text rounded-start-pill ps-3"><i class="bi bi-search"></i></span>
+                            <input type="text" name="busqueda" class="form-control rounded-end-pill py-2"
+                                   placeholder="Buscar zapatillas, botas..." th:value="${param.busqueda}">
+                        </div>
+                    </form>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <a th:href="@{/lista_deseos}" class="btn nav-btn-premium position-relative d-flex align-items-center gap-2 px-3 py-2" title="Lista de Deseos">
+                            <i class="bi bi-heart"></i>
+                            <span class="d-none d-xl-inline font-weight-bold small">Deseos</span>
+                            <span id="wishlist-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill">0</span>
+                        </a>
+
+                        <a th:href="@{/carrito}" class="btn nav-btn-premium position-relative d-flex align-items-center gap-2 px-3 py-2">
+                            <i class="bi bi-bag"></i>
+                            <span class="d-none d-xl-inline font-weight-bold small">Carrito</span>
+                            <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill">0</span>
+                        </a>
+                        <div class="nav-item d-none d-lg-block">
+                            <a th:href="${usuario != null ? '/perfil' : '/login'}"
+                               class="nav-link text-white d-flex align-items-center gap-2"
+                               title="Mi Cuenta">
+
+                                <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                                     style="width: 35px; height: 35px;">
+
+            <span th:if="${usuario != null}"
+                  th:text="${usuario.nombre.substring(0,1).toUpperCase()}">ID</span>
+
+                                    <i th:if="${usuario == null}" class="bi bi-person-fill" style="font-size: 1.2rem;"></i>
+
+                                </div>
                             </a>
                         </div>
-                    </div>
                 </div>
             </div>
         </div>
     </nav>
 </header>
-<main class="container mt-4">
-    <div class="row">
 
-        <aside class="col-lg-3 col-md-4 d-none d-md-block">
-            <form th:action="@{/catalogo}" method="get" class="filter-container p-3 rounded shadow-sm mb-4">
+<main class="container py-5">
 
-                <div class="filter-section category-list">
-                    <h5 class="mb-3">Categorías</h5>
-                    <div class="list-group list-group-flush">
-                        <a th:href="@{/catalogo}" class="list-group-item list-group-item-action" th:classappend="${param.categoria == null} ? 'active'">Todos</a>
+    <div class="d-flex align-items-end justify-content-between mb-5 animate-fade-up">
+        <div>
+            <h1 class="display-4 fw-bold" style="font-family: var(--font-serif); color: var(--purple-900);">
+                Colección Exclusiva
+            </h1>
+            <p class="text-muted fs-5 mb-0">Diseño y confort en cada paso.</p>
+        </div>
+        <div class="text-end d-none d-md-block">
+            <span class="badge bg-light text-dark border rounded-pill px-3 py-2">
+                <span th:text="${productos.size()}">0</span> productos encontrados
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <aside class="col-lg-3 animate-fade-up" style="animation-delay: 0.1s;">
+            <form th:action="@{/catalogo}" method="get" class="filter-card p-4">
+                <div class="filter-header pb-3 mb-4 d-flex align-items-center gap-2">
+                    <i class="bi bi-sliders text-purple-600"></i>
+                    <h5 class="filter-title m-0">Filtros</h5>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-uppercase small fw-bold text-muted mb-3 d-block">Categorías</label>
+                    <div class="d-flex flex-column gap-2">
+                        <a th:href="@{/catalogo}" class="category-link" th:classappend="${param.categoria == null} ? 'active'">
+                            Todo el calzado
+                        </a>
                         <a th:each="cat : ${categorias}"
                            th:href="@{/catalogo(categoria=${cat.nombre})}"
-                           th:text="${cat.nombre}"
-                           class="list-group-item list-group-item-action"
-                           th:classappend="${param.categoria == cat.nombre} ? 'active'">
+                           class="category-link"
+                           th:classappend="${param.categoria == cat.nombre} ? 'active'"
+                           th:text="${cat.nombre}">
                         </a>
                     </div>
                 </div>
 
-                <div class="filter-section">
-                    <h5 class="mb-3">Filtros</h5>
-
-                    <div class="mb-4">
-                        <label for="price-range-desktop" class="form-label">
-                            Precio Máximo: <span id="price-range-value-desktop" th:text="${param.precioMax != null ? '$' + #numbers.formatDecimal(param.precioMax, 1, 'POINT', 0, 'COMMA') : '$500,000'}"></span>
-                        </label>
-                        <input type="range" class="form-range" id="price-range-desktop" name="precioMax"
-                               min="50000" max="500000" step="10000"
-                               th:value="${param.precioMax != null ? param.precioMax : 500000}">
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100 btn-sm">Aplicar Filtros</button>
+                <div class="mb-4">
+                    <label class="text-uppercase small fw-bold text-muted mb-3 d-block">Precio Máximo</label>
+                    <h3 class="fw-bold mb-2" style="color: var(--purple-600);" id="price-display">
+                        $<span th:text="${param.precioMax != null ? #numbers.formatDecimal(param.precioMax, 1, 'POINT', 0, 'COMMA') : '500,000'}">500,000</span>
+                    </h3>
+                    <input type="range" id="price-range" name="precioMax" min="50000" max="500000" step="10000"
+                           th:value="${param.precioMax != null ? param.precioMax : 500000}">
                 </div>
 
+                <button type="submit" class="btn w-100 py-3 fw-bold text-white mt-2"
+                        style="background: var(--purple-900); border-radius: 12px;">
+                    Aplicar Filtros
+                </button>
             </form>
         </aside>
 
-        <div class="col-lg-9 col-md-8 col-12">
-            <section id="featured-products" class="mb-5 featured-section"
-                     th:if="${!productosDestacados.isEmpty() and param.categoria == null and param.busqueda == null}">
-                <h2 class="mb-4">Destacados</h2>
-                <div id="productCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
-                    <div class="carousel-indicators">
-                        <button th:each="producto, iterStat : ${productosDestacados}"
-                                type="button" data-bs-target="#productCarousel"
-                                th:attr="data-bs-slide-to=${iterStat.index}"
-                                th:classappend="${iterStat.index == 0} ? 'active'"
-                                th:aria-current="${iterStat.index == 0} ? 'true'"></button>
-                    </div>
-                    <div class="carousel-inner">
-                        <div class="carousel-item" th:each="producto, iterStat : ${productosDestacados}" th:classappend="${iterStat.index == 0} ? 'active'">
-                            <img th:src="${producto.imagenUrl}" class="d-block carousel-item-bg-image" th:alt="${producto.nombre}">
-                            <div class="carousel-caption-custom">
-                                <h3 class="animate__animated animate__fadeInDown" th:text="${producto.nombre}"></h3>
-                                <p class="animate__animated animate__fadeInUp d-none d-sm-block" th:text="${producto.descripcion}"></p>
-                                <div class="mt-3">
-                                    <button th:onclick="|quickViewProduct(${producto.id})|" class="btn btn-primary btn-sm animate__animated animate__pulse">
-                                        <i class="bi bi-eye me-1"></i> Ver Detalles
-                                    </button>
-                                    <button th:data-product-name="${producto.nombre}"
-                                            th:onclick="|addToCart(this, ${producto.id}, 1)|"
-                                            class="btn btn-outline-light btn-sm">
-                                        <i class="bi bi-cart-plus me-1"></i>Añadir
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Anterior</span></button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Siguiente</span></button>
-                </div>
-            </section>
-
-            <h2 class="mb-4" th:text="${tituloCatalogo}">Nuestro Catálogo</h2>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="product-container">
-                <div class="col" th:each="producto : ${productos}">
-                    <div class="card product-card h-100">
-                        <button class="favorite-btn"
-                                th:data-product-id="${producto.id}"
-                                th:onclick="|toggleFavorite(this, ${producto.id})|"
-                                aria-label="Añadir a favoritos" title="Añadir a Favoritos">
+        <div class="col-lg-9">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" id="productos-container">
+                <!-- PRODUCTOS -->
+                <div class="col animate-fade-up" style="animation-delay: 0.2s;" th:each="producto : ${productos}">
+                    <div class="product-card-premium">
+                        <button class="btn-favorite" th:attr="data-id=${producto.id},onclick='toggleFavorite(this, ' + ${producto.id} + ')'">
                             <i class="bi bi-heart"></i>
                         </button>
-                        <img th:src="${producto.imagenUrl}" class="card-img-top" th:alt="${producto.nombre}" loading="lazy">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title" th:text="${producto.nombre}"></h5>
-                            <p class="card-text flex-grow-1" th:text="${producto.descripcion}"></p>
-                            <div class="mt-auto">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div>
-                                        <span th:if="${producto.originalPrice != null and producto.originalPrice > producto.precio}" class="text-decoration-line-through text-muted me-2" th:text="'$' + ${#numbers.formatDecimal(producto.originalPrice, 1, 'POINT', 0, 'COMMA')}"></span>
-                                        <span class="h5 mb-0" th:text="'$' + ${#numbers.formatDecimal(producto.precio, 1, 'POINT', 0, 'COMMA')}"></span>
-                                    </div>
-                                </div>
-                                <div class="d-flex justify-content-between gap-2">
-                                    <button th:data-product-name="${producto.nombre}"
-                                            th:onclick="|addToCart(this, ${producto.id}, 1)|"
-                                            class="btn btn-primary btn-sm btn-add-cart flex-grow-1">
-                                        <i class="bi bi-cart-plus me-1"></i>Añadir
-                                    </button>
-                                    <button th:onclick="|quickViewProduct(${producto.id})|" class="btn btn-outline-secondary btn-sm flex-grow-1">
-                                        <i class="bi bi-eye me-1"></i>Ver
-                                    </button>
-                                </div>
+
+                        <div class="card-img-wrapper">
+                            <img th:src="${producto.imagenUrl}" class="card-img-top" th:alt="${producto.nombre}">
+                        </div>
+
+                        <span th:if="${producto.originalPrice != null and producto.originalPrice > producto.precio}"
+                              class="badge badge-discount">
+                            OFERTA
+                        </span>
+
+                        <div class="card-body-premium">
+                            <div>
+                                <div class="product-category" th:text="${producto.nombreCategoria != null ? producto.nombreCategoria : 'Golden Feets'}">Golden Feets</div>
+                                <h3 class="product-title" th:text="${producto.nombre}">Producto</h3>
+                                <!-- SE ELIMINÓ EL BLOQUE DE RATING (ESTRELLAS) AQUÍ -->
+                            </div>
+
+                            <div class="price-box">
+                                <span class="price-current">$<span th:text="${#numbers.formatDecimal(producto.precio, 1, 'POINT', 0, 'COMMA')}">0</span></span>
+                                <span th:if="${producto.originalPrice != null}" class="price-old">$<span th:text="${#numbers.formatDecimal(producto.originalPrice, 1, 'POINT', 0, 'COMMA')}">0</span></span>
+                            </div>
+
+                            <div class="actions-grid">
+                                <button type="button"
+                                        th:attr="data-product-name=${producto.nombre},onclick='addToCart(this, ' + ${producto.id} + ', 1)'"
+                                        class="btn-add-cart w-100">
+                                    <i class="bi bi-bag-plus-fill me-2"></i> Añadir
+                                </button>
+                                <button type="button"
+                                        th:attr="onclick='quickViewPremium(' + ${producto.id} + ')'"
+                                        class="btn-quick-view"
+                                        title="Vista Rápida">
+                                    <i class="bi bi-eye"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div id="no-results" class="text-center my-5" th:if="${productos.isEmpty()}">
-                <i class="bi bi-emoji-frown display-1 text-muted"></i>
-                <h3 class="mt-3">¡Oops! No encontramos productos</h3>
-                <p class="text-muted">Intenta con otra búsqueda o categoría.</p>
+                <!-- NO HAY PRODUCTOS -->
+                <div th:if="${productos == null || productos.isEmpty()}" class="col-12 text-center py-5">
+                    <i class="bi bi-search display-1 text-muted opacity-25"></i>
+                    <h3 class="mt-3 text-muted">No encontramos productos con esos filtros</h3>
+                    <a th:href="@{/catalogo}" class="btn btn-link" style="color: var(--purple-600);">Ver todo el catálogo</a>
+                </div>
             </div>
         </div>
     </div>
 </main>
 
-<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="productModalLabel">Detalles del Producto</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="modal-product-content">
-                <div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+<!-- Modal para Vista Rápida -->
+<div class="modal fade" id="premiumModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content modal-content-premium" id="modal-content-wrapper">
+            <div class="p-5 text-center">
+                <div class="spinner-border text-primary" role="status"></div>
             </div>
         </div>
     </div>
 </div>
+
+<div id="toast-notification" class="position-fixed bottom-0 end-0 p-3" style="z-index: 2050"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // =======================================================
-    // == SCRIPT UNIFICADO Y CORREGIDO PARA catalogo.html ==
-    // =======================================================
-
-    // --- 1. ESTADO GLOBAL Y CARGA INICIAL ---
-
-    // Carga los favoritos desde el navegador al iniciar la página
+    const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     let favorites = JSON.parse(localStorage.getItem('goldenFeetsFavorites')) || [];
 
-    /**
-     * Se ejecuta cuando la página ha cargado completamente.
-     * Llama a todas las funciones de inicialización.
-     */
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', () => {
+        initFavorites();
         updateCartCount();
         updateWishlistCount();
-        initializeFavoriteButtons();
-        setupPriceSlider();
-    });
 
-    // --- 2. FUNCIONES PARA FILTROS ---
-    function setupPriceSlider() {
-        const priceSlider = document.getElementById('price-range-desktop');
-        const priceValueDisplay = document.getElementById('price-range-value-desktop');
-        if (priceSlider && priceValueDisplay) {
-            priceSlider.addEventListener('input', function() {
-                const formattedValue = new Intl.NumberFormat('es-CO').format(this.value);
-                priceValueDisplay.textContent = `$${formattedValue}`;
+        const range = document.getElementById('price-range');
+        const display = document.getElementById('price-display');
+        if(range) {
+            range.addEventListener('input', (e) => {
+                const formattedValue = new Intl.NumberFormat('es-CO').format(e.target.value);
+                display.querySelector('span').innerText = formattedValue;
             });
         }
-    }
+    });
 
-    // --- 3. FUNCIONES PARA LISTA DE DESEOS (FAVORITOS) ---
-
-    /**
-     * Pinta los corazones de rojo para los productos que ya están en la lista.
-     */
-    function initializeFavoriteButtons() {
-        document.querySelectorAll('.favorite-btn').forEach(button => {
-            const productId = parseInt(button.getAttribute('data-product-id'));
-            if (favorites.includes(productId)) {
-                button.classList.add('active');
-                const icon = button.querySelector('i');
-                if (icon) {
-                    icon.classList.replace('bi-heart', 'bi-heart-fill');
-                }
+    function initFavorites() {
+        document.querySelectorAll('.btn-favorite').forEach(btn => {
+            const id = parseInt(btn.dataset.id);
+            if(favorites.includes(id)) {
+                btn.classList.add('active');
+                btn.querySelector('i').classList.replace('bi-heart', 'bi-heart-fill');
             }
         });
     }
 
-    /**
-     * Añade o elimina un producto de la lista de deseos al hacer clic en el corazón.
-     */
-    function toggleFavorite(buttonElement, productId) {
-        const icon = buttonElement.querySelector('i');
-        if (!icon) return;
-
-        const isFavorite = favorites.includes(productId);
-
-        if (isFavorite) {
-            favorites = favorites.filter(id => id !== productId);
-            buttonElement.classList.remove('active');
+    function toggleFavorite(btn, id) {
+        const icon = btn.querySelector('i');
+        if(favorites.includes(id)) {
+            favorites = favorites.filter(f => f !== id);
+            btn.classList.remove('active');
             icon.classList.replace('bi-heart-fill', 'bi-heart');
-            showNotification('Eliminado de la lista de deseos');
+            showToast('Eliminado de favoritos', 'info');
         } else {
-            favorites.push(productId);
-            buttonElement.classList.add('active');
+            favorites.push(id);
+            btn.classList.add('active');
             icon.classList.replace('bi-heart', 'bi-heart-fill');
-            showNotification('Añadido a la lista de deseos');
+            showToast('Añadido a favoritos', 'success');
         }
         localStorage.setItem('goldenFeetsFavorites', JSON.stringify(favorites));
         updateWishlistCount();
     }
 
-    /**
-     * Actualiza el contador de "Deseos" en el header.
-     */
     function updateWishlistCount() {
         const wishlistCountElement = document.getElementById('wishlist-count');
         if (wishlistCountElement) {
@@ -501,96 +632,137 @@
         }
     }
 
-    // --- 4. FUNCIONES PARA VISTA RÁPIDA (MODAL) ---
+    // --- FUNCIÓN ACTUALIZADA PARA USAR API REAL DEL CONTROLADOR ---
+    async function quickViewPremium(productId) {
+        const modalEl = document.getElementById('premiumModal');
+        const wrapper = document.getElementById('modal-content-wrapper');
+        const modal = new bootstrap.Modal(modalEl);
 
-    /**
-     * Carga y muestra los detalles de un producto en una ventana modal.
-     */
-    async function quickViewProduct(productId) {
-        const modalElement = document.getElementById('productModal');
-        const modalTitle = modalElement.querySelector('.modal-title');
-        const modalContent = modalElement.querySelector('.modal-body');
-        const bsModal = bootstrap.Modal.getOrCreateInstance(modalElement);
-
-        modalTitle.textContent = 'Cargando...';
-        modalContent.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>';
-        bsModal.show();
+        // Mostrar spinner mientras carga
+        wrapper.innerHTML = '<div class="d-flex justify-content-center align-items-center p-5" style="height: 400px;"><div class="spinner-border text-primary"></div></div>';
+        modal.show();
 
         try {
+            // Llamada al endpoint: /api/productos/{id}
             const response = await fetch(`/api/productos/${productId}`);
-            if (!response.ok) throw new Error('Producto no encontrado');
-            const product = await response.json();
 
-            modalTitle.textContent = product.nombre;
-            modalContent.innerHTML = `
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <img src="${product.imagenUrl}" class="img-fluid rounded shadow-sm" alt="${product.nombre}">
+            if(!response.ok) throw new Error('Error al obtener datos del producto');
+
+            const p = await response.json();
+
+            // Validar datos (usar valores por defecto si algo viene null)
+            // Nota: Dependiendo de tu DTO, ajusta 'nombreCategoria' o 'categoria.nombre'
+            const stock = p.stock !== undefined ? p.stock : 0;
+            const categoriaNombre = p.nombreCategoria || (p.categoria ? p.categoria.nombre : 'Golden Feets');
+            const sku = p.sku || `ID-${p.id}`;
+
+            // Construir HTML con datos reales y SIN RATING
+            wrapper.innerHTML = `
+                <button type="button" class="modal-close-btn" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+                <div class="modal-body-grid">
+                    <div class="gallery-section">
+                        <div class="main-img-box">
+                            <img src="${p.imagenUrl}" id="main-modal-img" alt="${p.nombre}" onerror="this.src='https://via.placeholder.com/500?text=No+Image'">
+                        </div>
                     </div>
-                    <div class="col-md-6 d-flex flex-column">
-                        <p>${product.descripcion}</p>
-                        <div class="mb-3"><span class="fs-4 fw-bold text-primary">$${product.precio.toFixed(0)}</span></div>
-                        <div class="mb-3"><p class="mb-1 fw-bold small text-muted">Stock: ${product.stock} unidades</p></div>
-                        <div class="mt-auto bg-light p-3 rounded">
-                            <div class="row align-items-center g-2">
-                                <div class="col-auto">
-                                    <label class="form-label fw-bold small">CANT:</label>
-                                    <div class="input-group input-group-sm" style="width: 100px;">
-                                        <button class="btn btn-outline-secondary btn-quantity" type="button" onclick="changeQuantityModal(-1)">-</button>
-                                        <input type="text" class="form-control text-center" id="product-quantity-modal" value="1" readonly>
-                                        <button class="btn btn-outline-secondary btn-quantity" type="button" onclick="changeQuantityModal(1)">+</button>
-                                    </div>
+
+                    <div class="details-section">
+                        <div>
+                            <span class="text-uppercase fw-bold text-muted small mb-2 d-block tracking-wide">
+                                ${categoriaNombre}
+                            </span>
+                            <h2 class="modal-title-lg mb-3">${p.nombre}</h2>
+
+                            <!-- Rating eliminado de aquí -->
+
+                            <p class="text-muted lh-lg">${p.descripcion || 'Sin descripción disponible.'}</p>
+                        </div>
+
+                        <div class="spec-grid">
+                            <div>
+                                <div class="spec-label">Precio Actual</div>
+                                <div class="fs-2 fw-black" style="font-family: var(--font-serif); font-weight: 900; color: var(--purple-600);">
+                                    ${formatter.format(p.precio)}
                                 </div>
-                                <div class="col">
-                                    <button data-product-name="${product.nombre}"
-                                            onclick="addToCart(this, ${product.id}, getQuantityModal())"
-                                            class="btn btn-primary w-100">
-                                        <i class="bi bi-cart-plus me-1"></i>Añadir al Carrito
-                                    </button>
+                            </div>
+                            <div>
+                                <div class="spec-label">Disponibilidad</div>
+                                <div class="${stock > 0 ? 'text-success' : 'text-danger'} fw-bold d-flex align-items-center gap-1">
+                                    <i class="bi ${stock > 0 ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                                    ${stock > 0 ? stock + ' en stock' : 'Agotado'}
                                 </div>
+                            </div>
+                            <div>
+                                <div class="spec-label">SKU</div>
+                                <div class="spec-value">${sku}</div>
+                            </div>
+                            <div>
+                                <div class="spec-label">Envío</div>
+                                <div class="spec-value">Gratis a todo el país</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto">
+                            <div class="d-flex gap-3">
+                                <div class="input-group" style="width: 140px; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
+                                    <button class="btn btn-light px-3" type="button" onclick="this.nextElementSibling.stepDown()" ${stock === 0 ? 'disabled' : ''}>-</button>
+                                    <input type="number" id="modal-quantity" class="form-control text-center border-0 bg-white fw-bold" value="1" min="1" max="${stock}" ${stock === 0 ? 'disabled' : ''}>
+                                    <button class="btn btn-light px-3" type="button" onclick="this.previousElementSibling.stepUp()" ${stock === 0 ? 'disabled' : ''}>+</button>
+                                </div>
+
+                                <button onclick="addToCartFromModal(${p.id}, '${p.nombre.replace(/'/g, "\\'")}')"
+                                        class="btn flex-grow-1 text-white fw-bold fs-5"
+                                        ${stock === 0 ? 'disabled' : ''}
+                                        style="background: var(--gradient-primary); border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(109, 40, 217, 0.4);">
+                                    ${stock > 0 ? 'Añadir al Carrito' : 'Sin Stock'}
+                                </button>
                             </div>
                         </div>
                     </div>
-                </div>`;
-        } catch (error) {
-            modalContent.innerHTML = '<p class="text-center text-danger">No se pudo cargar la información del producto.</p>';
+                </div>
+            `;
+
+        } catch (err) {
+            console.error(err);
+            wrapper.innerHTML = '<div class="p-5 text-center text-danger fw-bold">No se pudieron cargar los detalles del producto. Intenta de nuevo más tarde.</div>';
         }
     }
 
-    function changeQuantityModal(amount) {
-        const input = document.getElementById('product-quantity-modal');
-        let currentValue = parseInt(input.value);
-        if (currentValue + amount >= 1) input.value = currentValue + amount;
+    function addToCartFromModal(productId, productName) {
+        const quantityInput = document.getElementById('modal-quantity');
+        const quantity = quantityInput ? (parseInt(quantityInput.value) || 1) : 1;
+
+        // Simulamos el objeto elemento para reutilizar la función addToCart original
+        addToCart({ getAttribute: () => productName }, productId, quantity);
+
+        const modalEl = document.getElementById('premiumModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) modalInstance.hide();
     }
 
-    function getQuantityModal() {
-        return parseInt(document.getElementById('product-quantity-modal').value);
-    }
-
-    // --- 5. FUNCIONES PARA CARRITO DE COMPRAS ---
-
-    /**
-     * Añade un producto al carrito de compras.
-     */
     function addToCart(buttonElement, productId, quantity = 1) {
         const productName = buttonElement.getAttribute('data-product-name') || 'Producto';
+
+        // Lógica local para feedback visual inmediato
         let cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
         const cartItemId = `P${productId}`;
         cart[cartItemId] = { quantity: (cart[cartItemId]?.quantity || 0) + quantity };
         localStorage.setItem('goldenFeetsCart', JSON.stringify(cart));
-        updateCartCount();
-        showNotification(`${productName} añadido al carrito`);
 
-        const modalElement = document.getElementById('productModal');
-        const modalInstance = bootstrap.Modal.getInstance(modalElement);
-        if (modalInstance && modalInstance._isShown) {
-            modalInstance.hide();
-        }
+        updateCartCount();
+        showToast(`${productName} añadido al carrito`, 'success');
+
+        // Opcional: Si también quieres sincronizar con el backend (ApiController)
+        // fetch('/api/carrito/agregar', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ productoId: productId, cantidad: quantity })
+        // });
     }
 
-    /**
-     * Actualiza el contador de "Carrito" en el header.
-     */
     function updateCartCount() {
         const cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
         const count = Object.values(cart).reduce((sum, item) => sum + (item.quantity || 0), 0);
@@ -598,19 +770,22 @@
         if(cartCountElement) cartCountElement.textContent = count;
     }
 
-    // --- 6. FUNCIONES DE UTILIDAD (NOTIFICACIONES) ---
+    function showToast(msg, type) {
+        const toastContainer = document.getElementById('toast-notification');
+        const color = type === 'success' ? 'bg-success' : 'bg-dark';
 
-    /**
-     * Muestra una notificación emergente en la esquina de la pantalla.
-     */
-    function showNotification(message) {
-        const notification = document.getElementById('notification');
-        const notificationMessage = document.getElementById('notification-message');
-        if (notification && notificationMessage) {
-            notificationMessage.textContent = message;
-            notification.classList.add('show');
-            setTimeout(() => { notification.classList.remove('show'); }, 3000);
-        }
+        const toastHTML = `
+            <div class="toast show align-items-center text-white ${color} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body fw-bold">
+                        <i class="bi bi-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i> ${msg}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        toastContainer.innerHTML = toastHTML;
+        setTimeout(() => { toastContainer.innerHTML = ''; }, 3000);
     }
 </script>
 
