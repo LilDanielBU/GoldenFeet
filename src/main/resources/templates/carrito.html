@@ -643,57 +643,18 @@
 
                             <div class="col-md-6">
                                 <label for="state" class="form-label">Departamento</label>
-                                <select class="form-select" id="state" required>
-                                    <option value="">Seleccionar...</option>
-                                    <option value="Amazonas">Amazonas</option>
-                                    <option value="Antioquia">Antioquia</option>
-                                    <option value="Arauca">Arauca</option>
-                                    <option value="Atlántico">Atlántico</option>
-                                    <option value="Bolívar">Bolívar</option>
-                                    <option value="Boyacá">Boyacá</option>
-                                    <option value="Caldas">Caldas</option>
-                                    <option value="Caquetá">Caquetá</option>
-                                    <option value="Casanare">Casanare</option>
-                                    <option value="Cauca">Cauca</option>
-                                    <option value="Cesar">Cesar</option>
-                                    <option value="Chocó">Chocó</option>
-                                    <option value="Córdoba">Córdoba</option>
-                                    <option value="Cundinamarca" selected>Cundinamarca</option>
-                                    <option value="Guainía">Guainía</option>
-                                    <option value="Guaviare">Guaviare</option>
-                                    <option value="Huila">Huila</option>
-                                    <option value="La Guajira">La Guajira</option>
-                                    <option value="Magdalena">Magdalena</option>
-                                    <option value="Meta">Meta</option>
-                                    <option value="Nariño">Nariño</option>
-                                    <option value="Norte de Santander">Norte de Santander</option>
-                                    <option value="Putumayo">Putumayo</option>
-                                    <option value="Quindío">Quindío</option>
-                                    <option value="Risaralda">Risaralda</option>
-                                    <option value="San Andrés y Providencia">San Andrés y Providencia</option>
-                                    <option value="Santander">Santander</option>
-                                    <option value="Sucre">Sucre</option>
-                                    <option value="Tolima">Tolima</option>
-                                    <option value="Valle del Cauca">Valle del Cauca</option>
-                                    <option value="Vaupés">Vaupés</option>
-                                    <option value="Vichada">Vichada</option>
+                                <select class="form-select" id="state" required
+                                        th:data-valor-guardado="${usuario?.departamento}">
+                                    <option value="">Seleccionar Departamento...</option>
                                 </select>
                                 <div class="invalid-feedback">Departamento es requerido.</div>
                             </div>
+
                             <div class="col-md-6">
                                 <label for="city" class="form-label">Ciudad</label>
-                                <select class="form-select" id="city" required>
-                                    <option value="">Seleccionar...</option>
-                                    <option value="Bogotá">Bogotá D.C.</option>
-                                    <option value="Medellín">Medellín</option>
-                                    <option value="Cali">Cali</option>
-                                    <option value="Barranquilla">Barranquilla</option>
-                                    <option value="Cartagena">Cartagena</option>
-                                    <option value="Cúcuta">Cúcuta</option>
-                                    <option value="Bucaramanga">Bucaramanga</option>
-                                    <option value="Pereira">Pereira</option>
-                                    <option value="Santa Marta">Santa Marta</option>
-                                    <option value="Manizales">Manizales</option>
+                                <select class="form-select" id="city" required disabled
+                                        th:data-valor-guardado="${usuario?.ciudad}">
+                                    <option value="">Seleccione Depto. primero...</option>
                                 </select>
                                 <div class="invalid-feedback">Ciudad es requerida.</div>
                             </div>
@@ -939,6 +900,43 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // Base de datos de lugares fuera de la clase para no ensuciarla tanto
+    const DATOS_COLOMBIA = {
+        "Amazonas": ["Leticia", "Puerto Nariño"],
+        "Antioquia": ["Medellín", "Bello", "Itagüí", "Envigado", "Apartadó", "Rionegro", "Caucasia", "Turbo"],
+        "Arauca": ["Arauca", "Arauquita", "Saravena", "Tame"],
+        "Atlántico": ["Barranquilla", "Soledad", "Malambo", "Sabanalarga", "Baranoa"],
+        "Bogotá D.C.": ["Bogotá"],
+        "Bolívar": ["Cartagena", "Magangué", "El Carmen de Bolívar", "Turbaco", "Arjona"],
+        "Boyacá": ["Tunja", "Duitama", "Sogamoso", "Chiquinquirá", "Paipa"],
+        "Caldas": ["Manizales", "La Dorada", "Chinchiná", "Villamaría", "Riosucio"],
+        "Caquetá": ["Florencia", "San Vicente del Caguán"],
+        "Casanare": ["Yopal", "Aguazul", "Villanueva"],
+        "Cauca": ["Popayán", "Santander de Quilichao", "Puerto Tejada"],
+        "Cesar": ["Valledupar", "Aguachica", "Agustín Codazzi"],
+        "Chocó": ["Quibdó", "Istmina"],
+        "Córdoba": ["Montería", "Lorica", "Sahagún", "Cereté", "Montelíbano"],
+        "Cundinamarca": ["Soacha", "Facatativá", "Fusagasugá", "Zipaquirá", "Chía", "Girardot", "Mosquera", "Madrid", "Funza", "Cajicá"],
+        "Guainía": ["Inírida"],
+        "Guaviare": ["San José del Guaviare"],
+        "Huila": ["Neiva", "Pitalito", "Garzón", "La Plata"],
+        "La Guajira": ["Riohacha", "Maicao", "Uribia"],
+        "Magdalena": ["Santa Marta", "Ciénaga", "Fundación", "El Banco"],
+        "Meta": ["Villavicencio", "Acacías", "Granada"],
+        "Nariño": ["Pasto", "Tumaco", "Ipiales"],
+        "Norte de Santander": ["Cúcuta", "Ocaña", "Villa del Rosario", "Los Patios"],
+        "Putumayo": ["Mocoa", "Puerto Asís"],
+        "Quindío": ["Armenia", "Calarcá", "La Tebaida", "Montenegro", "Quimbaya"],
+        "Risaralda": ["Pereira", "Dosquebradas", "Santa Rosa de Cabal"],
+        "San Andrés y Providencia": ["San Andrés"],
+        "Santander": ["Bucaramanga", "Floridablanca", "Barrancabermeja", "Girón", "Piedecuesta", "San Gil"],
+        "Sucre": ["Sincelejo", "Corozal", "San Marcos"],
+        "Tolima": ["Ibagué", "Espinal", "Melgar", "Chaparral"],
+        "Valle del Cauca": ["Cali", "Buenaventura", "Palmira", "Tuluá", "Buga", "Cartago", "Jamundí", "Yumbo"],
+        "Vaupés": ["Mitú"],
+        "Vichada": ["Puerto Carreño"]
+    };
+
     class ShoppingCartApp {
         constructor() {
             this.cart = this.loadCart();
@@ -956,6 +954,9 @@
         }
 
         async init() {
+            // Inicialización de lógica de direcciones (NUEVO)
+            this.setupAddressDropdowns();
+
             await this.fetchProductDetails();
             this.renderCartItems();
             this.updateOrderSummary();
@@ -963,6 +964,62 @@
             this.setupEventListeners();
             this.showStep(this.currentStep);
             this.setupCreditCardInputs();
+        }
+
+        // === NUEVO MÉTODO PARA GESTIONAR LISTAS DESPLEGABLES ===
+        setupAddressDropdowns() {
+            const selectDepto = document.getElementById('state');
+            const selectCiudad = document.getElementById('city');
+
+            if (!selectDepto || !selectCiudad) return;
+
+            // 1. Llenar Departamentos
+            Object.keys(DATOS_COLOMBIA).sort().forEach(depto => {
+                const option = document.createElement('option');
+                option.value = depto;
+                option.textContent = depto;
+                selectDepto.appendChild(option);
+            });
+
+            // 2. Función para cargar ciudades
+            const cargarCiudades = (deptoSeleccionado) => {
+                selectCiudad.innerHTML = '<option value="">Seleccionar...</option>';
+
+                if (deptoSeleccionado && DATOS_COLOMBIA[deptoSeleccionado]) {
+                    selectCiudad.disabled = false;
+                    DATOS_COLOMBIA[deptoSeleccionado].sort().forEach(ciudad => {
+                        const option = document.createElement('option');
+                        option.value = ciudad;
+                        option.textContent = ciudad;
+                        selectCiudad.appendChild(option);
+                    });
+                } else {
+                    selectCiudad.disabled = true;
+                    selectCiudad.innerHTML = '<option value="">Seleccione Depto. primero...</option>';
+                }
+            };
+
+            // 3. Evento al cambiar departamento
+            selectDepto.addEventListener('change', function() {
+                cargarCiudades(this.value);
+            });
+
+            // 4. Pre-carga de datos si el usuario está logueado
+            const deptoGuardado = selectDepto.getAttribute('data-valor-guardado');
+            const ciudadGuardada = selectCiudad.getAttribute('data-valor-guardado');
+
+            if (deptoGuardado && DATOS_COLOMBIA[deptoGuardado]) {
+                selectDepto.value = deptoGuardado;
+                cargarCiudades(deptoGuardado);
+
+                // Pequeño timeout para asegurar renderizado
+                setTimeout(() => {
+                    // Verificar si la ciudad guardada es válida para ese depto
+                    if (DATOS_COLOMBIA[deptoGuardado].includes(ciudadGuardada)) {
+                        selectCiudad.value = ciudadGuardada;
+                    }
+                }, 50);
+            }
         }
 
         loadCart() {
@@ -1308,8 +1365,8 @@
                 apellido: document.getElementById('lastName')?.value,
                 direccion: document.getElementById('address')?.value,
                 informacionAdicional: document.getElementById('additionalInfo')?.value,
-                departamento: document.getElementById('state')?.value,
-                ciudad: document.getElementById('city')?.value,
+                departamento: document.getElementById('state')?.value, // Ahora lee del Select poblado
+                ciudad: document.getElementById('city')?.value,       // Ahora lee del Select poblado
                 localidad: document.getElementById('locality')?.value,
                 barrio: document.getElementById('neighborhood')?.value
             };
@@ -1387,6 +1444,5 @@
         new ShoppingCartApp();
     });
 </script>
-
 </body>
 </html>
