@@ -1,10 +1,9 @@
 package com.GoldenFeet.GoldenFeets.controller;
 
 import com.GoldenFeet.GoldenFeets.dto.AdminUsuarioUpdateDTO;
-import com.GoldenFeet.GoldenFeets.dto.ProductoDTO;
 import com.GoldenFeet.GoldenFeets.dto.UsuarioFormDTO;
 import com.GoldenFeet.GoldenFeets.dto.UsuarioRegistroDTO;
-import com.GoldenFeet.GoldenFeets.dto.VentaResponseDTO; // Importar VentaResponseDTO
+import com.GoldenFeet.GoldenFeets.dto.VentaResponseDTO;
 import com.GoldenFeet.GoldenFeets.entity.Producto;
 import com.GoldenFeet.GoldenFeets.entity.Rol;
 import com.GoldenFeet.GoldenFeets.entity.Usuario;
@@ -43,23 +42,17 @@ public class AdminController {
             "Teusaquillo", "Los Mártires", "Antonio Nariño", "Puente Aranda",
             "La Candelaria", "Rafael Uribe Uribe", "Ciudad Bolívar", "Sumapaz"
     );
-    @GetMapping("/usuarios/crear") // <--- NUEVA RUTA PARA MOSTRAR EL FORMULARIO
+
+    @GetMapping("/usuarios/crear")
     public String mostrarFormularioCrear(Model model) {
-        // Objeto DTO vacío para vincular al formulario
         model.addAttribute("nuevoUsuario", new UsuarioFormDTO());
-
-        // Lista de roles y localidades necesarias para los <select>
-        List<Rol> rolesTodos = rolService.listarTodosLosRoles();
-        model.addAttribute("rolesTodos", rolesTodos);
-        model.addAttribute("localidades", localidadesBogota); // Lista de localidades que ya tenías
-
-        // Retorna el nombre de la nueva plantilla
+        model.addAttribute("rolesTodos", rolService.listarTodosLosRoles());
+        model.addAttribute("localidades", localidadesBogota);
         return "admin-usuario-new";
     }
 
     @GetMapping("/panel")
     public String mostrarPanel(Model model) {
-        // Estadísticas básicas
         long totalUsuarios = usuarioService.contarUsuarios();
         long usuariosActivos = usuarioService.contarUsuariosActivos();
         long usuariosInactivos = usuarioService.contarUsuariosInactivos();
@@ -67,26 +60,19 @@ public class AdminController {
         long totalVentas = ventaService.contarVentas();
         double totalIngresos = ventaService.obtenerTotalIngresos();
 
-        // 🔹 Traemos productos reales (no DTOs)
         Collection<Producto> productos = productoService.listarProductos();
-
-        // 🔹 Calculamos valor total de inventario
         double valorInventario = productoService.calcularValorTotalInventario();
 
-        // 🔹 Traemos las últimas ventas para la vista (CORRECCIÓN)
-        // Nota: Asume que tienes un método para listar las últimas ventas. Si no existe, usa listarTodos o créalo.
-        List<VentaResponseDTO> ultimasVentas = ventaService.obtenerTodasLasVentas().stream()
+        List<VentaResponseDTO> ultimasVentas = ventaService.obtenerTodasLasVentas()
+                .stream()
                 .limit(5)
-                .map(VentaResponseDTO::fromEntity) // Necesitarás un método de mapeo en VentaService si listarTodas retorna Venta
+                .map(VentaResponseDTO::fromEntity)
                 .collect(Collectors.toList());
 
-        // 💥 CORRECCIÓN: Aseguramos que la lista nunca sea null, resolviendo el error de Thymeleaf.
         if (ultimasVentas == null) {
             ultimasVentas = List.of();
         }
 
-
-        // 🔹 Agregamos todo al modelo
         model.addAttribute("totalUsuarios", totalUsuarios);
         model.addAttribute("usuariosActivos", usuariosActivos);
         model.addAttribute("usuariosInactivos", usuariosInactivos);
@@ -94,19 +80,15 @@ public class AdminController {
         model.addAttribute("totalIngresos", totalIngresos);
         model.addAttribute("productos", productos);
         model.addAttribute("valorInventario", valorInventario);
-
-        // Agregamos la lista de ventas corregida
         model.addAttribute("ultimasVentas", ultimasVentas);
 
         return "admin-panel";
     }
 
-
     @GetMapping("/usuarios")
     public String mostrarUsuarios(Model model) {
 
         List<Usuario> todosLosUsuarios = usuarioService.obtenerTodosLosUsuarios();
-
 
         List<Usuario> usuariosAdministrativos = todosLosUsuarios.stream()
                 .filter(usuario ->
@@ -116,16 +98,12 @@ public class AdminController {
                 .collect(Collectors.toList());
 
         model.addAttribute("usuarios", usuariosAdministrativos);
-
         model.addAttribute("nuevoUsuario", new UsuarioFormDTO());
-        List<Rol> rolesTodos = rolService.listarTodosLosRoles();
-        model.addAttribute("rolesTodos", rolesTodos);
+        model.addAttribute("rolesTodos", rolService.listarTodosLosRoles());
         model.addAttribute("localidades", localidadesBogota);
 
-        // 💥 CORRECCIÓN: Esta ruta debe mostrar la plantilla de usuarios, no el panel.
         return "admin-usuarios";
     }
-
 
     @GetMapping("/usuarios/editar/{id}")
     public String mostrarFormularioEditar(@PathVariable Integer id, Model model) {
@@ -138,14 +116,17 @@ public class AdminController {
         usuarioDto.setEmail(usuario.getEmail());
         usuarioDto.setActivo(usuario.isActivo());
         usuarioDto.setLocalidad(usuario.getLocalidad());
+
         Set<Integer> rolesIds = usuario.getRoles().stream()
                 .map(Rol::getIdRol)
                 .collect(Collectors.toSet());
+
         usuarioDto.setRolesId(rolesIds);
 
         model.addAttribute("usuario", usuarioDto);
         model.addAttribute("rolesTodos", rolesTodos);
         model.addAttribute("localidades", localidadesBogota);
+
         return "admin-usuario-edit";
     }
 
@@ -163,7 +144,9 @@ public class AdminController {
     @PostMapping("/usuarios/guardar")
     public String guardarNuevoUsuario(@ModelAttribute("nuevoUsuario") UsuarioFormDTO usuarioDto, RedirectAttributes redirectAttributes) {
         try {
-            Set<Integer> rolesIdSet = (usuarioDto.getRolesId() != null) ? new HashSet<>(usuarioDto.getRolesId()) : Set.of();
+            Set<Integer> rolesIdSet = (usuarioDto.getRolesId() != null)
+                    ? new HashSet<>(usuarioDto.getRolesId())
+                    : Set.of();
 
             UsuarioRegistroDTO registroDTO = new UsuarioRegistroDTO(
                     usuarioDto.getNombre(),
@@ -178,17 +161,14 @@ public class AdminController {
                     rolesIdSet
             );
 
-
             usuarioService.guardarUsuario(registroDTO);
             redirectAttributes.addFlashAttribute("successMessage", "Usuario creado exitosamente.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error al crear el usuario: " + e.getMessage());
-            e.printStackTrace();
         }
 
-        return "redirect:/admin/usuarios";
+        return "admin-panel";
     }
-
 
     @PostMapping("/usuarios/eliminar/{id}")
     public String eliminarUsuario(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
@@ -198,6 +178,6 @@ public class AdminController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar el usuario. Es posible que esté asociado a ventas u otros registros.");
         }
-        return "redirect:/admin/usuarios";
+        return "redirect:panel";
     }
 }

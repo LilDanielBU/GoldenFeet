@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Golden Feets Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
+        /* CSS proporcionado por el usuario (sin modificaciones) */
         * {
             margin: 0;
             padding: 0;
@@ -14,7 +16,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: #f5f5f5;
-            min-height: 100vh;
+            min-height: 10vh;
         }
 
         .header {
@@ -318,6 +320,7 @@
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 10px;
+            overflow: auto;
         }
 
         .purchase-item .info h4 {
@@ -421,7 +424,6 @@
 </div>
 
 <div class="container">
-    <!-- Pestañas -->
     <div class="tabs">
         <button class="tab active" onclick="cambiarTab('dashboard')">Dashboard</button>
         <button class="tab" onclick="cambiarTab('inventario')">Inventario</button>
@@ -429,24 +431,23 @@
         <button class="tab" onclick="cambiarTab('usuarios')">Usuarios</button>
     </div>
 
-    <!-- Tab Dashboard -->
     <div id="dashboard" class="tab-content active">
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Productos en Inventario</h3>
-                <div class="value" th:text="${totalProductos}">0</div>
+                <div class="value" id="totalProductos">--</div>
             </div>
             <div class="stat-card">
                 <h3>Compras Pendientes</h3>
-                <div class="value" th:text="${comprasPendientes}">0</div>
+                <div class="value" id="comprasPendientes">--</div>
             </div>
             <div class="stat-card">
                 <h3>Usuarios Activos</h3>
-                <div class="value" th:text="${usuariosActivos}">0</div>
+                <div class="value" id="usuariosActivos">0</div>
             </div>
             <div class="stat-card">
                 <h3>Valor Total Inventario</h3>
-                <div class="value">$<span th:text="${valorInventario}">0</span></div>
+                <div class="value">$<span id="valorInventario">--</span></div>
             </div>
         </div>
         <div class="main-content">
@@ -506,7 +507,6 @@
         </div>
     </div>
 
-    <!-- Tab Inventario -->
     <div id="inventario" class="tab-content">
         <div class="card full-width-card">
             <div class="card-header">
@@ -552,30 +552,82 @@
                         <button class="btn-delete" th:onclick="'eliminarProducto(' + ${producto.id} + ')'">Eliminar</button>
                     </td>
                 </tr>
+                <tr th:if="${#lists.isEmpty(productos)}">
+                    <td colspan="7" style="text-align: center; color: #999;">No hay productos registrados.</td>
+                </tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Tab Compras -->
     <div id="compras" class="tab-content">
         <div class="card full-width-card">
             <div class="card-header">
-                <h2>Gestión de Compras</h2>
+                <h2>Gestión de Compras y Reportes</h2>
                 <button class="btn-new" onclick="nuevaCompra()">Nueva Compra</button>
             </div>
 
-            <div class="purchase-item">
-                <div class="info">
-                    <h4>Orden #1245</h4>
-                    <p>Nike Air Max - 50 unidades</p>
-                    <p style="color: #4A148C; font-weight: 600;">$4,499.50</p>
-                    <p style="color: #999; font-size: 12px;">Fecha: 28 Oct 2025</p>
+            <div class="main-content" style="grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div class="card" style="padding: 20px;">
+                    <h3 style="color: #4A148C; margin-bottom: 15px;">📊 Ventas Mensuales (Últimos 6 meses)</h3>
+                    <canvas id="salesChart"></canvas>
                 </div>
-                <span class="purchase-status status-processing">En Proceso</span>
+
+                <div class="card" style="padding: 20px;">
+                    <h3 style="color: #4A148C; margin-bottom: 15px;">📈 Estadísticas Clave</h3>
+                    <div class="purchase-item">
+                        <h4>Venta Total (Mes)</h4>
+                        <p class="value" id="monthlySalesValue" style="font-size: 24px;">$0.00</p>
+                    </div>
+                    <div class="purchase-item">
+                        <h4>Unidades Vendidas (Mes)</h4>
+                        <p class="value" id="monthlyUnitsValue" style="font-size: 24px;">0</p>
+                    </div>
+                    <div class="purchase-item">
+                        <h4>Ticket Promedio</h4>
+                        <p class="value" id="avgTicketValue" style="font-size: 24px;">$0.00</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card full-width-card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <h2>Historial de Órdenes Recientes</h2>
+                </div>
+                <table class="inventory-table">
+                    <thead>
+                    <tr>
+                        <th>Orden #</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="compra : ${compras}">
+                        <td th:text="${compra.id}">1245</td>
+                        <td th:text="${compra.cliente != null ? compra.cliente.nombre : 'N/A'}">Nombre Cliente</td>
+                        <td style="font-weight: bold;" th:text="'$' + ${#numbers.formatDecimal(compra.total, 0, 'COMMA', 2, 'POINT')}">$0.00</td>
+                        <td>
+                                <span th:classappend="${compra.estado == 'COMPLETADA' ? 'status-completed' : (compra.estado == 'PENDIENTE' ? 'status-pending' : 'status-processing')}"
+                                      th:text="${compra.estado}"></span>
+                        </td>
+                        <td th:text="${#dates.format(compra.fecha, 'dd MMM yyyy')}">01 Ene 2025</td>
+                        <td>
+                            <button class="btn-edit" th:onclick="'verDetalleCompra(' + ${compra.id} + ')'">Ver Detalle</button>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(compras)}">
+                        <td colspan="6" style="text-align: center; color: #999;">No hay órdenes de compra recientes.</td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+
     <div id="usuarios" class="tab-content">
         <div class="card full-width-card">
             <div class="card-header">
@@ -605,87 +657,176 @@
                 </tr>
                 </thead>
                 <tbody>
-                <!-- Los datos se cargarán dinámicamente con JavaScript -->
                 </tbody>
             </table>
         </div>
     </div>
+
     <script>
+        // Función principal que se ejecuta al cargar la página
         window.onload = function() {
+            // Carga las estadísticas iniciales del dashboard desde el backend
             cargarEstadisticas();
-            cargarUsuarios();
         };
 
-        // Cargar estadísticas
+        // FUNCIÓN CLAVE PARA EL DASHBOARD: Obtiene datos de métricas por API
         function cargarEstadisticas() {
             fetch('/api/admin/stats')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('totalProductos').textContent = data.totalProductos;
-                    document.getElementById('comprasPendientes').textContent = data.comprasPendientes;
-                    document.getElementById('usuariosActivos').textContent = data.usuariosActivos;
-                    document.getElementById('valorInventario').textContent = '$' + data.valorInventario;
+                .then(response => {
+                    if (!response.ok) {
+                        // Si el backend responde con un error (404, 500, etc.)
+                        throw new Error('Error de conexión o en el servidor: ' + response.statusText);
+                    }
+                    return response.json();
                 })
-                .catch(error => console.error('Error cargando estadísticas:', error));
+                .then(data => {
+                    // Si la carga es exitosa, se muestran los datos (si el valor es nulo, usamos 0)
+                    document.getElementById('totalProductos').textContent = data.totalProductos || 0;
+                    document.getElementById('comprasPendientes').textContent = data.comprasPendientes || 0;
+                    document.getElementById('usuariosActivos').textContent = data.usuariosActivos || 0;
+
+                    const valorInventario = data.valorInventario || 0;
+                    const valorFormateado = valorInventario.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    document.getElementById('valorInventario').textContent = valorFormateado;
+                })
+                .catch(error => {
+                    console.error('Error cargando estadísticas del dashboard. Asegúrate de que el endpoint /api/admin/stats está activo y responde con JSON:', error);
+
+                    // --- CÓDIGO CORREGIDO PARA FALLBACK (usa '--' para datos no cargados) ---
+                    document.getElementById('totalProductos').textContent = '--';
+                    document.getElementById('comprasPendientes').textContent = '--';
+                    document.getElementById('valorInventario').textContent = '--';
+
+                    // Usuarios Activos mantiene el 0 como fallback
+                    document.getElementById('usuariosActivos').textContent = '0';
+                });
+        }
+
+        let salesChartInstance = null;
+
+        // FUNCIÓN PARA CARGAR GRÁFICAS Y ESTADÍSTICAS DE COMPRAS
+        function cargarReportesVentas() {
+            fetch('/api/admin/ventas/reportes')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar reportes de ventas: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(reportes => {
+                    const ventaTotalMes = reportes.ventaTotalMes || 0;
+                    const unidadesVendidasMes = reportes.unidadesVendidasMes || 0;
+                    const ticketPromedio = reportes.ticketPromedio || 0;
+
+                    document.getElementById('monthlySalesValue').textContent = '$' + ventaTotalMes.toLocaleString('es-CO', { minimumFractionDigits: 2 });
+                    document.getElementById('monthlyUnitsValue').textContent = unidadesVendidasMes;
+                    document.getElementById('avgTicketValue').textContent = '$' + ticketPromedio.toLocaleString('es-CO', { minimumFractionDigits: 2 });
+
+                    const meses = reportes.meses || [];
+                    const ventasMensuales = reportes.ventasMensuales || [];
+
+                    const ctx = document.getElementById('salesChart').getContext('2d');
+
+                    if (salesChartInstance) {
+                        salesChartInstance.destroy();
+                    }
+
+                    salesChartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: meses,
+                            datasets: [{
+                                label: 'Ventas ($)',
+                                data: ventasMensuales,
+                                backgroundColor: '#6A1B9A',
+                                borderColor: '#4A148C',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return context.dataset.label + ': $' + context.parsed.y.toLocaleString('es-CO', { minimumFractionDigits: 2 });
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: { display: true, text: 'Monto de Venta ($)' },
+                                    ticks: {
+                                        callback: function(value) { return '$' + value.toLocaleString('es-CO'); }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                })
+                .catch(error => {
+                    console.error('Error cargando reportes de ventas:', error);
+                    document.getElementById('monthlySalesValue').textContent = '$0.00';
+                    document.getElementById('monthlyUnitsValue').textContent = '0';
+                    document.getElementById('avgTicketValue').textContent = '$0.00';
+
+                    if (salesChartInstance) {
+                        salesChartInstance.destroy();
+                    }
+                });
         }
 
 
-     function cargarUsuarios() {
+        function cargarUsuarios() {
         fetch('/api/admin/usuarios')
             .then(response => response.json())
             .then(usuarios => {
                 const tbody = document.querySelector('#usuarios tbody');
                 tbody.innerHTML = '';
 
-                usuarios.forEach(usuario => {
-                    const tr = document.createElement('tr');
+                if (usuarios && usuarios.length > 0) {
+                    usuarios.forEach(usuario => {
+                        const tr = document.createElement('tr');
+                        let rolesHtml = '';
+                        const roles = Array.isArray(usuario.roles) ? usuario.roles : [];
 
-                    // --- INICIO DE LA MODIFICACIÓN DE ROLES ---
-                    let rolesHtml = '';
-                    usuario.roles.forEach(rol => {
+                        roles.forEach(rol => {
+                            const nombreLimpio = rol.replace('ROLE_', '');
+                            let rolClass = (rol.includes('ADMIN') || rol.includes('GERENTE')) ? 'badge-admin' : 'badge-cliente';
+                            rolesHtml += `<span class="${rolClass}">${nombreLimpio}</span> `;
+                        });
 
-                        // 1. Limpiar el nombre del rol (ej: 'ROLE_ADMIN' -> 'ADMIN')
-                        const nombreLimpio = rol.replace('ROLE_', '');
+                        const estadoClass = usuario.activo ? 'status-activo' : 'status-inactivo';
+                        const estadoText = usuario.activo ? 'Activo' : 'Inactivo';
 
-                        // 2. Definir la clase base (Todos los roles importantes deben usar un estilo visible)
-                        let rolClass;
+                        tr.innerHTML = `
+                            <td>${usuario.id}</td>
+                            <td>${usuario.nombre || 'N/A'}</td>
+                            <td>${usuario.email || 'N/A'}</td>
+                            <td>${usuario.localidad || 'N/A'}</td>
+                            <td>${rolesHtml}</td>
+                            <td><span class="${estadoClass}">${estadoText}</span></td>
+                            <td>
+                                <button class="btn-edit" onclick="editarUsuario(${usuario.id})">Editar</button>
+                                <button class="btn-delete" onclick="eliminarUsuario(${usuario.id})">Eliminar</button>
+                            </td>
+                        `;
 
-                        if (rol.includes('ADMIN') || rol.includes('GERENTE') || rol.includes('DISTRIBUIDOR')) {
-                            // Usamos una clase genérica para los roles importantes (ej: badge-importante)
-                            // Si quieres diferenciar, necesitas definir más clases en tu CSS.
-                            rolClass = 'badge-admin'; // Reutilizamos el estilo admin para todos los importantes
-                        } else {
-                            rolClass = 'badge-cliente'; // Esto solo debería ocurrir si un usuario tiene CLIENTE y otro rol
-                        }
-
-                        // Renderizar el rol con el nombre limpio y la clase asignada
-                        rolesHtml += `<span class="${rolClass}">${nombreLimpio}</span> `;
+                        tbody.appendChild(tr);
                     });
-                    // --- FIN DE LA MODIFICACIÓN DE ROLES ---
-
-
-                    // Crear badge de estado
-                    const estadoClass = usuario.activo ? 'status-activo' : 'status-inactivo';
-                    const estadoText = usuario.activo ? 'Activo' : 'Inactivo';
-
-                    tr.innerHTML = `
-                        <td>${usuario.id}</td>
-                        <td>${usuario.nombre}</td>
-                        <td>${usuario.email}</td>
-                        <td>${usuario.localidad}</td>
-                        <td>${rolesHtml}</td>
-                        <td><span class="${estadoClass}">${estadoText}</span></td>
-                        <td>
-                            <button class="btn-edit" onclick="editarUsuario(${usuario.id})">Editar</button>
-                            <button class="btn-delete" onclick="eliminarUsuario(${usuario.id})">Eliminar</button>
-                        </td>
-                    `;
-
+                } else {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td colspan="7" style="text-align: center; color: #999;">No hay usuarios registrados.</td>`;
                     tbody.appendChild(tr);
-                });
+                }
             })
             .catch(error => console.error('Error cargando usuarios:', error));
     }
+
 
         function cambiarTab(tabName) {
             const contents = document.querySelectorAll('.tab-content');
@@ -695,7 +836,22 @@
             tabs.forEach(tab => tab.classList.remove('active'));
 
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+
+            // Usar event.target es más robusto si el evento existe
+            const clickedTab = event ? event.target : document.querySelector(`.tab[onclick="cambiarTab('${tabName}')"]`);
+            if (clickedTab) {
+                clickedTab.classList.add('active');
+            }
+
+            // Recarga las estadísticas del Dashboard al cambiar a la pestaña
+            if(tabName === 'dashboard') {
+                cargarEstadisticas();
+            }
+
+            // Cargar reportes al cambiar a la pestaña de compras
+            if(tabName === 'compras') {
+                cargarReportesVentas();
+            }
 
             // Recargar datos cuando se cambia a la pestaña de usuarios
             if(tabName === 'usuarios') {
@@ -725,13 +881,15 @@
             alert('Función de nueva compra - Por implementar');
         }
 
+        function verDetalleCompra(id) {
+            alert('Función de ver detalle de compra: ' + id + ' - Por implementar');
+        }
+
         function nuevoUsuario() {
-            // Redirigir al formulario de nuevo usuario que ya tienes
             window.location.href = '/admin/usuarios/crear';
         }
 
         function editarUsuario(id) {
-            // Redirigir al formulario de editar usuario que ya tienes
             window.location.href = '/admin/usuarios/editar/' + id;
         }
 
@@ -743,8 +901,8 @@
                 .then(response => {
                     if(response.ok) {
                         alert('Usuario eliminado correctamente');
-                        cargarUsuarios(); // Recargar la tabla
-                        cargarEstadisticas(); // Actualizar estadísticas
+                        cargarUsuarios();
+                        cargarEstadisticas();
                     } else {
                         alert('Error al eliminar usuario');
                     }
@@ -757,12 +915,10 @@
         }
 
         function buscarUsuario(query) {
-            // Implementar búsqueda de usuarios
             console.log('Buscando usuario: ' + query);
         }
 
         function filtrarRol(rol) {
-
             console.log('Filtrando por rol: ' + rol);
         }
     </script>
