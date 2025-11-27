@@ -19,4 +19,7 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
 
     @Query("SELECT SUM(v.total) FROM Venta v")
     Double sumarTotalVentas();
+
+    long countByEstado(String estado);
+
 }

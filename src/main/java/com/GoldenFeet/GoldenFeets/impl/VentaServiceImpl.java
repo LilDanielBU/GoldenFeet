@@ -105,6 +105,12 @@ public class VentaServiceImpl implements VentaService {
     }
 
     @Override
+    public long contarVentasPendientes() {
+        return ventaRepository.countByEstado("PENDIENTE");
+    }
+
+
+    @Override
     public List<VentaResponseDTO> buscarVentasPorCliente(Integer idCliente) {
         return ventaRepository.findByCliente_IdUsuario(idCliente).stream()
                 .map(this::convertirAVentaResponseDTO)
@@ -138,6 +144,7 @@ public class VentaServiceImpl implements VentaService {
     public List<Venta> obtenerVentasPorPeriodo(LocalDate fechaInicio, LocalDate fechaFin) {
         return ventaRepository.findByFechaVentaBetween(fechaInicio, fechaFin);
     }
+
 
     @Override
     public Venta obtenerVentaPorId(Long id) {

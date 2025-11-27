@@ -1,7 +1,9 @@
 package com.GoldenFeet.GoldenFeets.controller;
 
+import com.GoldenFeet.GoldenFeets.service.ProductoService;
 import com.GoldenFeet.GoldenFeets.service.UsuarioService;
 
+import com.GoldenFeet.GoldenFeets.service.VentaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,12 @@ import com.GoldenFeet.GoldenFeets.entity.Usuario; // <-- Importar la entidad Usu
 @RestController
 @RequestMapping("/api/admin")
 public class AdminApiController {
+
+    @Autowired
+    private VentaService ventaService;
+
+    @Autowired
+    private ProductoService productoService;
 
     @Autowired
     private UsuarioService usuarioService;
@@ -66,28 +74,28 @@ public class AdminApiController {
         return ResponseEntity.ok(usuariosDto);
     }
 
-    // --- 3. Endpoint para Cargar Estadísticas (GET) ---
-
-    // Coincide con la llamada fetch('/api/admin/stats') de cargarEstadisticas()
-    // NOTA: Debes implementar la lógica real en tu UsuarioService y VentaService
     @GetMapping("/stats")
     public ResponseEntity<?> obtenerEstadisticas() {
-        // Lógica de ejemplo, DEBES SUSTITUIRLA con los métodos de tus Services
-        // long totalProductos = productoService.contarProductos(); // Ejemplo real
-        // long comprasPendientes = ventaService.contarComprasPorEstado("PENDIENTE"); // Ejemplo real
 
-        long totalProductos = 150;
-        long comprasPendientes = 8;
-        long usuariosActivos = usuarioService.contarUsuariosActivos();
-        String valorInventario = "12,500.00";
+        try {
+            long totalProductos = productoService.listarProductos().size();
+            long comprasPendientes = ventaService.contarVentasPendientes(); // Debes tener el método en VentaService
+            long usuariosActivos = usuarioService.contarUsuariosActivos();
+            double valorInventario = productoService.calcularValorTotalInventario();
 
-        Map<String, Object> stats = Map.of(
-                "totalProductos", totalProductos,
-                "comprasPendientes", comprasPendientes,
-                "usuariosActivos", usuariosActivos,
-                "valorInventario", valorInventario
-        );
+            Map<String, Object> stats = Map.of(
+                    "totalProductos", totalProductos,
+                    "comprasPendientes", comprasPendientes,
+                    "usuariosActivos", usuariosActivos,
+                    "valorInventario", valorInventario
+            );
 
-        return ResponseEntity.ok(stats);
+            return ResponseEntity.ok(stats);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener estadísticas: " + e.getMessage());
+        }
     }
+
 }

@@ -55,4 +55,5 @@ public interface VentaService {
     /** Busca ventas por ID de cliente, usando Long. */
     List<VentaResponseDTO> buscarVentasPorCliente(Long idCliente);
 
+    long contarVentasPendientes();
 }
