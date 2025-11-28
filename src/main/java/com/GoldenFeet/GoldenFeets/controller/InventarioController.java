@@ -21,6 +21,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Controller
 @RequestMapping("/inventario")
@@ -33,40 +35,27 @@ public class InventarioController {
     private final AlmacenamientoService almacenamientoService;
     private final InventarioMovimientoService inventarioMovimientoService;
 
-    /**
-     * Muestra la tabla principal de productos y las tarjetas de estadísticas (KPIs).
-     */
+    // --- LISTAS ESTÁTICAS PARA LOS SELECTS ---
+    private List<Integer> obtenerTallas() {
+        return IntStream.rangeClosed(30, 41).boxed().collect(Collectors.toList());
+    }
+
+    private List<String> obtenerColores() {
+        return List.of("Negro", "Blanco", "Rojo", "Azul", "Verde", "Gris", "Beige", "Cafe", "Rosa", "Amarillo", "Multicolor");
+    }
+
     @GetMapping("/panel")
     public String mostrarPanelInventario(Model model) {
-        // 1. Obtener la lista de productos
         List<ProductoDTO> listaProductos = productoService.listarTodos();
         model.addAttribute("productos", listaProductos);
         model.addAttribute("titulo", "Panel de Gestión de Inventario");
 
-        // --- CORRECCIÓN: CÁLCULOS PARA LAS TARJETAS ---
-
-        // A. Total de Referencias (Productos únicos)
+        // KPIs del Dashboard
         model.addAttribute("totalProductos", listaProductos.size());
+        model.addAttribute("productosAgotados", listaProductos.stream().filter(p -> p.getStock() == 0).count());
+        model.addAttribute("productosStockBajo", listaProductos.stream().filter(p -> p.getStock() > 0 && p.getStock() < 5).count());
+        model.addAttribute("valorTotalInventario", productoService.calcularValorTotalInventario());
 
-        // B. Productos Agotados (Stock igual a 0)
-        long agotados = listaProductos.stream()
-                .filter(p -> p.getStock() == 0)
-                .count();
-        model.addAttribute("productosAgotados", agotados);
-
-        // C. Stock Bajo (Por ejemplo, menos de 5 unidades y mayor a 0)
-        long stockBajo = listaProductos.stream()
-                .filter(p -> p.getStock() > 0 && p.getStock() < 5)
-                .count();
-        model.addAttribute("productosStockBajo", stockBajo);
-
-        // D. Valor Total del Inventario (Usando el servicio existente)
-        double valorTotal = productoService.calcularValorTotalInventario();
-        model.addAttribute("valorTotalInventario", valorTotal);
-
-        // ----------------------------------------------
-
-        // Inicializa el DTO para el formulario modal
         if (!model.containsAttribute("ingresoDTO")) {
             model.addAttribute("ingresoDTO", new IngresoDTO());
         }
@@ -74,80 +63,17 @@ public class InventarioController {
         return "inventario-panel";
     }
 
-    // =============================================================
-    // 1. REGISTRO DE INGRESO (SUMA) DE STOCK
-    // =============================================================
-
-    @PostMapping("/ingreso-stock")
-    public String registrarIngresoStock(@Valid @ModelAttribute("ingresoDTO") IngresoDTO ingresoDTO,
-                                        BindingResult bindingResult,
-                                        RedirectAttributes redirectAttributes) {
-
-        if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Error de validación en ingreso: La cantidad debe ser mayor o igual a 1 y el motivo es obligatorio.");
-            return "redirect:/inventario/panel";
-        }
-
-        try {
-            inventarioMovimientoService.registrarIngreso(ingresoDTO);
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "¡Stock agregado exitosamente! Se sumaron " + ingresoDTO.getCantidad() +
-                            " unidades al Producto ID " + ingresoDTO.getProductoId() + ".");
-
-        } catch (EntityNotFoundException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: Producto no encontrado con el ID especificado.");
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error de negocio: " + e.getMessage());
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error al procesar el ingreso de stock: " + e.getMessage());
-        }
-
-        return "redirect:/inventario/panel";
-    }
-
-    // =============================================================
-    // 2. REGISTRO DE SALIDA (RESTA) DE STOCK
-    // =============================================================
-
-    @PostMapping("/salida-stock")
-    public String registrarSalidaStock(@Valid @ModelAttribute("ingresoDTO") IngresoDTO salidaDTO,
-                                       BindingResult bindingResult,
-                                       RedirectAttributes redirectAttributes) {
-
-        if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Error de validación en salida: La cantidad debe ser >= 1 y el motivo es obligatorio.");
-            return "redirect:/inventario/panel";
-        }
-
-        try {
-            inventarioMovimientoService.registrarSalida(salidaDTO);
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "¡Éxito! Se han retirado " + salidaDTO.getCantidad() +
-                            " unidades del producto ID " + salidaDTO.getProductoId() + ".");
-
-        } catch (EntityNotFoundException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: Producto no encontrado.");
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: " + e.getMessage());
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error al registrar la salida: " + e.getMessage());
-        }
-
-        return "redirect:/inventario/panel";
-    }
-
-
-    // =============================================================
-    // MÉTODOS DE GESTIÓN DE PRODUCTOS
-    // =============================================================
-
     @GetMapping("/productos/nuevo")
     public String mostrarFormularioDeProducto(Model model) {
         List<Categoria> categorias = categoriaRepository.findAll();
+
         model.addAttribute("productoDTO", new ProductoCreateDTO());
         model.addAttribute("categorias", categorias);
+
+        // ENVIAMOS LAS LISTAS A LA VISTA
+        model.addAttribute("tallas", obtenerTallas());
+        model.addAttribute("colores", obtenerColores());
+
         model.addAttribute("titulo", "Registrar Nuevo Producto");
         return "producto-form";
     }
@@ -157,6 +83,9 @@ public class InventarioController {
                                   BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("categorias", categoriaRepository.findAll());
+            // SI FALLA, VOLVEMOS A ENVIAR LAS LISTAS
+            model.addAttribute("tallas", obtenerTallas());
+            model.addAttribute("colores", obtenerColores());
             model.addAttribute("titulo", "Registrar Nuevo Producto");
             return "producto-form";
         }
@@ -181,6 +110,7 @@ public class InventarioController {
         ProductoDTO productoDTO = productoOpt.get();
         ProductoUpdateDTO updateDTO = new ProductoUpdateDTO();
 
+        // Mapeo manual
         updateDTO.setId(productoDTO.getId());
         updateDTO.setNombre(productoDTO.getNombre());
         updateDTO.setDescripcion(productoDTO.getDescripcion());
@@ -190,8 +120,17 @@ public class InventarioController {
         updateDTO.setDestacado(productoDTO.getDestacado());
         updateDTO.setCategoriaId(productoDTO.getCategoriaId());
 
+        // Nuevos campos
+        updateDTO.setTalla(productoDTO.getTalla());
+        updateDTO.setColor(productoDTO.getColor());
+
         model.addAttribute("productoDTO", updateDTO);
         model.addAttribute("categorias", categoriaRepository.findAll());
+
+        // ENVIAMOS LAS LISTAS A LA VISTA
+        model.addAttribute("tallas", obtenerTallas());
+        model.addAttribute("colores", obtenerColores());
+
         model.addAttribute("titulo", "Editar Producto");
         model.addAttribute("isEditMode", true);
         model.addAttribute("imagenActualUrl", productoDTO.getImagenUrl());
@@ -206,6 +145,9 @@ public class InventarioController {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("categorias", categoriaRepository.findAll());
+            // SI FALLA, VOLVEMOS A ENVIAR LAS LISTAS
+            model.addAttribute("tallas", obtenerTallas());
+            model.addAttribute("colores", obtenerColores());
             model.addAttribute("titulo", "Editar Producto");
             model.addAttribute("isEditMode", true);
             productoService.buscarPorId(id).ifPresent(p -> model.addAttribute("imagenActualUrl", p.getImagenUrl()));
@@ -228,6 +170,41 @@ public class InventarioController {
             redirectAttributes.addFlashAttribute("successMessage", "Producto eliminado exitosamente.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar el producto: " + e.getMessage());
+        }
+        return "redirect:/inventario/panel";
+    }
+
+    // Métodos de ingreso/salida stock (se mantienen igual)
+    @PostMapping("/ingreso-stock")
+    public String registrarIngresoStock(@Valid @ModelAttribute("ingresoDTO") IngresoDTO ingresoDTO,
+                                        BindingResult bindingResult,
+                                        RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error de validación.");
+            return "redirect:/inventario/panel";
+        }
+        try {
+            inventarioMovimientoService.registrarIngreso(ingresoDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Stock agregado exitosamente.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: " + e.getMessage());
+        }
+        return "redirect:/inventario/panel";
+    }
+
+    @PostMapping("/salida-stock")
+    public String registrarSalidaStock(@Valid @ModelAttribute("ingresoDTO") IngresoDTO salidaDTO,
+                                       BindingResult bindingResult,
+                                       RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error de validación.");
+            return "redirect:/inventario/panel";
+        }
+        try {
+            inventarioMovimientoService.registrarSalida(salidaDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Stock retirado exitosamente.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: " + e.getMessage());
         }
         return "redirect:/inventario/panel";
     }

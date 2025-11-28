@@ -28,6 +28,8 @@ public class Producto {
     private String marca;
     private Boolean destacado;
     private Integer rating;
+    private Integer talla; // Del 30 al 41
+    private String color;  // Negro, Blanco, etc.
 
     @Column(name = "imagen_nombre")
     private String imagenNombre;

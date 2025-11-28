@@ -8,9 +8,7 @@ import java.math.BigDecimal;
 @Data
 public class ProductoCreateDTO {
 
-    // --- AGREGAR ESTO PARA QUE THYMELEAF NO FALLE ---
-    private Integer id;
-    // -----------------------------------------------
+    private Integer id; // Necesario para evitar error en el form único
 
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
@@ -24,7 +22,13 @@ public class ProductoCreateDTO {
 
     private BigDecimal originalPrice;
 
-    // Nota: Al crear, no pedimos stock (es 0) ni rating.
+    // --- NUEVOS CAMPOS ---
+    @NotNull(message = "La talla es obligatoria")
+    private Integer talla;
+
+    @NotBlank(message = "El color es obligatorio")
+    private String color;
+    // ---------------------
 
     private MultipartFile imagenArchivo;
 
@@ -36,8 +40,6 @@ public class ProductoCreateDTO {
 
     private boolean destacado;
 
-    // Helper para evitar nulos en booleanos primitivos si fuera necesario
-    public boolean isDestacado() {
-        return destacado;
-    }
+
+
 }

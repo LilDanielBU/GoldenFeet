@@ -25,4 +25,6 @@ public class ProductoDTO {
 
     private Boolean destacado;
     private Float rating;
+    private Integer talla;
+    private String color;
 }
