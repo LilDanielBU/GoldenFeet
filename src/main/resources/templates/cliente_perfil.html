@@ -590,7 +590,11 @@
                     </div>
 
                     <div th:each="detalle : ${venta.detallesVenta}" class="order-item">
-                        <img src="https://via.placeholder.com/60" alt="Producto" class="order-item-img">
+                        <img th:src="@{'/api/imagenes/' + ${detalle.producto.imagenNombre}}"
+                             th:onerror="this.src='https://via.placeholder.com/60'"
+                             alt="Producto"
+                             class="order-item-img"
+                             style="object-fit: cover;">
                         <div class="order-item-details">
                             <div class="order-item-name" th:text="${detalle.producto != null ? detalle.producto.nombre : 'Producto'}">Producto</div>
                             <div class="order-item-meta">Cantidad: <span th:text="${detalle.cantidad}">1</span> • Precio: <span th:text="${detalle.precioUnitario}">0</span></div>
@@ -632,7 +636,11 @@
                     </div>
 
                     <div th:each="detalle : ${venta.detallesVenta}" class="order-item">
-                        <img src="https://via.placeholder.com/60" alt="Producto" class="order-item-img">
+                        <img th:src="@{'/api/imagenes/' + ${detalle.producto.imagenNombre}}"
+                             th:onerror="this.src='https://via.placeholder.com/60'"
+                             alt="Producto"
+                             class="order-item-img"
+                             style="object-fit: cover;">
                         <div class="order-item-details">
                             <div class="order-item-name" th:text="${detalle.producto != null ? detalle.producto.nombre : 'Producto'}">Nombre Producto</div>
                             <div class="order-item-meta">

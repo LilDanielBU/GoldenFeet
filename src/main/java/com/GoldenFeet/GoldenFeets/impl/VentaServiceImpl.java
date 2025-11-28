@@ -36,7 +36,7 @@ public class VentaServiceImpl implements VentaService {
         Venta nuevaVenta = new Venta();
         nuevaVenta.setCliente(cliente);
         nuevaVenta.setFechaVenta(LocalDate.now());
-        nuevaVenta.setEstado("COMPLETADA");
+        nuevaVenta.setEstado("En Camino");
 
         // --- GUARDANDO DATOS DE ENVÍO (INCLUYENDO LOCALIDAD) ---
         nuevaVenta.setDireccionEnvio(request.getDireccion());
