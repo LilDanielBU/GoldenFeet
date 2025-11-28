@@ -2,46 +2,42 @@ package com.GoldenFeet.GoldenFeets.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile; // ⚠️ Importante para subir imágenes
+import org.springframework.web.multipart.MultipartFile;
 import java.math.BigDecimal;
 
 @Data
 public class ProductoCreateDTO {
 
-    @NotBlank(message = "El nombre no puede estar vacío.")
-    @Size(max = 255, message = "El nombre es demasiado largo.")
+    // --- AGREGAR ESTO PARA QUE THYMELEAF NO FALLE ---
+    private Integer id;
+    // -----------------------------------------------
+
+    @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
 
-    @Size(max = 1000, message = "La descripción es demasiado larga.")
+    @NotBlank(message = "La descripción es obligatoria")
     private String descripcion;
 
-    @NotNull(message = "El precio es obligatorio.")
-    @DecimalMin(value = "0.0", inclusive = false, message = "El precio debe ser mayor que cero.")
+    @NotNull(message = "El precio es obligatorio")
+    @DecimalMin(value = "0.0", inclusive = false, message = "El precio debe ser mayor a 0")
     private BigDecimal precio;
 
-    // Este campo es opcional
-    @DecimalMin(value = "0.0", message = "El precio original no puede ser negativo.")
     private BigDecimal originalPrice;
 
-    // Nota: En tu servicio actual el stock se inicializa en 0,
-    // pero dejamos este campo por si decides cambiar esa lógica después.
-    @Min(value = 0, message = "El stock no puede ser negativo.")
-    private Integer stock;
+    // Nota: Al crear, no pedimos stock (es 0) ni rating.
 
-    // 💥 CAMBIO IMPORTANTE: Usamos MultipartFile para recibir el archivo real
-    // No ponemos validaciones @NotNull aquí para que sea opcional si así lo deseas,
-    // o puedes agregar @NotNull(message = "La imagen es obligatoria") si es requerida.
     private MultipartFile imagenArchivo;
 
-    @Size(max = 255, message = "La marca es demasiado larga.")
+    @NotBlank(message = "La marca es obligatoria")
     private String marca;
 
-    // Se puede dejar nulo si no se especifica
-    private Float rating = 0.0f;
+    @NotNull(message = "La categoría es obligatoria")
+    private Integer categoriaId;
 
-    // Por defecto no será destacado
-    private boolean destacado = false;
+    private boolean destacado;
 
-    @NotNull(message = "Debes seleccionar una categoría.")
-    private Integer categoriaId; // Usamos Integer para coincidir con la Entidad Categoria
+    // Helper para evitar nulos en booleanos primitivos si fuera necesario
+    public boolean isDestacado() {
+        return destacado;
+    }
 }

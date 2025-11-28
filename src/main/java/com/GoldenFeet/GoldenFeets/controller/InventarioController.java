@@ -34,15 +34,39 @@ public class InventarioController {
     private final InventarioMovimientoService inventarioMovimientoService;
 
     /**
-     * Muestra la tabla principal de productos y gestiona los errores de redirección.
+     * Muestra la tabla principal de productos y las tarjetas de estadísticas (KPIs).
      */
     @GetMapping("/panel")
     public String mostrarPanelInventario(Model model) {
+        // 1. Obtener la lista de productos
         List<ProductoDTO> listaProductos = productoService.listarTodos();
         model.addAttribute("productos", listaProductos);
         model.addAttribute("titulo", "Panel de Gestión de Inventario");
 
-        // FIX CLAVE: Inicializa el DTO para el formulario modal de ingreso/salida (Thymeleaf)
+        // --- CORRECCIÓN: CÁLCULOS PARA LAS TARJETAS ---
+
+        // A. Total de Referencias (Productos únicos)
+        model.addAttribute("totalProductos", listaProductos.size());
+
+        // B. Productos Agotados (Stock igual a 0)
+        long agotados = listaProductos.stream()
+                .filter(p -> p.getStock() == 0)
+                .count();
+        model.addAttribute("productosAgotados", agotados);
+
+        // C. Stock Bajo (Por ejemplo, menos de 5 unidades y mayor a 0)
+        long stockBajo = listaProductos.stream()
+                .filter(p -> p.getStock() > 0 && p.getStock() < 5)
+                .count();
+        model.addAttribute("productosStockBajo", stockBajo);
+
+        // D. Valor Total del Inventario (Usando el servicio existente)
+        double valorTotal = productoService.calcularValorTotalInventario();
+        model.addAttribute("valorTotalInventario", valorTotal);
+
+        // ----------------------------------------------
+
+        // Inicializa el DTO para el formulario modal
         if (!model.containsAttribute("ingresoDTO")) {
             model.addAttribute("ingresoDTO", new IngresoDTO());
         }
@@ -67,7 +91,6 @@ public class InventarioController {
 
         try {
             inventarioMovimientoService.registrarIngreso(ingresoDTO);
-
             redirectAttributes.addFlashAttribute("successMessage",
                     "¡Stock agregado exitosamente! Se sumaron " + ingresoDTO.getCantidad() +
                             " unidades al Producto ID " + ingresoDTO.getProductoId() + ".");
@@ -100,7 +123,6 @@ public class InventarioController {
 
         try {
             inventarioMovimientoService.registrarSalida(salidaDTO);
-
             redirectAttributes.addFlashAttribute("successMessage",
                     "¡Éxito! Se han retirado " + salidaDTO.getCantidad() +
                             " unidades del producto ID " + salidaDTO.getProductoId() + ".");
@@ -118,7 +140,7 @@ public class InventarioController {
 
 
     // =============================================================
-    // MÉTODOS DE GESTIÓN DE PRODUCTOS (Crear, Editar, Eliminar)
+    // MÉTODOS DE GESTIÓN DE PRODUCTOS
     // =============================================================
 
     @GetMapping("/productos/nuevo")
@@ -159,16 +181,11 @@ public class InventarioController {
         ProductoDTO productoDTO = productoOpt.get();
         ProductoUpdateDTO updateDTO = new ProductoUpdateDTO();
 
-        // Mapeo de ProductoDTO a ProductoUpdateDTO
         updateDTO.setId(productoDTO.getId());
         updateDTO.setNombre(productoDTO.getNombre());
         updateDTO.setDescripcion(productoDTO.getDescripcion());
         updateDTO.setPrecio(productoDTO.getPrecio());
         updateDTO.setOriginalPrice(productoDTO.getOriginalPrice());
-
-        // --- CORRECCIÓN ---
-        // updateDTO.setStock(productoDTO.getStock()); // <-- ELIMINADO (Causaba el error de compilación)
-
         updateDTO.setMarca(productoDTO.getMarca());
         updateDTO.setDestacado(productoDTO.getDestacado());
         updateDTO.setCategoriaId(productoDTO.getCategoriaId());
