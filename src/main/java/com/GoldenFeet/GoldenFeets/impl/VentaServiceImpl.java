@@ -53,20 +53,26 @@ public class VentaServiceImpl implements VentaService {
             Producto producto = productoRepository.findById(Long.valueOf(itemDTO.productoId()))
                     .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado: " + itemDTO.productoId()));
 
+            // 1. Verificamos si hay stock suficiente
             if (producto.getStock() < itemDTO.cantidad()) {
                 throw new IllegalStateException("Stock insuficiente para: " + producto.getNombre());
             }
-            // Aquí iría la lógica de descuento de stock...
+
+            // 💥 CORRECCIÓN IMPORTANTE: Descontar stock y guardar el producto
+            int nuevoStock = producto.getStock() - itemDTO.cantidad();
+            producto.setStock(nuevoStock);
+            productoRepository.save(producto); // <--- ESTO FALTABA
+            // -----------------------------------------------------------
 
             DetalleVenta detalle = new DetalleVenta();
             detalle.setProducto(producto);
             detalle.setCantidad(itemDTO.cantidad());
 
-            // 💥 CORRECCIÓN 1: Convertir Double a BigDecimal de forma segura
+            // Convertir Double a BigDecimal de forma segura
             BigDecimal precioUnitario = BigDecimal.valueOf(producto.getPrecio());
             detalle.setPrecioUnitario(precioUnitario);
 
-            // 💥 CORRECCIÓN 2: Usar el BigDecimal convertido para multiplicar
+            // Usar el BigDecimal convertido para multiplicar
             BigDecimal subtotal = precioUnitario.multiply(new BigDecimal(itemDTO.cantidad()));
 
             detalle.setSubtotal(subtotal);
@@ -122,7 +128,6 @@ public class VentaServiceImpl implements VentaService {
 
     @Override
     public List<VentaResponseDTO> findAllVentas() {
-        // Retorna lista vacía o implementa la conversión real si la necesitas
         return ventaRepository.findAll().stream()
                 .map(this::convertirAVentaResponseDTO)
                 .collect(Collectors.toList());

@@ -54,6 +54,7 @@ public class ProductoServiceImpl implements ProductoService {
     public double calcularValorTotalInventario() {
         return productoRepository.findAll().stream()
                 .mapToDouble(p -> {
+                    // Validamos nulos para evitar errores
                     double precio = p.getPrecio() != null ? p.getPrecio() : 0.0;
                     int stock = p.getStock() != null ? p.getStock() : 0;
                     return precio * stock;
@@ -157,7 +158,7 @@ public class ProductoServiceImpl implements ProductoService {
         nuevoProducto.setNombre(productoDTO.getNombre());
         nuevoProducto.setDescripcion(productoDTO.getDescripcion());
 
-        // Conversión de BigDecimal a Double
+        // Conversión segura de BigDecimal a Double
         if (productoDTO.getPrecio() != null) {
             nuevoProducto.setPrecio(productoDTO.getPrecio().doubleValue());
         }
@@ -165,11 +166,16 @@ public class ProductoServiceImpl implements ProductoService {
             nuevoProducto.setOriginalPrice(productoDTO.getOriginalPrice().doubleValue());
         }
 
+        // Stock inicial siempre es 0 hasta que se haga un ingreso de inventario
         nuevoProducto.setStock(0);
         nuevoProducto.setMarca(productoDTO.getMarca());
+
+        // En crearProducto usamos isDestacado porque CreateDTO suele usar boolean primitivo
         nuevoProducto.setDestacado(productoDTO.isDestacado());
+
         nuevoProducto.setCategoria(categoria);
 
+        // Guardar Imagen si existe
         if (productoDTO.getImagenArchivo() != null && !productoDTO.getImagenArchivo().isEmpty()) {
             String nombreArchivo = almacenamientoService.almacenarArchivo(productoDTO.getImagenArchivo());
             nuevoProducto.setImagenNombre(nombreArchivo);
@@ -177,6 +183,7 @@ public class ProductoServiceImpl implements ProductoService {
 
         Producto productoGuardado = productoRepository.save(nuevoProducto);
 
+        // Registrar movimiento inicial en el Kardex/Historial
         InventarioMovimiento movimientoInicial = new InventarioMovimiento();
         movimientoInicial.setProducto(productoGuardado);
         movimientoInicial.setTipoMovimiento("INGRESO_INICIAL");
@@ -190,18 +197,28 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
-    @Transactional
+    @Transactional // IMPORTANTE: Asegura que la actualización se cometa en la BD
     public Producto actualizarProducto(Integer id, ProductoUpdateDTO productoDTO) {
+        // 1. Buscamos el producto existente
         Producto productoExistente = productoRepository.findById(id.longValue())
                 .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con ID: " + id));
 
+        // 2. Buscamos la categoría
         Categoria categoria = categoriaRepository.findById(productoDTO.getCategoriaId().longValue())
                 .orElseThrow(() -> new EntityNotFoundException("Categoría no encontrada con ID: " + productoDTO.getCategoriaId()));
 
+        // 3. Actualizamos los campos
         productoExistente.setNombre(productoDTO.getNombre());
         productoExistente.setDescripcion(productoDTO.getDescripcion());
+        productoExistente.setMarca(productoDTO.getMarca());
 
-        // Conversión de BigDecimal a Double
+        // --- CORRECCIÓN AQUÍ ---
+        // Cambiamos isDestacado() por getDestacado() porque ahora es Boolean (Wrapper) en el DTO
+        productoExistente.setDestacado(productoDTO.getDestacado());
+
+        productoExistente.setCategoria(categoria);
+
+        // Conversión segura de BigDecimal a Double para el precio
         if (productoDTO.getPrecio() != null) {
             productoExistente.setPrecio(productoDTO.getPrecio().doubleValue());
         }
@@ -209,38 +226,45 @@ public class ProductoServiceImpl implements ProductoService {
             productoExistente.setOriginalPrice(productoDTO.getOriginalPrice().doubleValue());
         }
 
-        productoExistente.setMarca(productoDTO.getMarca());
-        productoExistente.setDestacado(productoDTO.isDestacado());
-        productoExistente.setCategoria(categoria);
-
+        // 4. Actualización de Imagen (Si se subió una nueva)
         MultipartFile imagenArchivo = productoDTO.getImagenArchivo();
         if (imagenArchivo != null && !imagenArchivo.isEmpty()) {
+            // Eliminar imagen anterior para no llenar el servidor de basura
             almacenamientoService.eliminarArchivo(productoExistente.getImagenNombre());
+            // Guardar nueva
             String nuevoNombreArchivo = almacenamientoService.almacenarArchivo(imagenArchivo);
             productoExistente.setImagenNombre(nuevoNombreArchivo);
         }
 
+        // 5. Guardamos
         return productoRepository.save(productoExistente);
     }
 
     @Override
     @Transactional
     public void eliminarProducto(Integer id) {
+        // Mantenemos la conversión a Long solo para los repositorios que lo piden así
         Long idLong = id.longValue();
 
+        // 1. Buscar producto (ProductoRepository parece usar Long)
         Producto producto = productoRepository.findById(idLong)
                 .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con ID: " + id));
 
+        // 2. Desvincular movimientos (InventarioMovimientoRepository parece usar Long)
         List<InventarioMovimiento> movimientos = inventarioMovimientoRepository.findByProducto_Id(idLong);
         for (InventarioMovimiento movimiento : movimientos) {
             movimiento.setProducto(null);
         }
         inventarioMovimientoRepository.saveAll(movimientos);
 
-        // 💥 CORRECCIÓN: Pasamos 'id' (Integer) directamente, en lugar de 'idLong' (Long)
+        // 3. Eliminar detalles de venta (CORRECCIÓN AQUÍ)
+        // Usamos 'id' (Integer) directamente, no 'idLong'
         detalleVentaRepository.deleteByProducto_Id(id);
 
+        // 4. Eliminar archivo de imagen
         almacenamientoService.eliminarArchivo(producto.getImagenNombre());
+
+        // 5. Eliminar producto (ProductoRepository parece usar Long)
         productoRepository.deleteById(idLong);
     }
 

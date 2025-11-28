@@ -22,9 +22,6 @@
             background-color: #5b21b6;
             color: #fff;
         }
-        .card-purple-header .card-header .user-icon {
-            margin-right: 10px;
-        }
     </style>
 </head>
 <body>
@@ -44,6 +41,19 @@
 </nav>
 
 <div class="container main-container">
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${#fields.hasErrors('${productoDTO.*}')}" class="alert alert-danger">
+        <strong>Por favor corrige los siguientes errores:</strong>
+        <ul>
+            <li th:each="err : ${#fields.errors('${productoDTO.*}')}" th:text="${err}">Error</li>
+        </ul>
+    </div>
+
     <div class="card shadow-sm card-purple-header">
         <div class="card-header">
             <h2 class="h5 mb-0" th:text="${titulo}">Registrar Producto</h2>
@@ -51,66 +61,83 @@
         <div class="card-body">
 
             <form th:action="${isEditMode} ? @{/inventario/productos/actualizar/{id}(id=${productoDTO.id})} : @{/inventario/productos/guardar}"
-                  th:object="${productoDTO}" method="post" enctype="multipart/form-data">
+                  th:object="${productoDTO}"
+                  method="post"
+                  enctype="multipart/form-data">
 
-                <input type="hidden" th:if="${isEditMode}" th:field="*{id}" />
+                <input type="hidden" th:field="*{id}" />
 
                 <div class="mb-3">
                     <label for="nombre" class="form-label">Nombre del Producto</label>
                     <input type="text" class="form-control" id="nombre" th:field="*{nombre}" required>
-                    <div class="text-danger" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
                 </div>
 
                 <div class="mb-3">
                     <label for="descripcion" class="form-label">Descripción</label>
                     <textarea class="form-control" id="descripcion" rows="3" th:field="*{descripcion}" required></textarea>
-                    <div class="text-danger" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}"></div>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}"></div>
                 </div>
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label for="precio" class="form-label">Precio</label>
-                        <input type="number" step="0.01" class="form-control" id="precio" th:field="*{precio}" required>
-                        <div class="text-danger" th:if="${#fields.hasErrors('precio')}" th:errors="*{precio}"></div>
+                        <label for="precio" class="form-label">Precio Actual</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" id="precio" th:field="*{precio}" required>
+                        </div>
+                        <div class="text-danger small" th:if="${#fields.hasErrors('precio')}" th:errors="*{precio}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="originalPrice" class="form-label">Precio Original (Antes)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" id="originalPrice" th:field="*{originalPrice}">
+                        </div>
+                        <div class="form-text">Opcional. Úsalo para mostrar ofertas (precio tachado).</div>
+                        <div class="text-danger small" th:if="${#fields.hasErrors('originalPrice')}" th:errors="*{originalPrice}"></div>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label for="marca" class="form-label">Marca</label>
                     <input type="text" class="form-control" id="marca" th:field="*{marca}" required>
-                    <div class="text-danger" th:if="${#fields.hasErrors('marca')}" th:errors="*{marca}"></div>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('marca')}" th:errors="*{marca}"></div>
                 </div>
 
                 <div class="mb-3">
                     <label for="categoria" class="form-label">Categoría</label>
                     <select class="form-select" id="categoria" th:field="*{categoriaId}" required>
                         <option value="">Seleccione una categoría</option>
-                        <option th:each="cat : ${categorias}" th:value="${cat.idCategoria}" th:text="${cat.nombre}"></option>
+                        <option th:each="cat : ${categorias}"
+                                th:value="${cat.idCategoria}"
+                                th:text="${cat.nombre}">
+                        </option>
                     </select>
-                    <div class="text-danger" th:if="${#fields.hasErrors('categoriaId')}" th:errors="*{categoriaId}"></div>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('categoriaId')}" th:errors="*{categoriaId}"></div>
                 </div>
 
                 <div class="mb-3">
-                    <label for="imagenFile" class="form-label">Subir Imagen del Producto</label>
+                    <label for="imagenFile" class="form-label">Imagen del Producto</label>
                     <input class="form-control" type="file" id="imagenFile" name="imagenArchivo" accept="image/*">
+                    <div class="form-text" th:if="${isEditMode}">Deja esto vacío si no quieres cambiar la imagen actual.</div>
                 </div>
 
-                <div class="mb-3" th:if="${isEditMode} and ${imagenActualUrl != null}">
-                    <label class="form-label">Imagen Actual:</label>
-                    <div>
-                        <img th:src="@{${imagenActualUrl}}" alt="Imagen Actual del Producto" style="max-width: 100px; max-height: 100px; border-radius: 8px;">
-                    </div>
+                <div class="mb-4 p-3 border rounded bg-light" th:if="${isEditMode} and ${imagenActualUrl != null}">
+                    <label class="form-label d-block fw-bold">Imagen Actual:</label>
+                    <img th:src="@{${imagenActualUrl}}" alt="Imagen Actual" class="img-thumbnail" style="max-width: 150px; height: auto;">
                 </div>
 
-                <div class="form-check mb-3">
+                <div class="form-check mb-4">
                     <input class="form-check-input" type="checkbox" id="destacado" th:field="*{destacado}">
-                    <label class="form-check-label" for="destacado">
+                    <label class="form-check-label fw-bold" for="destacado">
                         Marcar como producto destacado
                     </label>
                 </div>
 
-                <div class="d-flex justify-content-end">
-                    <a th:href="@{/inventario/panel}" class="btn btn-secondary me-2">Cancelar</a>
+                <div class="d-flex justify-content-end gap-2">
+                    <a th:href="@{/inventario/panel}" class="btn btn-secondary">Cancelar</a>
                     <button type="submit" class="btn btn-success" th:text="${isEditMode} ? 'Actualizar Producto' : 'Guardar Producto'"></button>
                 </div>
 
