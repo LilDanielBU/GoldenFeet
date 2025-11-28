@@ -35,21 +35,53 @@ public class InventarioController {
 
     /**
      * Muestra la tabla principal de productos y gestiona los errores de redirección.
+     * MODIFICADO: Ahora calcula métricas para el Dashboard.
      */
     @GetMapping("/panel")
     public String mostrarPanelInventario(Model model) {
+        // 1. Obtenemos la lista completa
         List<ProductoDTO> listaProductos = productoService.listarTodos();
+
+        // --- LÓGICA AGREGADA PARA EL DASHBOARD ---
+
+        // A. Total de Referencias
+        int totalReferencias = listaProductos.size();
+
+        // B. Stock Bajo (Mayor a 0 pero menor a 5)
+        long lowStockCount = listaProductos.stream()
+                .filter(p -> p.getStock() > 0 && p.getStock() < 5)
+                .count();
+
+        // C. Sin Stock (Igual a 0)
+        long outOfStockCount = listaProductos.stream()
+                .filter(p -> p.getStock() == 0)
+                .count();
+
+        // D. Valor Total del Inventario (CORREGIDO)
+        double valorTotalInventario = listaProductos.stream()
+                // Validamos que el precio no sea null para evitar errores
+                .filter(p -> p.getPrecio() != null)
+                // Convertimos BigDecimal a double antes de multiplicar
+                .mapToDouble(p -> p.getPrecio().doubleValue() * p.getStock())
+                .sum();
+
+        // Enviamos los cálculos a la vista
+        model.addAttribute("totalReferencias", totalReferencias);
+        model.addAttribute("lowStockCount", lowStockCount);
+        model.addAttribute("outOfStockCount", outOfStockCount);
+        model.addAttribute("valorTotalInventario", valorTotalInventario);
+
+        // ------------------------------------------
+
         model.addAttribute("productos", listaProductos);
         model.addAttribute("titulo", "Panel de Gestión de Inventario");
 
-        // FIX CLAVE: Inicializa el DTO para el formulario modal de ingreso/salida (Thymeleaf)
         if (!model.containsAttribute("ingresoDTO")) {
             model.addAttribute("ingresoDTO", new IngresoDTO());
         }
 
         return "inventario-panel";
     }
-
     // =============================================================
     // 1. REGISTRO DE INGRESO (SUMA) DE STOCK
     // =============================================================
@@ -165,9 +197,6 @@ public class InventarioController {
         updateDTO.setDescripcion(productoDTO.getDescripcion());
         updateDTO.setPrecio(productoDTO.getPrecio());
         updateDTO.setOriginalPrice(productoDTO.getOriginalPrice());
-
-        // --- CORRECCIÓN ---
-        // updateDTO.setStock(productoDTO.getStock()); // <-- ELIMINADO (Causaba el error de compilación)
 
         updateDTO.setMarca(productoDTO.getMarca());
         updateDTO.setDestacado(productoDTO.getDestacado());
