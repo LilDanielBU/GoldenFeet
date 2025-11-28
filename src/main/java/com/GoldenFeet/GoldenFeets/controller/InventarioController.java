@@ -13,6 +13,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication; // <--- IMPORTANTE
+import org.springframework.security.core.authority.SimpleGrantedAuthority; // <--- IMPORTANTE
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -24,7 +26,8 @@ import java.util.Optional;
 
 @Controller
 @RequestMapping("/inventario")
-@PreAuthorize("hasRole('GERENTEINVENTARIO')")
+// CAMBIO 1: Permitir que tanto el Gerente como el Admin usen este controlador
+@PreAuthorize("hasAnyRole('GERENTEINVENTARIO', 'ADMIN')")
 @RequiredArgsConstructor
 public class InventarioController {
 
@@ -34,7 +37,7 @@ public class InventarioController {
     private final InventarioMovimientoService inventarioMovimientoService;
 
     /**
-     * Muestra la tabla principal de productos y gestiona los errores de redirección.
+     * Muestra la tabla principal de productos (Vista del Gerente de Inventario).
      */
     @GetMapping("/panel")
     public String mostrarPanelInventario(Model model) {
@@ -42,7 +45,6 @@ public class InventarioController {
         model.addAttribute("productos", listaProductos);
         model.addAttribute("titulo", "Panel de Gestión de Inventario");
 
-        // FIX CLAVE: Inicializa el DTO para el formulario modal de ingreso/salida (Thymeleaf)
         if (!model.containsAttribute("ingresoDTO")) {
             model.addAttribute("ingresoDTO", new IngresoDTO());
         }
@@ -57,30 +59,24 @@ public class InventarioController {
     @PostMapping("/ingreso-stock")
     public String registrarIngresoStock(@Valid @ModelAttribute("ingresoDTO") IngresoDTO ingresoDTO,
                                         BindingResult bindingResult,
-                                        RedirectAttributes redirectAttributes) {
+                                        RedirectAttributes redirectAttributes,
+                                        Authentication authentication) { // <--- Inyectamos Authentication
 
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("errorMessage",
-                    "Error de validación en ingreso: La cantidad debe ser mayor o igual a 1 y el motivo es obligatorio.");
-            return "redirect:/inventario/panel";
+                    "Error de validación: La cantidad debe ser mayor o igual a 1 y el motivo es obligatorio.");
+            return determinarRedireccion(authentication); // <--- Usamos redirección inteligente
         }
 
         try {
             inventarioMovimientoService.registrarIngreso(ingresoDTO);
-
             redirectAttributes.addFlashAttribute("successMessage",
-                    "¡Stock agregado exitosamente! Se sumaron " + ingresoDTO.getCantidad() +
-                            " unidades al Producto ID " + ingresoDTO.getProductoId() + ".");
-
-        } catch (EntityNotFoundException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: Producto no encontrado con el ID especificado.");
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error de negocio: " + e.getMessage());
+                    "¡Stock agregado! Se sumaron " + ingresoDTO.getCantidad() + " unidades.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error al procesar el ingreso de stock: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: " + e.getMessage());
         }
 
-        return "redirect:/inventario/panel";
+        return determinarRedireccion(authentication); // <--- Usamos redirección inteligente
     }
 
     // =============================================================
@@ -90,30 +86,24 @@ public class InventarioController {
     @PostMapping("/salida-stock")
     public String registrarSalidaStock(@Valid @ModelAttribute("ingresoDTO") IngresoDTO salidaDTO,
                                        BindingResult bindingResult,
-                                       RedirectAttributes redirectAttributes) {
+                                       RedirectAttributes redirectAttributes,
+                                       Authentication authentication) { // <--- Inyectamos Authentication
 
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("errorMessage",
-                    "Error de validación en salida: La cantidad debe ser >= 1 y el motivo es obligatorio.");
-            return "redirect:/inventario/panel";
+                    "Error de validación: La cantidad debe ser >= 1 y el motivo es obligatorio.");
+            return determinarRedireccion(authentication);
         }
 
         try {
             inventarioMovimientoService.registrarSalida(salidaDTO);
-
             redirectAttributes.addFlashAttribute("successMessage",
-                    "¡Éxito! Se han retirado " + salidaDTO.getCantidad() +
-                            " unidades del producto ID " + salidaDTO.getProductoId() + ".");
-
-        } catch (EntityNotFoundException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: Producto no encontrado.");
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error: " + e.getMessage());
+                    "¡Éxito! Se retiraron " + salidaDTO.getCantidad() + " unidades.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error al registrar la salida: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error: " + e.getMessage());
         }
 
-        return "redirect:/inventario/panel";
+        return determinarRedireccion(authentication);
     }
 
 
@@ -132,7 +122,10 @@ public class InventarioController {
 
     @PostMapping("/productos/guardar")
     public String guardarProducto(@Valid @ModelAttribute("productoDTO") ProductoCreateDTO productoDTO,
-                                  BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
+                                  BindingResult bindingResult,
+                                  RedirectAttributes redirectAttributes,
+                                  Model model,
+                                  Authentication authentication) { // <--- Inyectamos Authentication
         if (bindingResult.hasErrors()) {
             model.addAttribute("categorias", categoriaRepository.findAll());
             model.addAttribute("titulo", "Registrar Nuevo Producto");
@@ -141,34 +134,32 @@ public class InventarioController {
         try {
             productoService.crearProducto(productoDTO);
             redirectAttributes.addFlashAttribute("successMessage", "¡Producto registrado exitosamente!");
-            return "redirect:/inventario/panel";
+            return determinarRedireccion(authentication); // <--- Redirección inteligente
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error al registrar el producto: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al registrar: " + e.getMessage());
             return "redirect:/inventario/productos/nuevo";
         }
     }
 
     @GetMapping("/productos/editar/{id}")
-    public String mostrarFormularioDeEdicion(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
+    public String mostrarFormularioDeEdicion(@PathVariable("id") Integer id,
+                                             Model model,
+                                             RedirectAttributes redirectAttributes,
+                                             Authentication authentication) {
         Optional<ProductoDTO> productoOpt = productoService.buscarPorId(id);
         if (productoOpt.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Producto no encontrado.");
-            return "redirect:/inventario/panel";
+            return determinarRedireccion(authentication);
         }
 
         ProductoDTO productoDTO = productoOpt.get();
         ProductoUpdateDTO updateDTO = new ProductoUpdateDTO();
 
-        // Mapeo de ProductoDTO a ProductoUpdateDTO
         updateDTO.setId(productoDTO.getId());
         updateDTO.setNombre(productoDTO.getNombre());
         updateDTO.setDescripcion(productoDTO.getDescripcion());
         updateDTO.setPrecio(productoDTO.getPrecio());
         updateDTO.setOriginalPrice(productoDTO.getOriginalPrice());
-
-        // --- CORRECCIÓN ---
-        // updateDTO.setStock(productoDTO.getStock()); // <-- ELIMINADO (Causaba el error de compilación)
-
         updateDTO.setMarca(productoDTO.getMarca());
         updateDTO.setDestacado(productoDTO.getDestacado());
         updateDTO.setCategoriaId(productoDTO.getCategoriaId());
@@ -185,7 +176,10 @@ public class InventarioController {
     @PostMapping("/productos/actualizar/{id}")
     public String procesarActualizacion(@PathVariable("id") Integer id,
                                         @Valid @ModelAttribute("productoDTO") ProductoUpdateDTO productoDTO,
-                                        BindingResult bindingResult, RedirectAttributes redirectAttributes, Model model) {
+                                        BindingResult bindingResult,
+                                        RedirectAttributes redirectAttributes,
+                                        Model model,
+                                        Authentication authentication) { // <--- Inyectamos Authentication
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("categorias", categoriaRepository.findAll());
@@ -197,21 +191,36 @@ public class InventarioController {
         try {
             productoService.actualizarProducto(id, productoDTO);
             redirectAttributes.addFlashAttribute("successMessage", "¡Producto actualizado exitosamente!");
-            return "redirect:/inventario/panel";
+            return determinarRedireccion(authentication); // <--- Redirección inteligente
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error al actualizar el producto: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al actualizar: " + e.getMessage());
             return "redirect:/inventario/productos/editar/" + id;
         }
     }
 
     @PostMapping("/productos/eliminar/{id}")
-    public String eliminarProducto(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
+    public String eliminarProducto(@PathVariable("id") Integer id,
+                                   RedirectAttributes redirectAttributes,
+                                   Authentication authentication) { // <--- Inyectamos Authentication
         try {
             productoService.eliminarProducto(id);
             redirectAttributes.addFlashAttribute("successMessage", "Producto eliminado exitosamente.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar el producto: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "Error al eliminar: " + e.getMessage());
         }
+        return determinarRedireccion(authentication); // <--- Redirección inteligente
+    }
+
+    // =============================================================
+    // MÉTODO PRIVADO PARA LA REDIRECCIÓN INTELIGENTE
+    // =============================================================
+    private String determinarRedireccion(Authentication authentication) {
+        // Si el usuario es ADMIN, lo devolvemos a SU panel general
+        if (authentication != null &&
+                authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+            return "redirect:/admin/panel";
+        }
+        // Si es GERENTE (u otro), lo devolvemos al panel de inventario normal
         return "redirect:/inventario/panel";
     }
 }

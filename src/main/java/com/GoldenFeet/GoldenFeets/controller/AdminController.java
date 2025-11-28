@@ -180,4 +180,31 @@ public class AdminController {
         }
         return "redirect:panel";
     }
+    @GetMapping("/compras")
+    public String verComprasAdmin(Model model) {
+
+
+        List<VentaResponseDTO> compras = ventaService.obtenerTodasLasVentas()
+                .stream()
+                .map(VentaResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+
+        model.addAttribute("compras", compras);
+
+        // 📊 Estadísticas
+        double totalVentasMes = ventaService.obtenerVentasDelMes();
+        int unidadesVendidasMes = ventaService.obtenerUnidadesVendidasMes();
+        double ticketPromedio = ventaService.obtenerTicketPromedioMes();
+
+        model.addAttribute("monthlySalesValue", totalVentasMes);
+        model.addAttribute("monthlyUnitsValue", unidadesVendidasMes);
+        model.addAttribute("avgTicketValue", ticketPromedio);
+
+        // 📈 Datos para la gráfica de los últimos 6 meses
+        Map<String, Double> ventasMensuales = ventaService.obtenerVentasUltimosMeses();
+        model.addAttribute("ventasMensuales", ventasMensuales);
+
+        return "admin-panel";
+    }
+
 }

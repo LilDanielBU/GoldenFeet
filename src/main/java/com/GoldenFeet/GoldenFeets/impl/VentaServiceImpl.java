@@ -15,9 +15,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -143,6 +141,50 @@ public class VentaServiceImpl implements VentaService {
     @Override
     public List<Venta> obtenerVentasPorPeriodo(LocalDate fechaInicio, LocalDate fechaFin) {
         return ventaRepository.findByFechaVentaBetween(fechaInicio, fechaFin);
+    }
+
+    @Override
+    public double obtenerVentasDelMes() {
+        LocalDate inicioMes = LocalDate.now().withDayOfMonth(1);
+        LocalDate finMes = LocalDate.now();
+
+        Double total = ventaRepository.sumarVentasPorRango(inicioMes, finMes);
+        return total != null ? total : 0.0;
+    }
+
+    @Override
+    public int obtenerUnidadesVendidasMes() {
+        LocalDate inicioMes = LocalDate.now().withDayOfMonth(1);
+        LocalDate finMes = LocalDate.now();
+
+        Integer unidades = ventaRepository.contarUnidadesVendidasRango(inicioMes, finMes);
+        return unidades != null ? unidades : 0;
+    }
+
+    @Override
+    public double obtenerTicketPromedioMes() {
+        long cantidadVentas = this.contarVentas();
+        double totalMes = this.obtenerVentasDelMes();
+
+        if (cantidadVentas == 0) return 0.0;
+
+        return totalMes / cantidadVentas;
+    }
+
+    @Override
+    public Map<String, Double> obtenerVentasUltimosMeses() {
+        LocalDate hoy = LocalDate.now();
+        Map<String, Double> ventas = new LinkedHashMap<>();
+
+        for (int i = 5; i >= 0; i--) {
+            LocalDate inicio = hoy.minusMonths(i).withDayOfMonth(1);
+            LocalDate fin = inicio.withDayOfMonth(inicio.lengthOfMonth());
+
+            Double totalMes = ventaRepository.sumarVentasPorRango(inicio, fin);
+            ventas.put(inicio.getMonth().toString(), totalMes != null ? totalMes : 0.0);
+        }
+
+        return ventas;
     }
 
 

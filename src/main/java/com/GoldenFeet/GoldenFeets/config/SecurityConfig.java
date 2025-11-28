@@ -31,10 +31,10 @@ public class SecurityConfig {
                         .requestMatchers("/perfil/**").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
-
-                        // --- LÍNEA AÑADIDA ---
-                        // Asegura que solo el gerente de inventario acceda a su panel.
-                        .requestMatchers("/inventario/**").hasRole("GERENTEINVENTARIO")
+                        // --- CAMBIO REALIZADO AQUÍ ---
+                        // Antes solo dejaba entrar a GERENTEINVENTARIO.
+                        // Ahora permite a GERENTEINVENTARIO O ADMIN.
+                        .requestMatchers("/inventario/**").hasAnyRole("GERENTEINVENTARIO", "ADMIN")
 
                         .requestMatchers("/gerente-entregas/**").hasRole("GERENTEENTREGAS")
                         .requestMatchers("/distribuidor/**").hasRole("DISTRIBUIDOR")

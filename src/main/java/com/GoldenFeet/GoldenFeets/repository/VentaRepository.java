@@ -22,4 +22,11 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
 
     long countByEstado(String estado);
 
+    @Query("SELECT SUM(v.total) FROM Venta v WHERE v.fechaVenta BETWEEN :inicio AND :fin")
+    Double sumarVentasPorRango(LocalDate inicio, LocalDate fin);
+
+    @Query("SELECT SUM(d.cantidad) FROM DetalleVenta d WHERE d.venta.fechaVenta BETWEEN :inicio AND :fin")
+    Integer contarUnidadesVendidasRango(LocalDate inicio, LocalDate fin);
+
+
 }
