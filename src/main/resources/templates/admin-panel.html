@@ -1096,7 +1096,9 @@
                         </td>
                         <td>
                             <div class="btn-group shadow-sm" role="group">
-                                <a th:href="@{/inventario/productos/editar/{id}(id=${producto.id})}" class="btn btn-sm btn-light" title="Editar"><i class="fas fa-edit text-warning"></i></a>
+                                <a th:href="@{/inventario/productos/editar/{id}(id=${producto.id}, origen='admin')}" class="btn btn-sm btn-light" title="Editar">
+                                    <i class="fas fa-edit text-warning"></i>
+                                </a>
 
                                 <button class="btn btn-sm btn-light"
                                         th:data-producto-id="${producto.id}"
@@ -1425,69 +1427,87 @@
     let currentStatusFilter = 'all';
 
     window.onload = function() {
-        cargarEstadisticas();
+        // 1. Cargar datos del Dashboard (API)
+        cargarEstadisticasDashboard();
 
-        // Configurar listeners de búsqueda
+        // 2. Calcular contadores de Inventario (Leyendo la tabla HTML para exactitud)
+        calcularContadoresDesdeTabla();
+
+        // 3. Listeners para Buscador de INVENTARIO
         const searchInput = document.getElementById('searchInput');
         const filterCategory = document.getElementById('filterCategory');
         if(searchInput) searchInput.addEventListener('keyup', filterInventoryTable);
         if(filterCategory) filterCategory.addEventListener('change', filterInventoryTable);
+
+        // 4. Detectar si la URL pide abrir una pestaña específica
+        const params = new URLSearchParams(window.location.search);
+        if(params.get('tab')) {
+            cambiarTab(params.get('tab'));
+        }
     };
 
     // ==========================================
-    // 2. LÓGICA DE ESTADÍSTICAS (ARREGLADO: Contadores de Inventario)
+    // 2. LÓGICA DE ESTADÍSTICAS E INVENTARIO
     // ==========================================
-    function cargarEstadisticas() {
-        fetch('/api/admin/stats')
-            .then(response => {
-                if (!response.ok) throw new Error('Error de conexión');
-                return response.json();
-            })
-            .then(data => {
-                // --- A. Actualizar Dashboard Principal ---
-                if(document.getElementById('totalProductos'))
-                    document.getElementById('totalProductos').textContent = data.totalProductos || 0;
-                if(document.getElementById('comprasPendientes'))
-                    document.getElementById('comprasPendientes').textContent = data.comprasPendientes || 0;
-                if(document.getElementById('usuariosActivos'))
-                    document.getElementById('usuariosActivos').textContent = data.usuariosActivos || 0;
-                if(document.getElementById('valorInventario'))
-                    document.getElementById('valorInventario').textContent = formatCurrency(data.valorInventario || 0);
 
-                // --- B. Actualizar Tarjetas de Inventario (NUEVO) ---
-                if(document.getElementById('inv-total'))
-                    document.getElementById('inv-total').textContent = data.totalProductos || 0;
+    // Calcula los números leyendo las filas de la tabla (Solución Infalible)
+    function calcularContadoresDesdeTabla() {
+        const filas = document.querySelectorAll('#inventoryTable tbody tr');
+        let stockBajo = 0;
+        let agotados = 0;
+        let total = 0;
 
-                // Nota: Si tu API no devuelve 'stockBajo' exacto, usa un 0 por defecto para que no salga 'undefined'
-                if(document.getElementById('inv-bajo'))
-                    document.getElementById('inv-bajo').textContent = data.stockBajo !== undefined ? data.stockBajo : 0;
+        filas.forEach(fila => {
+            if(fila.id === 'noResultsRow') return;
 
-                if(document.getElementById('inv-agotados'))
-                    document.getElementById('inv-agotados').textContent = data.sinStock !== undefined ? data.sinStock : 0;
+            const stock = parseInt(fila.getAttribute('data-stock'));
+            if (isNaN(stock)) return;
 
-                if(document.getElementById('inv-valor'))
-                    document.getElementById('inv-valor').textContent = formatCurrency(data.valorInventario || 0);
-            })
-            .catch(error => {
-                console.error('Error stats:', error);
-                // Fallbacks visuales
-                const ids = ['totalProductos', 'inv-total', 'valorInventario', 'inv-valor'];
-                ids.forEach(id => { if(document.getElementById(id)) document.getElementById(id).textContent = '--'; });
-            });
+            total++;
+            if (stock === 0) agotados++;
+            else if (stock < 5) stockBajo++;
+        });
+
+        updateText('inv-total', total);
+        updateText('inv-bajo', stockBajo);
+        updateText('inv-agotados', agotados);
     }
 
-    // Helper para formato moneda
+    // Carga datos generales del servidor
+    function cargarEstadisticasDashboard() {
+        fetch('/api/admin/stats')
+            .then(r => r.json())
+            .then(data => {
+                updateText('totalProductos', data.totalProductos || 0);
+                updateText('comprasPendientes', data.comprasPendientes || 0);
+                updateText('usuariosActivos', data.usuariosActivos || 0);
+
+                const valorFmt = formatCurrency(data.valorInventario || 0);
+                updateText('valorInventario', valorFmt);
+                updateText('inv-valor', valorFmt);
+            })
+            .catch(e => console.error('Error Stats:', e));
+    }
+
     function formatCurrency(val) {
         return val.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    function updateText(id, val) {
+        const el = document.getElementById(id);
+        if(el) el.textContent = val;
+    }
+
+    // ==========================================
+    // 3. GRÁFICAS (CHART.JS)
+    // ==========================================
     function cargarReportesVentas() {
         fetch('/api/admin/ventas/reportes')
             .then(r => r.json())
-            .then(reportes => {
-                document.getElementById('monthlySalesValue').textContent = '$' + (reportes.ventaTotalMes || 0).toLocaleString('es-CO');
-                document.getElementById('monthlyUnitsValue').textContent = reportes.unidadesVendidasMes || 0;
-                document.getElementById('avgTicketValue').textContent = '$' + (reportes.ticketPromedio || 0).toLocaleString('es-CO');
+            .then(rep => {
+                updateText('monthlySalesValue', '$' + (rep.ventaTotalMes || 0).toLocaleString('es-CO'));
+                updateText('monthlyUnitsValue', rep.unidadesVendidasMes || 0);
+                updateText('avgTicketValue', '$' + (rep.ticketPromedio || 0).toLocaleString('es-CO'));
 
                 const ctx = document.getElementById('salesChart').getContext('2d');
                 if (salesChartInstance) salesChartInstance.destroy();
@@ -1495,10 +1515,10 @@
                 salesChartInstance = new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: reportes.meses || [],
+                        labels: rep.meses || [],
                         datasets: [{
                             label: 'Ventas ($)',
-                            data: reportes.ventasMensuales || [],
+                            data: rep.ventasMensuales || [],
                             backgroundColor: '#6A1B9A',
                             borderColor: '#4A148C',
                             borderWidth: 1
@@ -1507,59 +1527,21 @@
                     options: { responsive: true, plugins: { legend: { display: false } } }
                 });
             })
-            .catch(e => console.error('Error reportes:', e));
+            .catch(e => console.error('Error Gráfica:', e));
     }
 
     // ==========================================
-    // 3. LÓGICA DE FORMULARIOS AJAX (ARREGLADO: Evita Redirección)
-    // ==========================================
-    async function enviarFormularioSinRecargar(event, form) {
-        event.preventDefault(); // Detiene la redirección automática
-
-        const formData = new FormData(form);
-        const actionUrl = form.getAttribute('action');
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-
-        // Feedback visual
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-
-        try {
-            const response = await fetch(actionUrl, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (response.ok || response.redirected) {
-                // Éxito: Recargamos la página actual para ver los cambios aquí mismo
-                alert("✅ Operación realizada con éxito");
-                window.location.reload();
-            } else {
-                alert("⚠️ Error al procesar la solicitud.");
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert("❌ Error de conexión con el servidor.");
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
-        }
-    }
-
-    // ==========================================
-    // 4. LÓGICA DE INVENTARIO (Filtros)
+    // 4. FILTROS DE INVENTARIO
     // ==========================================
     function setFilterStatus(status) {
         currentStatusFilter = status;
-        const cards = ['cardTotal', 'cardLow', 'cardOut'];
-        cards.forEach(id => {
+        ['cardTotal', 'cardLow', 'cardOut'].forEach(id => {
             const card = document.getElementById(id);
             if(card) {
-                card.style.border = '1px solid var(--gray-200)'; // Reset
+                card.style.border = '1px solid var(--gray-200)';
                 if (id === 'cardTotal' && status === 'all') card.style.border = '2px solid var(--primary)';
-                else if (id === 'cardLow' && status === 'low') card.style.border = '2px solid var(--warning)';
-                else if (id === 'cardOut' && status === 'out') card.style.border = '2px solid var(--danger)';
+                if (id === 'cardLow' && status === 'low') card.style.border = '2px solid var(--warning)';
+                if (id === 'cardOut' && status === 'out') card.style.border = '2px solid var(--danger)';
             }
         });
         filterInventoryTable();
@@ -1574,13 +1556,11 @@
         const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
         const noResultsRow = document.getElementById('noResultsRow');
 
-        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-        const categoryTerm = filterCategory ? filterCategory.value.toLowerCase() : '';
-
+        const term = searchInput ? searchInput.value.toLowerCase() : '';
+        const cat = filterCategory ? filterCategory.value.toLowerCase() : '';
         let visibleCount = 0;
 
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
+        for (let row of rows) {
             if (row.id === 'noResultsRow') continue;
 
             const name = row.querySelector('.product-name')?.textContent.toLowerCase() || '';
@@ -1588,8 +1568,8 @@
             const category = row.querySelector('.product-category')?.textContent.toLowerCase() || '';
             const stock = parseInt(row.getAttribute('data-stock')) || 0;
 
-            const matchesSearch = name.includes(searchTerm) || brand.includes(searchTerm);
-            const matchesCategory = categoryTerm === '' || category.includes(categoryTerm);
+            const matchesSearch = name.includes(term) || brand.includes(term);
+            const matchesCategory = cat === '' || category.includes(cat);
 
             let matchesStatus = true;
             if (currentStatusFilter === 'low') matchesStatus = (stock > 0 && stock < 5);
@@ -1602,128 +1582,176 @@
                 row.style.display = 'none';
             }
         }
-
-        if (noResultsRow) noResultsRow.style.display = visibleCount === 0 ? '' : 'none';
+        if(noResultsRow) noResultsRow.style.display = visibleCount === 0 ? '' : 'none';
     }
 
     // ==========================================
-    // 5. MODALES Y EVENTOS DOM
+    // 5. GESTIÓN DE USUARIOS (Con Buscador Arreglado)
     // ==========================================
-    document.addEventListener('DOMContentLoaded', function() {
-        // Modal Ingreso
-        var ingresoModal = document.getElementById('ingresoModal');
-        if(ingresoModal) {
-            ingresoModal.addEventListener('show.bs.modal', function (event) {
-                var btn = event.relatedTarget;
-                ingresoModal.querySelector('#modal-producto-nombre').textContent = btn.getAttribute('data-producto-nombre');
-                ingresoModal.querySelector('#productoIdInput').value = btn.getAttribute('data-producto-id');
-            });
-        }
-        // Modal Salida
-        var salidaModal = document.getElementById('salidaModal');
-        if(salidaModal) {
-            salidaModal.addEventListener('show.bs.modal', function (event) {
-                var btn = event.relatedTarget;
-                salidaModal.querySelector('#modal-producto-nombre-salida').textContent = btn.getAttribute('data-producto-nombre');
-                salidaModal.querySelector('#productoIdInputSalida').value = btn.getAttribute('data-producto-id');
-            });
-        }
-    });
-
-    async function abrirModalHistorial(buttonElement) {
-        const productoId = buttonElement.getAttribute('data-producto-id');
-        const productoNombre = buttonElement.getAttribute('data-producto-nombre');
-        const tbody = document.getElementById('tablaHistorialBody');
-
-        document.getElementById('historialModalTitle').textContent = ` Historial: ${productoNombre}`;
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Cargando...</td></tr>';
-
-        try {
-            const response = await fetch(`/api/inventario/historial/${productoId}`);
-            if (!response.ok) throw new Error('Error API');
-            const movimientos = await response.json();
-            tbody.innerHTML = '';
-
-            if (movimientos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Sin movimientos.</td></tr>';
-            } else {
-                movimientos.forEach(mov => {
-                    const fecha = new Date(mov.fecha).toLocaleString();
-                    let badgeClass = mov.tipoMovimiento && mov.tipoMovimiento.includes('INGRESO') ? 'bg-success' : 'bg-danger';
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${fecha}</td>
-                            <td><span class="badge ${badgeClass} text-white">${mov.tipoMovimiento}</span></td>
-                            <td>${mov.cantidad}</td>
-                            <td>${mov.motivo}</td>
-                        </tr>`;
-                });
-            }
-        } catch (error) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Error al cargar historial.</td></tr>`;
-        }
-    }
-
-    // ==========================================
-    // 6. GESTIÓN DE PESTAÑAS Y USUARIOS (Sin cambios)
-    // ==========================================
-    function cambiarTab(tabName) {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(tabName).classList.add('active');
-
-        const buttons = document.getElementsByClassName('tab');
-        for(let btn of buttons) {
-            if(btn.getAttribute('onclick').includes(tabName)) btn.classList.add('active');
-        }
-
-        if(tabName === 'dashboard') cargarEstadisticas();
-        if(tabName === 'compras') cargarReportesVentas();
-        if(tabName === 'usuarios') cargarUsuarios();
-    }
-
     function cargarUsuarios() {
         fetch('/api/admin/usuarios')
             .then(r => r.json())
             .then(usuarios => {
-                const tbody = document.querySelector('#usuarios tbody');
+                // Buscamos la tabla dentro de la pestaña usuarios
+                const tbody = document.querySelector('#usuarios table tbody');
                 tbody.innerHTML = '';
+
                 if (usuarios && usuarios.length > 0) {
-                    usuarios.forEach(usuario => {
+                    usuarios.forEach(u => {
                         const tr = document.createElement('tr');
-                        let rolesHtml = '';
-                        (Array.isArray(usuario.roles) ? usuario.roles : []).forEach(rol => {
-                            const nombre = rol.replace('ROLE_', '');
-                            let cls = (rol.includes('ADMIN') || rol.includes('GERENTE')) ? 'badge-admin' : 'badge-cliente';
-                            rolesHtml += `<span class="${cls}">${nombre}</span> `;
-                        });
-                        const estCls = usuario.activo ? 'status-activo' : 'status-inactivo';
-                        const estTxt = usuario.activo ? 'Activo' : 'Inactivo';
-                        tr.innerHTML = `<td>${usuario.id}</td><td>${usuario.nombre || 'N/A'}</td><td>${usuario.email || 'N/A'}</td><td>${usuario.localidad || 'N/A'}</td><td>${rolesHtml}</td><td><span class="${estCls}">${estTxt}</span></td><td><button class="btn-edit" onclick="editarUsuario(${usuario.id})">Editar</button><button class="btn-delete" onclick="eliminarUsuario(${usuario.id})">Eliminar</button></td>`;
+                        let roles = '';
+                        (u.roles || []).forEach(r => roles += `<span class="${r.includes('ADMIN')?'badge-admin':'badge-cliente'}">${r.replace('ROLE_','')}</span> `);
+                        const estCls = u.activo ? 'status-activo' : 'status-inactivo';
+                        const estTxt = u.activo ? 'Activo' : 'Inactivo';
+
+                        tr.innerHTML = `
+                            <td>${u.id}</td>
+                            <td class="user-name">${u.nombre || 'N/A'}</td>
+                            <td class="user-email">${u.email || 'N/A'}</td>
+                            <td>${u.localidad || 'N/A'}</td>
+                            <td>${roles}</td>
+                            <td><span class="${estCls}">${estTxt}</span></td>
+                            <td>
+                                <button class="btn-edit" onclick="editarUsuario(${u.id})">Editar</button>
+                                <button class="btn-delete" onclick="eliminarUsuario(${u.id})">Eliminar</button>
+                            </td>`;
                         tbody.appendChild(tr);
                     });
                 } else {
-                    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No hay usuarios.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No hay usuarios registrados.</td></tr>`;
                 }
             })
             .catch(e => console.error('Error usuarios:', e));
     }
 
+    // --- BUSCADOR DE USUARIOS ARREGLADO ---
+    function buscarUsuario(valor) {
+        const term = valor.toLowerCase();
+        const tbody = document.querySelector('#usuarios table tbody');
+        if (!tbody) return;
+
+        const rows = tbody.getElementsByTagName('tr');
+
+        for (let row of rows) {
+            // Buscamos en todo el texto de la fila (Nombre, Email, ID, etc.)
+            const text = row.textContent.toLowerCase();
+
+            if (text.includes(term)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    }
+
+    function filtrarRol(rol) {
+        // Implementación básica del filtro de rol
+        const term = rol.toLowerCase();
+        const tbody = document.querySelector('#usuarios table tbody');
+        if (!tbody) return;
+        const rows = tbody.getElementsByTagName('tr');
+
+        for (let row of rows) {
+            const text = row.textContent.toLowerCase();
+            // Si el rol es vacío muestra todo, sino busca coincidencia
+            if (rol === "" || text.includes(term)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    }
+
+    // ==========================================
+    // 6. MODALES Y NAVEGACIÓN
+    // ==========================================
+
+    // Navegación entre pestañas
+    function cambiarTab(name) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(name).classList.add('active');
+
+        const tabs = document.getElementsByClassName('tab');
+        for(let t of tabs) {
+            if(t.getAttribute('onclick') && t.getAttribute('onclick').includes(name)) {
+                t.classList.add('active');
+            }
+        }
+
+        if(name === 'dashboard') cargarEstadisticasDashboard();
+        if(name === 'compras') cargarReportesVentas();
+        if(name === 'usuarios') cargarUsuarios();
+        if(name === 'inventario') calcularContadoresDesdeTabla();
+    }
+
+    // Historial con AJAX
+    async function abrirModalHistorial(btn) {
+        const id = btn.getAttribute('data-producto-id');
+        const nombre = btn.getAttribute('data-producto-nombre');
+        const tbody = document.getElementById('tablaHistorialBody');
+
+        document.getElementById('historialModalTitle').textContent = `Historial: ${nombre}`;
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Cargando...</td></tr>';
+
+        try {
+            const res = await fetch(`/api/inventario/historial/${id}`);
+            if(!res.ok) throw new Error('Err');
+            const data = await res.json();
+            tbody.innerHTML = '';
+            if(!data.length) tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Sin movimientos.</td></tr>';
+            else {
+                data.forEach(m => {
+                    let bg = m.tipoMovimiento?.includes('INGRESO') ? 'bg-success' : 'bg-danger';
+                    tbody.innerHTML += `<tr><td>${new Date(m.fecha).toLocaleString()}</td><td><span class="badge ${bg}">${m.tipoMovimiento}</span></td><td>${m.cantidad}</td><td>${m.motivo}</td></tr>`;
+                });
+            }
+        } catch(e) { tbody.innerHTML = '<tr><td colspan="4" class="text-danger text-center">Error al cargar historial.</td></tr>'; }
+    }
+
+    // Inicialización de Modales de Stock
+    document.addEventListener('DOMContentLoaded', function() {
+        const mIngreso = document.getElementById('ingresoModal');
+        if(mIngreso) {
+            mIngreso.addEventListener('show.bs.modal', e => {
+                const btn = e.relatedTarget;
+                mIngreso.querySelector('#modal-producto-nombre').textContent = btn.getAttribute('data-producto-nombre');
+                mIngreso.querySelector('#productoIdInput').value = btn.getAttribute('data-producto-id');
+            });
+        }
+        const mSalida = document.getElementById('salidaModal');
+        if(mSalida) {
+            mSalida.addEventListener('show.bs.modal', e => {
+                const btn = e.relatedTarget;
+                mSalida.querySelector('#modal-producto-nombre-salida').textContent = btn.getAttribute('data-producto-nombre');
+                mSalida.querySelector('#productoIdInputSalida').value = btn.getAttribute('data-producto-id');
+            });
+        }
+    });
+
+    // ==========================================
+    // 7. FUNCIONES AUXILIARES
+    // ==========================================
     function irInicio() { window.location.href = '/'; }
     function nuevoUsuario() { window.location.href = '/admin/usuarios/crear'; }
     function editarUsuario(id) { window.location.href = '/admin/usuarios/editar/' + id; }
+
     function eliminarUsuario(id) {
-        if(confirm('¿Eliminar usuario?')) {
+        if(confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
             fetch('/api/admin/usuarios/' + id, { method: 'DELETE' })
-                .then(r => { if(r.ok) { alert('Eliminado'); cargarUsuarios(); cargarEstadisticas(); } else alert('Error'); })
-                .catch(e => { console.error(e); alert('Error'); });
+                .then(r => {
+                    if(r.ok) {
+                        alert('Usuario eliminado correctamente');
+                        cargarUsuarios();
+                    } else alert('Error al eliminar');
+                })
+                .catch(e => { console.error(e); alert('Error de conexión'); });
         }
     }
-    function nuevoProducto() { window.location.href = '/inventario/productos/nuevo'; }
-    function nuevaCompra() { alert('Por implementar'); }
-    function verDetalleCompra(id) { alert('Detalle: ' + id); }
-    function buscarUsuario(val) { console.log('Buscar:', val); }
-    function filtrarRol(val) { console.log('Filtro:', val); }
+
+    // Función para formularios sin recargar página (Opcional si usas modales de stock)
+    function nuevaCompra() { alert('Función de nueva compra - Por implementar'); }
+    function verDetalleCompra(id) { alert('Detalle de compra: ' + id); }
 </script>
 </body>
 </html>
