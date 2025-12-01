@@ -71,6 +71,7 @@
             height: 100%;
             overflow: hidden;
             position: relative;
+            cursor: pointer; /* Indica que es clicable */
         }
 
         .stat-card::before {
@@ -89,6 +90,15 @@
             transform: translateY(-6px);
             box-shadow: var(--shadow-xl);
         }
+
+        /* Estilo para la tarjeta activa (filtro seleccionado) */
+        .stat-card.active-filter {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        .stat-card.active-filter::before { opacity: 1; }
 
         .stat-card:hover::before { opacity: 1; }
 
@@ -408,7 +418,7 @@
 <div class="main-container">
     <div class="row g-4 mb-4">
         <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
+            <div class="stat-card" id="cardTotal" onclick="setFilterStatus('all')">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <div class="stat-title">Referencias</div>
@@ -420,8 +430,9 @@
                 </div>
             </div>
         </div>
+
         <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
+            <div class="stat-card" id="cardLow" onclick="setFilterStatus('low')">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <div class="stat-title">Stock Bajo</div>
@@ -433,8 +444,9 @@
                 </div>
             </div>
         </div>
+
         <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
+            <div class="stat-card" id="cardOut" onclick="setFilterStatus('out')">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <div class="stat-title">Agotados</div>
@@ -446,8 +458,9 @@
                 </div>
             </div>
         </div>
+
         <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
+            <div class="stat-card" style="cursor: default;">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <div class="stat-title">Valor Total</div>
@@ -463,12 +476,13 @@
 
     <div class="search-container">
         <div class="row g-3 align-items-center">
-            <div class="col-md-6">
+            <div class="col-md-5">
                 <div class="search-input-group">
                     <i class="fas fa-search"></i>
                     <input type="text" id="searchInput" class="form-control form-control-search" placeholder="Buscar por nombre, marca o ID...">
                 </div>
             </div>
+
             <div class="col-md-3">
                 <select id="filterCategory" class="form-select">
                     <option value="">Todas las Categorías</option>
@@ -477,12 +491,17 @@
                     <option value="Niños">Niños</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <a th:href="@{/inventario/productos/nuevo}" class="btn btn-primary w-100">
+
+            <div class="col-md-4 d-flex gap-2 justify-content-end">
+                <a th:href="@{/inventario/reporte/pdf}" class="btn btn-danger text-white">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </a>
+                <a th:href="@{/inventario/productos/nuevo}" class="btn btn-primary text-nowrap">
                     <i class="fas fa-plus-circle"></i> Nuevo Producto
                 </a>
             </div>
         </div>
+    </div>
     </div>
 
     <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
@@ -511,7 +530,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="producto : ${productos}">
+                    <tr th:each="producto : ${productos}" th:data-stock="${producto.stock}">
                         <td th:text="${producto.id}"></td>
                         <td th:text="${producto.nombre}" class="fw-bold product-name"></td>
                         <td th:text="${producto.marca}" class="product-brand"></td>
@@ -642,55 +661,93 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // Variable global para mantener el estado del filtro de stock
+    let currentStatusFilter = 'all'; // 'all', 'low', 'out'
+
     document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('searchInput');
-        const filterCategory = document.getElementById('filterCategory');
-        const table = document.getElementById('inventoryTable');
-        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+        // Inicializar
+        setFilterStatus('all');
+    });
 
-        function filterTable() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const categoryTerm = filterCategory.value.toLowerCase();
-            let hasResults = false;
+    // Función que se activa al hacer clic en las tarjetas
+    function setFilterStatus(status) {
+        currentStatusFilter = status;
 
-            for (let i = 0; i < rows.length; i++) {
-                const row = rows[i];
-                if (row.id === 'noResultsRow') continue;
+        // Actualizar visualmente las tarjetas
+        document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active-filter'));
 
-                const name = row.querySelector('.product-name') ? row.querySelector('.product-name').textContent.toLowerCase() : '';
-                const brand = row.querySelector('.product-brand') ? row.querySelector('.product-brand').textContent.toLowerCase() : '';
-                const category = row.querySelector('.product-category') ? row.querySelector('.product-category').textContent.toLowerCase() : '';
-
-                const matchesSearch = name.includes(searchTerm) || brand.includes(searchTerm);
-                const matchesCategory = categoryTerm === '' || category.includes(categoryTerm);
-
-                if (matchesSearch && matchesCategory) {
-                    row.style.display = '';
-                    hasResults = true;
-                } else {
-                    row.style.display = 'none';
-                }
-            }
+        if (status === 'all') {
+            document.getElementById('cardTotal').classList.add('active-filter');
+        } else if (status === 'low') {
+            document.getElementById('cardLow').classList.add('active-filter');
+        } else if (status === 'out') {
+            document.getElementById('cardOut').classList.add('active-filter');
         }
 
-        searchInput.addEventListener('keyup', filterTable);
-        filterCategory.addEventListener('change', filterTable);
+        // Ejecutar el filtrado
+        filterTable();
+    }
 
-        // INGRESO
-        var ingresoModal = document.getElementById('ingresoModal');
-        ingresoModal.addEventListener('show.bs.modal', function (event) {
-            var button = event.relatedTarget;
-            ingresoModal.querySelector('#modal-producto-nombre').textContent = button.getAttribute('data-producto-nombre');
-            ingresoModal.querySelector('#productoIdInput').value = button.getAttribute('data-producto-id');
-        });
+    const searchInput = document.getElementById('searchInput');
+    const filterCategory = document.getElementById('filterCategory');
+    const table = document.getElementById('inventoryTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
 
-        // SALIDA
-        var salidaModal = document.getElementById('salidaModal');
-        salidaModal.addEventListener('show.bs.modal', function (event) {
-            var button = event.relatedTarget;
-            salidaModal.querySelector('#modal-producto-nombre-salida').textContent = button.getAttribute('data-producto-nombre');
-            salidaModal.querySelector('#productoIdInputSalida').value = button.getAttribute('data-producto-id');
-        });
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const categoryTerm = filterCategory.value.toLowerCase();
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (row.id === 'noResultsRow') continue;
+
+            const name = row.querySelector('.product-name') ? row.querySelector('.product-name').textContent.toLowerCase() : '';
+            const brand = row.querySelector('.product-brand') ? row.querySelector('.product-brand').textContent.toLowerCase() : '';
+            const category = row.querySelector('.product-category') ? row.querySelector('.product-category').textContent.toLowerCase() : '';
+
+            // Obtener stock desde el atributo data (conversión a número)
+            const stock = parseInt(row.getAttribute('data-stock')) || 0;
+
+            // Lógica de búsqueda por texto
+            const matchesSearch = name.includes(searchTerm) || brand.includes(searchTerm) || row.cells[0].textContent.includes(searchTerm);
+
+            // Lógica de categoría
+            const matchesCategory = categoryTerm === '' || category.includes(categoryTerm);
+
+            // Lógica de estado (Click en tarjetas)
+            let matchesStatus = true;
+            if (currentStatusFilter === 'low') {
+                matchesStatus = (stock > 0 && stock < 5);
+            } else if (currentStatusFilter === 'out') {
+                matchesStatus = (stock === 0);
+            }
+            // Si es 'all', matchesStatus se queda en true
+
+            if (matchesSearch && matchesCategory && matchesStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    }
+
+    // Listeners existentes
+    searchInput.addEventListener('keyup', filterTable);
+    filterCategory.addEventListener('change', filterTable);
+
+    // MODAL LOGIC (Igual que antes)
+    var ingresoModal = document.getElementById('ingresoModal');
+    ingresoModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        ingresoModal.querySelector('#modal-producto-nombre').textContent = button.getAttribute('data-producto-nombre');
+        ingresoModal.querySelector('#productoIdInput').value = button.getAttribute('data-producto-id');
+    });
+
+    var salidaModal = document.getElementById('salidaModal');
+    salidaModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        salidaModal.querySelector('#modal-producto-nombre-salida').textContent = button.getAttribute('data-producto-nombre');
+        salidaModal.querySelector('#productoIdInputSalida').value = button.getAttribute('data-producto-id');
     });
 
     async function abrirModalHistorial(buttonElement) {

@@ -5,13 +5,18 @@ import com.GoldenFeet.GoldenFeets.dto.ProductoCreateDTO;
 import com.GoldenFeet.GoldenFeets.dto.ProductoDTO;
 import com.GoldenFeet.GoldenFeets.dto.ProductoUpdateDTO;
 import com.GoldenFeet.GoldenFeets.entity.Categoria;
+import com.GoldenFeet.GoldenFeets.entity.InventarioMovimiento;
 import com.GoldenFeet.GoldenFeets.repository.CategoriaRepository;
+import com.GoldenFeet.GoldenFeets.repository.InventarioMovimientoRepository;
 import com.GoldenFeet.GoldenFeets.service.AlmacenamientoService;
 import com.GoldenFeet.GoldenFeets.service.InventarioMovimientoService;
 import com.GoldenFeet.GoldenFeets.service.ProductoService;
-import jakarta.persistence.EntityNotFoundException;
+import com.GoldenFeet.GoldenFeets.service.ReporteInventarioPDF; // Importante: Tu clase util
+
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +24,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,6 +43,7 @@ public class InventarioController {
     private final CategoriaRepository categoriaRepository;
     private final AlmacenamientoService almacenamientoService;
     private final InventarioMovimientoService inventarioMovimientoService;
+    private final InventarioMovimientoRepository inventarioMovimientoRepository; // Inyectado para el reporte
 
     // --- LISTAS ESTÁTICAS PARA LOS SELECTS ---
     private List<Integer> obtenerTallas() {
@@ -174,7 +184,7 @@ public class InventarioController {
         return "redirect:/inventario/panel";
     }
 
-    // Métodos de ingreso/salida stock (se mantienen igual)
+    // Métodos de ingreso/salida stock
     @PostMapping("/ingreso-stock")
     public String registrarIngresoStock(@Valid @ModelAttribute("ingresoDTO") IngresoDTO ingresoDTO,
                                         BindingResult bindingResult,
@@ -207,5 +217,24 @@ public class InventarioController {
             redirectAttributes.addFlashAttribute("errorMessage", "Error: " + e.getMessage());
         }
         return "redirect:/inventario/panel";
+    }
+
+    // --- NUEVO: MÉTODO PARA EXPORTAR PDF ---
+    @GetMapping("/reporte/pdf")
+    public void exportarListadoPdf(HttpServletResponse response) throws IOException {
+        response.setContentType("application/pdf");
+
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=Historial_Inventario_" + currentDateTime + ".pdf";
+        response.setHeader(headerKey, headerValue);
+
+        // Obtenemos TODOS los movimientos ordenados por fecha descendente
+        List<InventarioMovimiento> listaMovimientos = inventarioMovimientoRepository.findAll(Sort.by(Sort.Direction.DESC, "fecha"));
+
+        ReporteInventarioPDF exportador = new ReporteInventarioPDF(listaMovimientos);
+        exportador.exportar(response);
     }
 }
