@@ -285,101 +285,48 @@
         border-bottom: 3px solid transparent;
 
         }
-
-
-
         .tab:hover {
-
         background: #f5f5f5;
-
         color: #4A148C;
-
         }
-
-
-
         .tab.active {
-
         background: white;
-
         color: #4A148C;
-
         font-weight: 600;
-
         border-bottom: 3px solid #4A148C;
-
         }
-
-
 
         .tab-content {
-
         display: none;
-
         }
-
-
 
         .tab-content.active {
-
         display: block;
-
         }
-
-
-
         .stats-grid {
-
         display: grid;
-
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-
         gap: 20px;
-
         margin-bottom: 30px;
-
         }
-
-
 
         .stat-card {
-
         background: white;
-
         padding: 25px;
-
         border-radius: 8px;
-
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-
         transition: transform 0.3s, box-shadow 0.3s;
-
         }
-
-
-
         .stat-card:hover {
-
         transform: translateY(-3px);
-
         box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-
         }
-
-
-
         .stat-card h3 {
-
         color: #666;
-
         font-size: 13px;
-
         margin-bottom: 10px;
-
         text-transform: uppercase;
-
         font-weight: 600;
-
         }
 
 
@@ -759,67 +706,30 @@
         margin: 3px 0;
 
         }
-
-
-
         .purchase-status {
-
         padding: 5px 12px;
-
         border-radius: 12px;
-
         font-size: 12px;
-
         font-weight: 600;
-
         float: right;
-
         }
-
-
-
         .status-pending {
-
         background: #fff3cd;
-
         color: #856404;
-
         }
-
-
-
         .status-completed {
-
         background: #d4edda;
-
         color: #155724;
-
         }
-
-
-
         .status-processing {
-
         background: #cce5ff;
-
         color: #004085;
-
         }
-
-
-
         .search-bar {
-
         display: flex;
-
         gap: 10px;
-
         margin-bottom: 20px;
-
         }
-
-
-
         .search-bar input {
 
         flex: 1;
@@ -1084,50 +994,52 @@
         </div>
 
     </div>
-
-
-
     <div id="inventario" class="tab-content">
 
         <div class="row g-4 mb-4">
             <div class="col-md-6 col-lg-3">
-                <div class="stat-card-new d-flex justify-content-between align-items-start">
+                <div class="stat-card-new d-flex justify-content-between align-items-start"
+                     id="cardTotal" onclick="setFilterStatus('all')" style="cursor: pointer;">
                     <div>
                         <div class="text-muted small fw-bold text-uppercase">Referencias</div>
-                        <h3 class="fw-bold text-dark mt-1" th:text="${estadisticasInventario?.totalProductos ?: 0}">0</h3>
+                        <h3 class="fw-bold text-dark mt-1" id="inv-total" th:text="${estadisticasInventario?.totalProductos ?: 0}">0</h3>
                     </div>
                     <div class="icon-box bg-purple-soft"><i class="fas fa-boxes"></i></div>
                 </div>
             </div>
+
             <div class="col-md-6 col-lg-3">
-                <div class="stat-card-new d-flex justify-content-between align-items-start">
+                <div class="stat-card-new d-flex justify-content-between align-items-start"
+                     id="cardLow" onclick="setFilterStatus('low')" style="cursor: pointer;">
                     <div>
                         <div class="text-muted small fw-bold text-uppercase">Stock Bajo</div>
-                        <h3 class="fw-bold text-warning mt-1" th:text="${estadisticasInventario?.stockBajo ?: 0}">0</h3>
+                        <h3 class="fw-bold text-warning mt-1" id="inv-bajo" th:text="${estadisticasInventario?.stockBajo ?: 0}">0</h3>
                     </div>
                     <div class="icon-box bg-yellow-soft"><i class="fas fa-exclamation-triangle"></i></div>
                 </div>
             </div>
+
             <div class="col-md-6 col-lg-3">
-                <div class="stat-card-new d-flex justify-content-between align-items-start">
+                <div class="stat-card-new d-flex justify-content-between align-items-start"
+                     id="cardOut" onclick="setFilterStatus('out')" style="cursor: pointer;">
                     <div>
                         <div class="text-muted small fw-bold text-uppercase">Agotados</div>
-                        <h3 class="fw-bold text-danger mt-1" th:text="${estadisticasInventario?.sinStock ?: 0}">0</h3>
+                        <h3 class="fw-bold text-danger mt-1" id="inv-agotados" th:text="${estadisticasInventario?.sinStock ?: 0}">0</h3>
                     </div>
                     <div class="icon-box bg-red-soft"><i class="fas fa-times-circle"></i></div>
                 </div>
             </div>
+
             <div class="col-md-6 col-lg-3">
                 <div class="stat-card-new d-flex justify-content-between align-items-start">
                     <div>
                         <div class="text-muted small fw-bold text-uppercase">Valor Total</div>
-                        <h3 class="fw-bold text-success mt-1" th:text="${estadisticasInventario?.valorTotalFormat ?: '$0'}">$0</h3>
+                        <h3 class="fw-bold text-success mt-1" id="inv-valor" th:text="${estadisticasInventario?.valorTotalFormat ?: '$0'}">$0</h3>
                     </div>
                     <div class="icon-box bg-green-soft"><i class="fas fa-dollar-sign"></i></div>
                 </div>
             </div>
         </div>
-
         <div class="search-container">
             <div class="row g-3 align-items-center">
                 <div class="col-md-6">
@@ -1145,7 +1057,7 @@
                     </select>
                 </div>
                 <div class="col-md-3 text-end">
-                    <a th:href="@{/inventario/productos/nuevo}" class="btn btn-primary w-100 shadow-sm">
+                    <a th:href="@{/inventario/productos/nuevo(origen='admin')}" class="btn btn-primary w-100 shadow-sm">
                         <i class="fas fa-plus-circle me-2"></i> Nuevo Producto
                     </a>
                 </div>
@@ -1167,7 +1079,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="producto : ${productos}">
+                    <tr th:each="producto : ${productos}" th:data-stock="${producto.stock}">
                         <td class="text-muted" th:text="${'#' + producto.id}"></td>
                         <td>
                             <div class="product-name" th:text="${producto.nombre}">Nombre</div>
@@ -1421,691 +1333,397 @@
 
             </table>
 
+        </div> </div> </div> <div class="modal fade" id="ingresoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/inventario/ingreso-stock" method="post" onsubmit="enviarFormularioSinRecargar(event, this)">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"> Agregar Stock: <span id="modal-producto-nombre"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="productoIdInput" name="productoId" />
+                    <div class="mb-3">
+                        <label class="form-label">Cantidad</label>
+                        <input type="number" class="form-control" name="cantidad" required min="1" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Motivo</label>
+                        <input type="text" class="form-control" name="motivo" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Registrar</button>
+                </div>
+            </form>
         </div>
-
     </div>
+</div>
 
+<div class="modal fade" id="salidaModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/inventario/salida-stock" method="post" onsubmit="enviarFormularioSinRecargar(event, this)">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">📉 Retirar Stock: <span id="modal-producto-nombre-salida"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="productoIdInputSalida" name="productoId" />
+                    <div class="mb-3">
+                        <label class="form-label">Cantidad</label>
+                        <input type="number" class="form-control" name="cantidad" required min="1" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Motivo</label>
+                        <input type="text" class="form-control" name="motivo" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Retirar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
+<div class="modal fade" id="historialModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="historialModalTitle"> Historial</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Cant.</th>
+                        <th>Motivo</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tablaHistorialBody"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ==========================================
+    // 1. CONFIGURACIÓN Y CARGA INICIAL
+    // ==========================================
+    let salesChartInstance = null;
+    let currentStatusFilter = 'all';
 
-        // Función principal que se ejecuta al cargar la página
-
-        window.onload = function() {
-
-        // Carga las estadísticas iniciales del dashboard desde el backend
-
+    window.onload = function() {
         cargarEstadisticas();
 
-        };
+        // Configurar listeners de búsqueda
+        const searchInput = document.getElementById('searchInput');
+        const filterCategory = document.getElementById('filterCategory');
+        if(searchInput) searchInput.addEventListener('keyup', filterInventoryTable);
+        if(filterCategory) filterCategory.addEventListener('change', filterInventoryTable);
+    };
 
-
-
-        // FUNCIÓN CLAVE PARA EL DASHBOARD: Obtiene datos de métricas por API
-
-        function cargarEstadisticas() {
-
+    // ==========================================
+    // 2. LÓGICA DE ESTADÍSTICAS (ARREGLADO: Contadores de Inventario)
+    // ==========================================
+    function cargarEstadisticas() {
         fetch('/api/admin/stats')
+            .then(response => {
+                if (!response.ok) throw new Error('Error de conexión');
+                return response.json();
+            })
+            .then(data => {
+                // --- A. Actualizar Dashboard Principal ---
+                if(document.getElementById('totalProductos'))
+                    document.getElementById('totalProductos').textContent = data.totalProductos || 0;
+                if(document.getElementById('comprasPendientes'))
+                    document.getElementById('comprasPendientes').textContent = data.comprasPendientes || 0;
+                if(document.getElementById('usuariosActivos'))
+                    document.getElementById('usuariosActivos').textContent = data.usuariosActivos || 0;
+                if(document.getElementById('valorInventario'))
+                    document.getElementById('valorInventario').textContent = formatCurrency(data.valorInventario || 0);
 
-        .then(response => {
+                // --- B. Actualizar Tarjetas de Inventario (NUEVO) ---
+                if(document.getElementById('inv-total'))
+                    document.getElementById('inv-total').textContent = data.totalProductos || 0;
 
-        if (!response.ok) {
+                // Nota: Si tu API no devuelve 'stockBajo' exacto, usa un 0 por defecto para que no salga 'undefined'
+                if(document.getElementById('inv-bajo'))
+                    document.getElementById('inv-bajo').textContent = data.stockBajo !== undefined ? data.stockBajo : 0;
 
-        // Si el backend responde con un error (404, 500, etc.)
+                if(document.getElementById('inv-agotados'))
+                    document.getElementById('inv-agotados').textContent = data.sinStock !== undefined ? data.sinStock : 0;
 
-        throw new Error('Error de conexión o en el servidor: ' + response.statusText);
+                if(document.getElementById('inv-valor'))
+                    document.getElementById('inv-valor').textContent = formatCurrency(data.valorInventario || 0);
+            })
+            .catch(error => {
+                console.error('Error stats:', error);
+                // Fallbacks visuales
+                const ids = ['totalProductos', 'inv-total', 'valorInventario', 'inv-valor'];
+                ids.forEach(id => { if(document.getElementById(id)) document.getElementById(id).textContent = '--'; });
+            });
+    }
 
-        }
+    // Helper para formato moneda
+    function formatCurrency(val) {
+        return val.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
-        return response.json();
-
-        })
-
-        .then(data => {
-
-        // Si la carga es exitosa, se muestran los datos (si el valor es nulo, usamos 0)
-
-        document.getElementById('totalProductos').textContent = data.totalProductos || 0;
-
-        document.getElementById('comprasPendientes').textContent = data.comprasPendientes || 0;
-
-        document.getElementById('usuariosActivos').textContent = data.usuariosActivos || 0;
-
-
-
-        const valorInventario = data.valorInventario || 0;
-
-        const valorFormateado = valorInventario.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-        document.getElementById('valorInventario').textContent = valorFormateado;
-
-        })
-
-        .catch(error => {
-
-        console.error('Error cargando estadísticas del dashboard. Asegúrate de que el endpoint /api/admin/stats está activo y responde con JSON:', error);
-
-
-
-        // --- CÓDIGO CORREGIDO PARA FALLBACK (usa '--' para datos no cargados) ---
-
-        document.getElementById('totalProductos').textContent = '--';
-
-        document.getElementById('comprasPendientes').textContent = '--';
-
-        document.getElementById('valorInventario').textContent = '--';
-
-
-
-        // Usuarios Activos mantiene el 0 como fallback
-
-        document.getElementById('usuariosActivos').textContent = '0';
-
-        });
-
-        }
-
-
-
-        let salesChartInstance = null;
-
-
-
-        // FUNCIÓN PARA CARGAR GRÁFICAS Y ESTADÍSTICAS DE COMPRAS
-
-        function cargarReportesVentas() {
-
+    function cargarReportesVentas() {
         fetch('/api/admin/ventas/reportes')
+            .then(r => r.json())
+            .then(reportes => {
+                document.getElementById('monthlySalesValue').textContent = '$' + (reportes.ventaTotalMes || 0).toLocaleString('es-CO');
+                document.getElementById('monthlyUnitsValue').textContent = reportes.unidadesVendidasMes || 0;
+                document.getElementById('avgTicketValue').textContent = '$' + (reportes.ticketPromedio || 0).toLocaleString('es-CO');
 
-        .then(response => {
+                const ctx = document.getElementById('salesChart').getContext('2d');
+                if (salesChartInstance) salesChartInstance.destroy();
 
-        if (!response.ok) {
+                salesChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: reportes.meses || [],
+                        datasets: [{
+                            label: 'Ventas ($)',
+                            data: reportes.ventasMensuales || [],
+                            backgroundColor: '#6A1B9A',
+                            borderColor: '#4A148C',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } } }
+                });
+            })
+            .catch(e => console.error('Error reportes:', e));
+    }
 
-        throw new Error('Error al cargar reportes de ventas: ' + response.statusText);
+    // ==========================================
+    // 3. LÓGICA DE FORMULARIOS AJAX (ARREGLADO: Evita Redirección)
+    // ==========================================
+    async function enviarFormularioSinRecargar(event, form) {
+        event.preventDefault(); // Detiene la redirección automática
 
+        const formData = new FormData(form);
+        const actionUrl = form.getAttribute('action');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+
+        // Feedback visual
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+
+        try {
+            const response = await fetch(actionUrl, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok || response.redirected) {
+                // Éxito: Recargamos la página actual para ver los cambios aquí mismo
+                alert("✅ Operación realizada con éxito");
+                window.location.reload();
+            } else {
+                alert("⚠️ Error al procesar la solicitud.");
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert("❌ Error de conexión con el servidor.");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
         }
+    }
 
-        return response.json();
-
-        })
-
-        .then(reportes => {
-
-        const ventaTotalMes = reportes.ventaTotalMes || 0;
-
-        const unidadesVendidasMes = reportes.unidadesVendidasMes || 0;
-
-        const ticketPromedio = reportes.ticketPromedio || 0;
-
-
-
-        document.getElementById('monthlySalesValue').textContent = '$' + ventaTotalMes.toLocaleString('es-CO', { minimumFractionDigits: 2 });
-
-        document.getElementById('monthlyUnitsValue').textContent = unidadesVendidasMes;
-
-        document.getElementById('avgTicketValue').textContent = '$' + ticketPromedio.toLocaleString('es-CO', { minimumFractionDigits: 2 });
-
-
-
-        const meses = reportes.meses || [];
-
-        const ventasMensuales = reportes.ventasMensuales || [];
-
-
-
-        const ctx = document.getElementById('salesChart').getContext('2d');
-
-
-
-        if (salesChartInstance) {
-
-        salesChartInstance.destroy();
-
-        }
-
-
-
-        salesChartInstance = new Chart(ctx, {
-
-        type: 'bar',
-
-        data: {
-
-        labels: meses,
-
-        datasets: [{
-
-        label: 'Ventas ($)',
-
-        data: ventasMensuales,
-
-        backgroundColor: '#6A1B9A',
-
-        borderColor: '#4A148C',
-
-        borderWidth: 1
-
-        }]
-
-        },
-
-        options: {
-
-        responsive: true,
-
-        plugins: {
-
-        legend: { display: false },
-
-        tooltip: {
-
-        callbacks: {
-
-        label: function(context) {
-
-        return context.dataset.label + ': $' + context.parsed.y.toLocaleString('es-CO', { minimumFractionDigits: 2 });
-
-        }
-
-        }
-
-        }
-
-        },
-
-        scales: {
-
-        y: {
-
-        beginAtZero: true,
-
-        title: { display: true, text: 'Monto de Venta ($)' },
-
-        ticks: {
-
-        callback: function(value) { return '$' + value.toLocaleString('es-CO'); }
-
-        }
-
-        }
-
-        }
-
-        }
-
+    // ==========================================
+    // 4. LÓGICA DE INVENTARIO (Filtros)
+    // ==========================================
+    function setFilterStatus(status) {
+        currentStatusFilter = status;
+        const cards = ['cardTotal', 'cardLow', 'cardOut'];
+        cards.forEach(id => {
+            const card = document.getElementById(id);
+            if(card) {
+                card.style.border = '1px solid var(--gray-200)'; // Reset
+                if (id === 'cardTotal' && status === 'all') card.style.border = '2px solid var(--primary)';
+                else if (id === 'cardLow' && status === 'low') card.style.border = '2px solid var(--warning)';
+                else if (id === 'cardOut' && status === 'out') card.style.border = '2px solid var(--danger)';
+            }
         });
-
-
-
-        })
-
-        .catch(error => {
-
-        console.error('Error cargando reportes de ventas:', error);
-
-        document.getElementById('monthlySalesValue').textContent = '$0.00';
-
-        document.getElementById('monthlyUnitsValue').textContent = '0';
-
-        document.getElementById('avgTicketValue').textContent = '$0.00';
-
-
-
-        if (salesChartInstance) {
-
-        salesChartInstance.destroy();
-
-        }
-
-        });
-
-        }
-
-
-
-
-
-        function cargarUsuarios() {
-
-        fetch('/api/admin/usuarios')
-
-        .then(response => response.json())
-
-        .then(usuarios => {
-
-        const tbody = document.querySelector('#usuarios tbody');
-
-        tbody.innerHTML = '';
-
-
-
-        if (usuarios && usuarios.length > 0) {
-
-        usuarios.forEach(usuario => {
-
-        const tr = document.createElement('tr');
-
-        let rolesHtml = '';
-
-        const roles = Array.isArray(usuario.roles) ? usuario.roles : [];
-
-
-
-        roles.forEach(rol => {
-
-        const nombreLimpio = rol.replace('ROLE_', '');
-
-        let rolClass = (rol.includes('ADMIN') || rol.includes('GERENTE')) ? 'badge-admin' : 'badge-cliente';
-
-        rolesHtml += `<span class="${rolClass}">${nombreLimpio}</span> `;
-
-        });
-
-
-
-        const estadoClass = usuario.activo ? 'status-activo' : 'status-inactivo';
-
-        const estadoText = usuario.activo ? 'Activo' : 'Inactivo';
-
-
-
-        tr.innerHTML = `
-
-        <td>${usuario.id}</td>
-
-        <td>${usuario.nombre || 'N/A'}</td>
-
-        <td>${usuario.email || 'N/A'}</td>
-
-        <td>${usuario.localidad || 'N/A'}</td>
-
-        <td>${rolesHtml}</td>
-
-        <td><span class="${estadoClass}">${estadoText}</span></td>
-
-        <td>
-
-        <button class="btn-edit" onclick="editarUsuario(${usuario.id})">Editar</button>
-
-        <button class="btn-delete" onclick="eliminarUsuario(${usuario.id})">Eliminar</button>
-
-        </td>
-
-        `;
-
-
-
-        tbody.appendChild(tr);
-
-        });
-
-        } else {
-
-        const tr = document.createElement('tr');
-
-        tr.innerHTML = `<td colspan="7" style="text-align: center; color: #999;">No hay usuarios registrados.</td>`;
-
-        tbody.appendChild(tr);
-
-        }
-
-        })
-
-        .catch(error => console.error('Error cargando usuarios:', error));
-
-        }
-
-
-
-
-
-        function cambiarTab(tabName) {
-
-        const contents = document.querySelectorAll('.tab-content');
-
-        contents.forEach(content => content.classList.remove('active'));
-
-
-
-        const tabs = document.querySelectorAll('.tab');
-
-        tabs.forEach(tab => tab.classList.remove('active'));
-
-
-
-        document.getElementById(tabName).classList.add('active');
-
-
-
-        // Usar event.target es más robusto si el evento existe
-
-        const clickedTab = event ? event.target : document.querySelector(`.tab[onclick="cambiarTab('${tabName}')"]`);
-
-        if (clickedTab) {
-
-        clickedTab.classList.add('active');
-
-        }
-
-
-
-        // Recarga las estadísticas del Dashboard al cambiar a la pestaña
-
-        if(tabName === 'dashboard') {
-
-        cargarEstadisticas();
-
-        }
-
-
-
-        // Cargar reportes al cambiar a la pestaña de compras
-
-        if(tabName === 'compras') {
-
-        cargarReportesVentas();
-
-        }
-
-
-
-        // Recargar datos cuando se cambia a la pestaña de usuarios
-
-        if(tabName === 'usuarios') {
-
-        cargarUsuarios();
-
-        }
-
-        }
-
-
-
-        function irInicio() {
-
-        window.location.href = '/';
-
-        }
-
-
-
-        function nuevoProducto() {
-
-        alert('Función de nuevo producto - Por implementar');
-
-        }
-
-
-
-        function editarProducto(id) {
-
-        alert('Editar producto: ' + id + ' - Por implementar');
-
-        }
-
-
-
-        function eliminarProducto(id) {
-
-        if(confirm('¿Estás seguro de eliminar este producto?')) {
-
-        alert('Función de eliminar producto - Por implementar');
-
-        }
-
-        }
-
-
-
-        function nuevaCompra() {
-
-        alert('Función de nueva compra - Por implementar');
-
-        }
-
-
-
-        function verDetalleCompra(id) {
-
-        alert('Función de ver detalle de compra: ' + id + ' - Por implementar');
-
-        }
-
-
-
-        function nuevoUsuario() {
-
-        window.location.href = '/admin/usuarios/crear';
-
-        }
-
-
-
-        function editarUsuario(id) {
-
-        window.location.href = '/admin/usuarios/editar/' + id;
-
-        }
-
-
-
-        function eliminarUsuario(id) {
-
-        if(confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
-
-        fetch('/api/admin/usuarios/' + id, {
-
-        method: 'DELETE'
-
-        })
-
-        .then(response => {
-
-        if(response.ok) {
-
-        alert('Usuario eliminado correctamente');
-
-        cargarUsuarios();
-
-        cargarEstadisticas();
-
-        } else {
-
-        alert('Error al eliminar usuario');
-
-        }
-
-        })
-
-        .catch(error => {
-
-        console.error('Error:', error);
-
-        alert('Error al eliminar usuario');
-
-        });
-
-        }
-
-        }
-
-
-
-        function buscarUsuario(query) {
-
-        console.log('Buscando usuario: ' + query);
-
-        }
-
-
-
-        function filtrarRol(rol) {
-
-        console.log('Filtrando por rol: ' + rol);
-
-        }
-
-        // Variable global para controlar la instancia del gráfico y poder destruirla si se recarga
-
-        let inventarioChartInstance = null;
-
-
-
-        function renderizarGraficoInventario() {
-
-        const chartCanvas = document.getElementById('inventarioChart');
-
-        if (chartCanvas) {
-
-        const stockBajo = parseInt(chartCanvas.getAttribute('data-stock-bajo')) || 0;
-
-        const sinStock = parseInt(chartCanvas.getAttribute('data-sin-stock')) || 0;
-
-        const stockOptimo = parseInt(chartCanvas.getAttribute('data-stock-optimo')) || 0;
-
-
-
-        if (inventarioChartInstance) { inventarioChartInstance.destroy(); }
-
-
-
-        const ctx = chartCanvas.getContext('2d');
-
-        inventarioChartInstance = new Chart(ctx, {
-
-        type: 'bar',
-
-        data: {
-
-        labels: ['Stock Bajo', 'Agotados', 'Stock Óptimo'],
-
-        datasets: [{
-
-        label: 'Cantidad',
-
-        data: [stockBajo, sinStock, stockOptimo],
-
-        backgroundColor: ['#f6c23e', '#e74a3b', '#1cc88a'],
-
-        borderWidth: 1
-
-        }]
-
-        },
-
-        options: { responsive: true, maintainAspectRatio: false }
-
-        });
-
-        }
-
-        }
-
-
-
-        // Llamar a esta función al cargar la página si la pestaña inventario es la predeterminada
-
-        // O agregarla a tu función cambiarTab:
-
-
-
-        // Modifica tu función cambiarTab existente para incluir esto:
-
-        /*
-
-        function cambiarTab(tabName) {
-
-        // ... (tu código existente de cambiar clases active) ...
-
-
-
-        if(tabName === 'inventario') {
-
-        setTimeout(renderizarGraficoInventario, 100);
-
-        }
-
-        // ...
-
-        }
-
-        */
-
-
-
-        // Inicialización automática al cargar
-
-        document.addEventListener('DOMContentLoaded', function() {
-
-        // Si la pestaña activa por defecto es inventario, renderizar:
-
-        if(document.getElementById('inventario').classList.contains('active')){
-
-        renderizarGraficoInventario();
-
-        }
-
-        });
-
-
-        // --- LÓGICA DE BÚSQUEDA Y FILTRO DE INVENTARIO ---
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('searchInput');
-    const filterCategory = document.getElementById('filterCategory');
-
-    // Validamos que existan para no causar errores en otras pestañas
-    if(searchInput && filterCategory) {
+        filterInventoryTable();
+    }
+
+    function filterInventoryTable() {
+        const searchInput = document.getElementById('searchInput');
+        const filterCategory = document.getElementById('filterCategory');
         const table = document.getElementById('inventoryTable');
+        if(!table) return;
+
         const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
         const noResultsRow = document.getElementById('noResultsRow');
 
-        function filterTable() {
-            const searchTerm = searchInput.value.toLowerCase();
-            const categoryTerm = filterCategory.value.toLowerCase();
-            let hasResults = false;
-            let visibleCount = 0;
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const categoryTerm = filterCategory ? filterCategory.value.toLowerCase() : '';
 
-            for (let i = 0; i < rows.length; i++) {
-                const row = rows[i];
-                if (row.id === 'noResultsRow') continue; // Saltar fila de mensaje
+        let visibleCount = 0;
 
-                // Selectores robustos
-                const nameEl = row.querySelector('.product-name');
-                const brandEl = row.querySelector('.product-brand');
-                const catEl = row.querySelector('.product-category');
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (row.id === 'noResultsRow') continue;
 
-                const name = nameEl ? nameEl.textContent.toLowerCase() : '';
-                const brand = brandEl ? brandEl.textContent.toLowerCase() : '';
-                const category = catEl ? catEl.textContent.toLowerCase() : '';
+            const name = row.querySelector('.product-name')?.textContent.toLowerCase() || '';
+            const brand = row.querySelector('.product-brand')?.textContent.toLowerCase() || '';
+            const category = row.querySelector('.product-category')?.textContent.toLowerCase() || '';
+            const stock = parseInt(row.getAttribute('data-stock')) || 0;
 
-                const matchesSearch = name.includes(searchTerm) || brand.includes(searchTerm);
-                // Si la categoría está vacía, mostrar todo, si no, coincidencia exacta o parcial
-                const matchesCategory = categoryTerm === '' || category.includes(categoryTerm);
+            const matchesSearch = name.includes(searchTerm) || brand.includes(searchTerm);
+            const matchesCategory = categoryTerm === '' || category.includes(categoryTerm);
 
-                if (matchesSearch && matchesCategory) {
-                    row.style.display = '';
-                    hasResults = true;
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            }
+            let matchesStatus = true;
+            if (currentStatusFilter === 'low') matchesStatus = (stock > 0 && stock < 5);
+            else if (currentStatusFilter === 'out') matchesStatus = (stock === 0);
 
-            // Mostrar u ocultar mensaje de "No resultados"
-            if (noResultsRow) {
-                noResultsRow.style.display = hasResults ? 'none' : '';
+            if (matchesSearch && matchesCategory && matchesStatus) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
             }
         }
 
-        searchInput.addEventListener('keyup', filterTable);
-        filterCategory.addEventListener('change', filterTable);
+        if (noResultsRow) noResultsRow.style.display = visibleCount === 0 ? '' : 'none';
     }
-});
 
-    </script>
+    // ==========================================
+    // 5. MODALES Y EVENTOS DOM
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', function() {
+        // Modal Ingreso
+        var ingresoModal = document.getElementById('ingresoModal');
+        if(ingresoModal) {
+            ingresoModal.addEventListener('show.bs.modal', function (event) {
+                var btn = event.relatedTarget;
+                ingresoModal.querySelector('#modal-producto-nombre').textContent = btn.getAttribute('data-producto-nombre');
+                ingresoModal.querySelector('#productoIdInput').value = btn.getAttribute('data-producto-id');
+            });
+        }
+        // Modal Salida
+        var salidaModal = document.getElementById('salidaModal');
+        if(salidaModal) {
+            salidaModal.addEventListener('show.bs.modal', function (event) {
+                var btn = event.relatedTarget;
+                salidaModal.querySelector('#modal-producto-nombre-salida').textContent = btn.getAttribute('data-producto-nombre');
+                salidaModal.querySelector('#productoIdInputSalida').value = btn.getAttribute('data-producto-id');
+            });
+        }
+    });
 
-</div>
+    async function abrirModalHistorial(buttonElement) {
+        const productoId = buttonElement.getAttribute('data-producto-id');
+        const productoNombre = buttonElement.getAttribute('data-producto-nombre');
+        const tbody = document.getElementById('tablaHistorialBody');
 
+        document.getElementById('historialModalTitle').textContent = ` Historial: ${productoNombre}`;
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Cargando...</td></tr>';
+
+        try {
+            const response = await fetch(`/api/inventario/historial/${productoId}`);
+            if (!response.ok) throw new Error('Error API');
+            const movimientos = await response.json();
+            tbody.innerHTML = '';
+
+            if (movimientos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Sin movimientos.</td></tr>';
+            } else {
+                movimientos.forEach(mov => {
+                    const fecha = new Date(mov.fecha).toLocaleString();
+                    let badgeClass = mov.tipoMovimiento && mov.tipoMovimiento.includes('INGRESO') ? 'bg-success' : 'bg-danger';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${fecha}</td>
+                            <td><span class="badge ${badgeClass} text-white">${mov.tipoMovimiento}</span></td>
+                            <td>${mov.cantidad}</td>
+                            <td>${mov.motivo}</td>
+                        </tr>`;
+                });
+            }
+        } catch (error) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Error al cargar historial.</td></tr>`;
+        }
+    }
+
+    // ==========================================
+    // 6. GESTIÓN DE PESTAÑAS Y USUARIOS (Sin cambios)
+    // ==========================================
+    function cambiarTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+
+        const buttons = document.getElementsByClassName('tab');
+        for(let btn of buttons) {
+            if(btn.getAttribute('onclick').includes(tabName)) btn.classList.add('active');
+        }
+
+        if(tabName === 'dashboard') cargarEstadisticas();
+        if(tabName === 'compras') cargarReportesVentas();
+        if(tabName === 'usuarios') cargarUsuarios();
+    }
+
+    function cargarUsuarios() {
+        fetch('/api/admin/usuarios')
+            .then(r => r.json())
+            .then(usuarios => {
+                const tbody = document.querySelector('#usuarios tbody');
+                tbody.innerHTML = '';
+                if (usuarios && usuarios.length > 0) {
+                    usuarios.forEach(usuario => {
+                        const tr = document.createElement('tr');
+                        let rolesHtml = '';
+                        (Array.isArray(usuario.roles) ? usuario.roles : []).forEach(rol => {
+                            const nombre = rol.replace('ROLE_', '');
+                            let cls = (rol.includes('ADMIN') || rol.includes('GERENTE')) ? 'badge-admin' : 'badge-cliente';
+                            rolesHtml += `<span class="${cls}">${nombre}</span> `;
+                        });
+                        const estCls = usuario.activo ? 'status-activo' : 'status-inactivo';
+                        const estTxt = usuario.activo ? 'Activo' : 'Inactivo';
+                        tr.innerHTML = `<td>${usuario.id}</td><td>${usuario.nombre || 'N/A'}</td><td>${usuario.email || 'N/A'}</td><td>${usuario.localidad || 'N/A'}</td><td>${rolesHtml}</td><td><span class="${estCls}">${estTxt}</span></td><td><button class="btn-edit" onclick="editarUsuario(${usuario.id})">Editar</button><button class="btn-delete" onclick="eliminarUsuario(${usuario.id})">Eliminar</button></td>`;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No hay usuarios.</td></tr>`;
+                }
+            })
+            .catch(e => console.error('Error usuarios:', e));
+    }
+
+    function irInicio() { window.location.href = '/'; }
+    function nuevoUsuario() { window.location.href = '/admin/usuarios/crear'; }
+    function editarUsuario(id) { window.location.href = '/admin/usuarios/editar/' + id; }
+    function eliminarUsuario(id) {
+        if(confirm('¿Eliminar usuario?')) {
+            fetch('/api/admin/usuarios/' + id, { method: 'DELETE' })
+                .then(r => { if(r.ok) { alert('Eliminado'); cargarUsuarios(); cargarEstadisticas(); } else alert('Error'); })
+                .catch(e => { console.error(e); alert('Error'); });
+        }
+    }
+    function nuevoProducto() { window.location.href = '/inventario/productos/nuevo'; }
+    function nuevaCompra() { alert('Por implementar'); }
+    function verDetalleCompra(id) { alert('Detalle: ' + id); }
+    function buscarUsuario(val) { console.log('Buscar:', val); }
+    function filtrarRol(val) { console.log('Filtro:', val); }
+</script>
 </body>
-
 </html>
