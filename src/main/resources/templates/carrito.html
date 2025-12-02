@@ -67,7 +67,10 @@
         /* QUANTITY */
         .quantity-selector { display: inline-flex; border: 2px solid #E5E7EB; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
         .quantity-btn { width: 36px; height: 36px; background: white; border: none; color: var(--primary-purple); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-weight: 700; font-size: 1.1rem; }
-        .quantity-btn:hover { background: var(--gradient-primary); color: white; transform: scale(1.1); }
+        .quantity-btn:hover:not(:disabled) { background: var(--gradient-primary); color: white; transform: scale(1.1); }
+        /* Estilo para botón deshabilitado */
+        .quantity-btn:disabled { background-color: #f3f4f6; color: #ccc; cursor: not-allowed; transform: none; }
+
         .quantity-input { width: 50px; height: 36px; text-align: center; border: none; border-left: 2px solid #E5E7EB; border-right: 2px solid #E5E7EB; font-weight: 700; color: var(--primary-purple); background: #FAFAFA; -moz-appearance: textfield; }
         .quantity-input::-webkit-outer-spin-button, .quantity-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .btn-remove { color: #9CA3AF; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s; font-weight: 600; }
@@ -154,7 +157,6 @@
 
     <div class="row g-4">
         <div class="col-lg-8">
-            <!-- REVIEW SECTION -->
             <div id="review" class="checkout-section">
                 <div class="cart-container p-4">
                     <h2 class="form-section-title">Tu Pedido</h2>
@@ -168,7 +170,6 @@
                 </div>
             </div>
 
-            <!-- SHIPPING SECTION -->
             <div id="shipping" class="checkout-section hidden">
                 <div id="shipping-form">
                     <h2 class="form-section-title">Información de Envío</h2>
@@ -255,7 +256,6 @@
                 </div>
             </div>
 
-            <!-- PAYMENT SECTION -->
             <div id="payment" class="checkout-section hidden">
                 <div id="payment-form">
                     <h2 class="form-section-title">Método de Pago</h2>
@@ -267,7 +267,6 @@
                         <div class="payment-tab active" data-payment="credit-card"><i class="bi bi-credit-card-fill me-2"></i>Tarjeta</div>
                         <div class="payment-tab" data-payment="cash"><i class="bi bi-cash-stack me-2"></i>Contraentrega</div>
                     </div>
-                    <!-- CREDIT CARD FORM -->
                     <div id="credit-card-section">
                         <div class="credit-card-visual mx-auto" style="max-width: 400px;">
                             <div class="d-flex justify-content-between align-items-start"><div class="chip"></div><i class="bi bi-wifi fs-3 opacity-50"></i></div>
@@ -288,7 +287,6 @@
                             </div>
                         </form>
                     </div>
-                    <!-- CASH ON DELIVERY SECTION -->
                     <div id="cash-section" class="hidden">
                         <div class="cash-option">
                             <i class="bi bi-box-seam cash-icon"></i>
@@ -301,7 +299,6 @@
                 </div>
             </div>
 
-            <!-- CONFIRMATION SECTION -->
             <div id="confirmation" class="checkout-section hidden text-center">
                 <div id="confirmation-view">
                     <div class="confirmation-icon animate__animated animate__bounceIn"><i class="bi bi-check-circle-fill"></i></div>
@@ -314,7 +311,6 @@
             </div>
         </div>
 
-        <!-- ORDER SUMMARY SIDEBAR -->
         <div class="col-lg-4">
             <div class="order-summary-card">
                 <h4 class="form-section-title mb-4">Resumen</h4>
@@ -426,16 +422,12 @@
         async fetchProductDetails() {
             const uniqueIds = new Set();
             Object.keys(this.cart).forEach(key => {
-                // Lógica de extracción de ID mejorada
                 let idPart;
                 if (key.includes('-')) {
-                    // Formato nuevo: "1-40-Rojo" -> ID es 1
                     idPart = key.split('-')[0];
                 } else if (key.startsWith('P')) {
-                    // Formato viejo: "P1" -> ID es 1
                     idPart = key.replace('P', '');
                 } else {
-                    // Formato simple: "1" -> ID es 1
                     idPart = key;
                 }
 
@@ -458,7 +450,7 @@
                 const productsFromServer = await response.json();
 
                 this.productDetails = productsFromServer.reduce((acc, p) => {
-                    acc[p.id] = p; // La clave en productDetails es solo el ID numérico
+                    acc[p.id] = p;
                     return acc;
                 }, {});
             } catch (error) {
@@ -483,9 +475,7 @@
             for (const key in this.cart) {
                 const item = this.cart[key];
 
-                // Extraer variantes desde la clave (Ej: "5-38-Azul")
                 let productId, specificTalla, specificColor;
-
                 if (key.includes('-')) {
                     const parts = key.split('-');
                     productId = parseInt(parts[0]);
@@ -500,11 +490,16 @@
                 const product = this.productDetails[productId];
                 if (!product) continue;
 
-                // Prioridad: 1. Item guardado, 2. Clave compuesta, 3. Producto base
                 const tallaInfo = item.talla || specificTalla || product.talla || 'Única';
                 const colorInfo = item.color || specificColor || product.color || 'Estándar';
 
-                // Mapa de colores visual
+                // ====== MODIFICACIÓN DE STOCK AQUÍ ======
+                // Asumimos que product.stock viene del backend. Si no, usamos 99 por defecto.
+                const maxStock = product.stock !== undefined ? product.stock : 99;
+                const isMaxReached = item.quantity >= maxStock;
+                const btnPlusDisabled = isMaxReached ? 'disabled' : '';
+                // ========================================
+
                 const colorMap = {
                     'negro': '#000000', 'blanco': '#ffffff', 'rojo': '#dc3545',
                     'azul': '#0d6efd', 'verde': '#198754', 'amarillo': '#ffc107',
@@ -515,7 +510,7 @@
 
                 const el = document.createElement('div');
                 el.className = 'cart-item animate__animated animate__fadeIn';
-                el.dataset.productId = key; // IMPORTANTE: Usamos la clave única del carrito
+                el.dataset.productId = key;
 
                 el.innerHTML = `
                     <div class="cart-item-image">
@@ -524,7 +519,6 @@
                     <div class="flex-grow-1">
                         <a href="/producto/${product.id}" class="cart-item-title">${product.nombre}</a>
 
-                        <!-- VARIANTES VISUALES -->
                         <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
                             <span class="badge bg-light text-dark border px-3 py-2">
                                 <i class="bi bi-ruler-horizontal me-2 text-primary"></i>Talla: <strong>${tallaInfo}</strong>
@@ -538,11 +532,15 @@
                         <div class="cart-item-price d-lg-none mb-3">${this.currencyFormatter.format(product.precio)}</div>
 
                         <div class="d-flex align-items-center gap-3">
-                            <div class="quantity-selector">
-                                <button class="quantity-btn minus" type="button">−</button>
-                                <input type="number" class="quantity-input" value="${item.quantity}" min="1" readonly>
-                                <button class="quantity-btn plus" type="button">+</button>
+                            <div class="d-flex flex-column">
+                                <div class="quantity-selector">
+                                    <button class="quantity-btn minus" type="button">−</button>
+                                    <input type="number" class="quantity-input" value="${item.quantity}" min="1" max="${maxStock}" readonly>
+                                    <button class="quantity-btn plus" type="button" ${btnPlusDisabled} data-max="${maxStock}">+</button>
+                                </div>
+                                <small class="text-muted text-center mt-1" style="font-size:0.75rem;">Disponibles: ${maxStock}</small>
                             </div>
+
                             <button class="btn-remove" type="button">
                                 <i class="bi bi-trash3"></i>
                                 <span class="d-none d-sm-inline">Eliminar</span>
@@ -561,7 +559,6 @@
         updateOrderSummary() {
             let subtotal = 0, itemCount = 0;
             for (const key in this.cart) {
-                // Extraer solo el ID para buscar el precio
                 let productId;
                 if (key.includes('-')) productId = parseInt(key.split('-')[0]);
                 else if (key.startsWith('P')) productId = parseInt(key.replace('P', ''));
@@ -631,12 +628,24 @@
                 cartContainer.addEventListener('click', (e) => {
                     const itemEl = e.target.closest('.cart-item');
                     if (!itemEl) return;
-                    const pId = itemEl.dataset.productId; // Clave única (ej: 1-40-Rojo)
+                    const pId = itemEl.dataset.productId;
 
                     if (e.target.closest('.quantity-btn.minus')) {
                         this.updateQuantity(pId, this.cart[pId].quantity - 1);
                     } else if (e.target.closest('.quantity-btn.plus')) {
-                        this.updateQuantity(pId, this.cart[pId].quantity + 1);
+                        // ====== VALIDACIÓN DE STOCK AL HACER CLICK ======
+                        const btnPlus = e.target.closest('.quantity-btn.plus');
+                        // Leer el stock máximo del atributo data-max
+                        const maxStock = parseInt(btnPlus.dataset.max) || 99;
+                        const currentQty = this.cart[pId].quantity;
+
+                        if (currentQty < maxStock) {
+                            this.updateQuantity(pId, currentQty + 1);
+                        } else {
+                            // Feedback extra por si acaso
+                            alert(`Solo hay ${maxStock} unidades disponibles de este producto.`);
+                        }
+                        // ===============================================
                     } else if (e.target.closest('.btn-remove')) {
                         this.removeItem(pId, itemEl);
                     }
@@ -694,30 +703,14 @@
                     this.cart[key].quantity = quantity;
                     this.saveCart();
                     this.updateCartCountBadge();
+                    // Importante: al llamar renderCartItems se revalúa si el botón + debe estar habilitado
+                    this.renderCartItems();
                     this.updateOrderSummary();
-                    const itemEl = document.querySelector(`.cart-item[data-product-id="${key}"]`);
-                    if (itemEl) {
-                        const input = itemEl.querySelector('.quantity-input');
-                        if (input) input.value = quantity;
-
-                        // Recalcular precio de línea usando ID base
-                        let productId;
-                        if (key.includes('-')) productId = parseInt(key.split('-')[0]);
-                        else if (key.startsWith('P')) productId = parseInt(key.replace('P', ''));
-                        else productId = parseInt(key);
-
-                        const product = this.productDetails[productId];
-                        const priceEl = itemEl.querySelector('.text-end .cart-item-price');
-                        if (priceEl && product) {
-                            priceEl.textContent = this.currencyFormatter.format(product.precio * quantity);
-                        }
-                    }
                 }
             }
         }
 
         removeItem(key, element, skipConfirmation = false) {
-            // Obtener nombre para confirmación
             let productId;
             if (key.includes('-')) productId = parseInt(key.split('-')[0]);
             else if (key.startsWith('P')) productId = parseInt(key.replace('P', ''));
@@ -824,7 +817,6 @@
             const itemsParaEnviar = [];
             for (const key in this.cart) {
                 let productId;
-                // Parsear ID base y variantes
                 let specificTalla = null;
                 let specificColor = null;
 
@@ -840,8 +832,6 @@
                 }
 
                 const item = this.cart[key];
-
-                // Priorizar variante de la clave, luego del item, luego del producto
                 const product = this.productDetails[productId];
                 const talla = specificTalla || item.talla || (product ? product.talla : null);
                 const color = specificColor || item.color || (product ? product.color : null);
