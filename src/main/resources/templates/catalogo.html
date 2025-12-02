@@ -592,244 +592,316 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
-    let favorites = JSON.parse(localStorage.getItem('goldenFeetsFavorites')) || [];
+    // ============================================
+  // REEMPLAZA TODO EL <script> AL FINAL DE TU catalogo.html
+  // ============================================
 
-    // Definimos las opciones disponibles (Igual que en tu Backend)
-    const availableSizes = Array.from({length: 12}, (_, i) => i + 30); // [30, 31, ... 41]
-    const availableColors = ["Negro", "Blanco", "Rojo", "Azul", "Verde", "Gris", "Beige", "Cafe", "Rosa", "Amarillo", "Multicolor"];
+  const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+  let favorites = JSON.parse(localStorage.getItem('goldenFeetsFavorites')) || [];
 
-    document.addEventListener('DOMContentLoaded', () => {
-        initFavorites();
-        updateCartCount();
-        updateWishlistCount();
+  // Definimos las opciones disponibles
+  const availableSizes = Array.from({length: 12}, (_, i) => i + 30); // [30, 31, ... 41]
+  const availableColors = ["Negro", "Blanco", "Rojo", "Azul", "Verde", "Gris", "Beige", "Cafe", "Rosa", "Amarillo", "Multicolor"];
 
-        const range = document.getElementById('price-range');
-        const display = document.getElementById('price-display');
-        if(range) {
-            range.addEventListener('input', (e) => {
-                const formattedValue = new Intl.NumberFormat('es-CO').format(e.target.value);
-                display.querySelector('span').innerText = formattedValue;
-            });
-        }
-    });
+  document.addEventListener('DOMContentLoaded', () => {
+      initFavorites();
+      updateCartCount();
+      updateWishlistCount();
 
-    // --- FAVORITOS (Sin cambios) ---
-    function initFavorites() {
-        document.querySelectorAll('.btn-favorite').forEach(btn => {
-            const id = parseInt(btn.dataset.id);
-            if(favorites.includes(id)) {
-                btn.classList.add('active');
-                btn.querySelector('i').classList.replace('bi-heart', 'bi-heart-fill');
-            }
-        });
-    }
+      const range = document.getElementById('price-range');
+      const display = document.getElementById('price-display');
+      if(range) {
+          range.addEventListener('input', (e) => {
+              const formattedValue = new Intl.NumberFormat('es-CO').format(e.target.value);
+              display.querySelector('span').innerText = formattedValue;
+          });
+      }
+  });
 
-    function toggleFavorite(btn, id) {
-        const icon = btn.querySelector('i');
-        if(favorites.includes(id)) {
-            favorites = favorites.filter(f => f !== id);
-            btn.classList.remove('active');
-            icon.classList.replace('bi-heart-fill', 'bi-heart');
-            showToast('Eliminado de favoritos', 'info');
-        } else {
-            favorites.push(id);
-            btn.classList.add('active');
-            icon.classList.replace('bi-heart', 'bi-heart-fill');
-            showToast('Añadido a favoritos', 'success');
-        }
-        localStorage.setItem('goldenFeetsFavorites', JSON.stringify(favorites));
-        updateWishlistCount();
-    }
+  // ============================================
+  // FAVORITOS (Sin cambios)
+  // ============================================
+  function initFavorites() {
+      document.querySelectorAll('.btn-favorite').forEach(btn => {
+          const id = parseInt(btn.dataset.id);
+          if(favorites.includes(id)) {
+              btn.classList.add('active');
+              btn.querySelector('i').classList.replace('bi-heart', 'bi-heart-fill');
+          }
+      });
+  }
 
-    function updateWishlistCount() {
-        const wishlistCountElement = document.getElementById('wishlist-count');
-        if (wishlistCountElement) wishlistCountElement.textContent = favorites.length;
-    }
+  function toggleFavorite(btn, id) {
+      const icon = btn.querySelector('i');
+      if(favorites.includes(id)) {
+          favorites = favorites.filter(f => f !== id);
+          btn.classList.remove('active');
+          icon.classList.replace('bi-heart-fill', 'bi-heart');
+          showToast('Eliminado de favoritos', 'info');
+      } else {
+          favorites.push(id);
+          btn.classList.add('active');
+          icon.classList.replace('bi-heart', 'bi-heart-fill');
+          showToast('Añadido a favoritos', 'success');
+      }
+      localStorage.setItem('goldenFeetsFavorites', JSON.stringify(favorites));
+      updateWishlistCount();
+  }
 
-    // --- VISTA PREVIA (MODIFICADO PARA INCLUIR SELECTORES) ---
-    async function quickViewPremium(productId) {
-        const modalEl = document.getElementById('premiumModal');
-        const wrapper = document.getElementById('modal-content-wrapper');
-        const modal = new bootstrap.Modal(modalEl);
+  function updateWishlistCount() {
+      const wishlistCountElement = document.getElementById('wishlist-count');
+      if (wishlistCountElement) wishlistCountElement.textContent = favorites.length;
+  }
 
-        wrapper.innerHTML = '<div class="d-flex justify-content-center align-items-center p-5" style="height: 400px;"><div class="spinner-border text-primary"></div></div>';
-        modal.show();
+  // ============================================
+  // VISTA PREVIA CON SELECTORES DE VARIANTES
+  // ============================================
+  async function quickViewPremium(productId) {
+      const modalEl = document.getElementById('premiumModal');
+      const wrapper = document.getElementById('modal-content-wrapper');
+      const modal = new bootstrap.Modal(modalEl);
 
-        try {
-            const response = await fetch(`/api/productos/${productId}`);
-            if(!response.ok) throw new Error('Error al obtener datos');
-            const p = await response.json();
+      wrapper.innerHTML = '<div class="d-flex justify-content-center align-items-center p-5" style="height: 400px;"><div class="spinner-border text-primary"></div></div>';
+      modal.show();
 
-            const stock = p.stock !== undefined ? p.stock : 0;
-            const categoriaNombre = p.nombreCategoria || (p.categoria ? p.categoria.nombre : 'Golden Feets');
-            const sku = p.sku || `ID-${p.id}`;
+      try {
+          const response = await fetch(`/api/productos/${productId}`);
+          if(!response.ok) throw new Error('Error al obtener datos');
+          const p = await response.json();
 
-            // 1. Generar opciones de Talla
-            // Pre-seleccionamos la talla que viene del producto si existe en la lista, si no, la primera.
-            let sizeOptions = availableSizes.map(s =>
-                `<option value="${s}" ${p.talla === s ? 'selected' : ''}>${s}</option>`
-            ).join('');
+          const stock = p.stock !== undefined ? p.stock : 0;
+          const categoriaNombre = p.nombreCategoria || (p.categoria ? p.categoria.nombre : 'Golden Feets');
+          const sku = p.sku || `ID-${p.id}`;
 
-            // 2. Generar opciones de Color
-            let colorOptions = availableColors.map(c =>
-                `<option value="${c}" ${p.color === c ? 'selected' : ''}>${c}</option>`
-            ).join('');
+          // Generar opciones de Talla
+          let sizeOptions = availableSizes.map(s =>
+              `<option value="${s}" ${p.talla === s ? 'selected' : ''}>${s}</option>`
+          ).join('');
 
-            wrapper.innerHTML = `
-                <button type="button" class="modal-close-btn" data-bs-dismiss="modal">
-                    <i class="bi bi-x-lg"></i>
-                </button>
+          // Generar opciones de Color
+          let colorOptions = availableColors.map(c =>
+              `<option value="${c}" ${p.color === c ? 'selected' : ''}>${c}</option>`
+          ).join('');
 
-                <div class="modal-body-grid">
-                    <div class="gallery-section">
-                        <div class="main-img-box">
-                            <img src="${p.imagenUrl}" id="main-modal-img" alt="${p.nombre}" onerror="this.src='https://via.placeholder.com/500?text=No+Image'">
-                        </div>
-                    </div>
+          wrapper.innerHTML = `
+              <button type="button" class="modal-close-btn" data-bs-dismiss="modal">
+                  <i class="bi bi-x-lg"></i>
+              </button>
 
-                    <div class="details-section">
-                        <div>
-                            <span class="text-uppercase fw-bold text-muted small mb-2 d-block tracking-wide">
-                                ${categoriaNombre}
-                            </span>
-                            <h2 class="modal-title-lg mb-3">${p.nombre}</h2>
-                            <p class="text-muted lh-lg">${p.descripcion || 'Sin descripción disponible.'}</p>
-                        </div>
+              <div class="modal-body-grid">
+                  <div class="gallery-section">
+                      <div class="main-img-box">
+                          <img src="${p.imagenUrl}" id="main-modal-img" alt="${p.nombre}" onerror="this.src='https://via.placeholder.com/500?text=No+Image'">
+                      </div>
+                  </div>
 
-                        <div class="row g-3 mb-2">
-                            <div class="col-6">
-                                <label class="spec-label mb-2">Talla</label>
-                                <select id="modal-size" class="form-select form-select-premium">
-                                    ${sizeOptions}
-                                </select>
-                            </div>
-                            <div class="col-6">
-                                <label class="spec-label mb-2">Color</label>
-                                <select id="modal-color" class="form-select form-select-premium">
-                                    ${colorOptions}
-                                </select>
-                            </div>
-                        </div>
+                  <div class="details-section">
+                      <div>
+                          <span class="text-uppercase fw-bold text-muted small mb-2 d-block tracking-wide">
+                              ${categoriaNombre}
+                          </span>
+                          <h2 class="modal-title-lg mb-3">${p.nombre}</h2>
+                          <p class="text-muted lh-lg">${p.descripcion || 'Sin descripción disponible.'}</p>
+                      </div>
 
-                        <div class="spec-grid">
-                            <div>
-                                <div class="spec-label">Precio</div>
-                                <div class="fs-2 fw-black" style="font-family: var(--font-serif); font-weight: 900; color: var(--purple-600);">
-                                    ${formatter.format(p.precio)}
-                                </div>
-                            </div>
-                            <div>
-                                <div class="spec-label">Disponibilidad</div>
-                                <div class="${stock > 0 ? 'text-success' : 'text-danger'} fw-bold d-flex align-items-center gap-1">
-                                    <i class="bi ${stock > 0 ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
-                                    ${stock > 0 ? stock + ' en stock' : 'Agotado'}
-                                </div>
-                            </div>
-                            <div>
-                                <div class="spec-label">SKU</div>
-                                <div class="spec-value">${sku}</div>
-                            </div>
-                            <div>
-                                <div class="spec-label">Envío</div>
-                                <div class="spec-value">Gratis</div>
-                            </div>
-                        </div>
+                      <div class="row g-3 mb-2">
+                          <div class="col-6">
+                              <label class="spec-label mb-2">Talla</label>
+                              <select id="modal-size" class="form-select form-select-premium">
+                                  ${sizeOptions}
+                              </select>
+                          </div>
+                          <div class="col-6">
+                              <label class="spec-label mb-2">Color</label>
+                              <select id="modal-color" class="form-select form-select-premium">
+                                  ${colorOptions}
+                              </select>
+                          </div>
+                      </div>
 
-                        <div class="mt-auto">
-                            <div class="d-flex gap-3">
-                                <div class="input-group" style="width: 140px; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
-                                    <button class="btn btn-light px-3" type="button" onclick="this.nextElementSibling.stepDown()" ${stock === 0 ? 'disabled' : ''}>-</button>
-                                    <input type="number" id="modal-quantity" class="form-control text-center border-0 bg-white fw-bold" value="1" min="1" max="${stock}" ${stock === 0 ? 'disabled' : ''}>
-                                    <button class="btn btn-light px-3" type="button" onclick="this.previousElementSibling.stepUp()" ${stock === 0 ? 'disabled' : ''}>+</button>
-                                </div>
+                      <div class="spec-grid">
+                          <div>
+                              <div class="spec-label">Precio</div>
+                              <div class="fs-2 fw-black" style="font-family: var(--font-serif); font-weight: 900; color: var(--purple-600);">
+                                  ${formatter.format(p.precio)}
+                              </div>
+                          </div>
+                          <div>
+                              <div class="spec-label">Disponibilidad</div>
+                              <div class="${stock > 0 ? 'text-success' : 'text-danger'} fw-bold d-flex align-items-center gap-1">
+                                  <i class="bi ${stock > 0 ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                                  ${stock > 0 ? stock + ' en stock' : 'Agotado'}
+                              </div>
+                          </div>
+                          <div>
+                              <div class="spec-label">SKU</div>
+                              <div class="spec-value">${sku}</div>
+                          </div>
+                          <div>
+                              <div class="spec-label">Envío</div>
+                              <div class="spec-value">Gratis</div>
+                          </div>
+                      </div>
 
-                                <button onclick="addToCartFromModal(${p.id}, '${p.nombre.replace(/'/g, "\\'")}')"
-                                        class="btn flex-grow-1 text-white fw-bold fs-5"
-                                        ${stock === 0 ? 'disabled' : ''}
-                                        style="background: var(--gradient-primary); border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(109, 40, 217, 0.4);">
-                                    ${stock > 0 ? 'Añadir al Carrito' : 'Sin Stock'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+                      <div class="mt-auto">
+                          <div class="d-flex gap-3">
+                              <div class="input-group" style="width: 140px; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
+                                  <button class="btn btn-light px-3" type="button" onclick="this.nextElementSibling.stepDown()" ${stock === 0 ? 'disabled' : ''}>-</button>
+                                  <input type="number" id="modal-quantity" class="form-control text-center border-0 bg-white fw-bold" value="1" min="1" max="${stock}" ${stock === 0 ? 'disabled' : ''}>
+                                  <button class="btn btn-light px-3" type="button" onclick="this.previousElementSibling.stepUp()" ${stock === 0 ? 'disabled' : ''}>+</button>
+                              </div>
 
-        } catch (err) {
-            console.error(err);
-            wrapper.innerHTML = '<div class="p-5 text-center text-danger fw-bold">No se pudieron cargar los detalles.</div>';
-        }
-    }
+                              <button onclick="addToCartFromModal(${p.id}, '${p.nombre.replace(/'/g, "\\'")}')"
+                                      class="btn flex-grow-1 text-white fw-bold fs-5"
+                                      ${stock === 0 ? 'disabled' : ''}
+                                      style="background: var(--gradient-primary); border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(109, 40, 217, 0.4);">
+                                  ${stock > 0 ? '✓ Añadir al Carrito' : 'Sin Stock'}
+                              </button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          `;
 
-    // --- AÑADIR AL CARRITO (MODIFICADO PARA CAPTURAR TALLA Y COLOR) ---
-    function addToCartFromModal(productId, productName) {
-        const quantityInput = document.getElementById('modal-quantity');
-        const quantity = quantityInput ? (parseInt(quantityInput.value) || 1) : 1;
+      } catch (err) {
+          console.error(err);
+          wrapper.innerHTML = '<div class="p-5 text-center text-danger fw-bold">No se pudieron cargar los detalles.</div>';
+      }
+  }
 
-        // 1. Capturar valores seleccionados
-        const selectedSize = document.getElementById('modal-size').value;
-        const selectedColor = document.getElementById('modal-color').value;
+  // ============================================
+  // ⭐ AÑADIR AL CARRITO - CORREGIDO CON VARIANTES
+  // ============================================
+  function addToCartFromModal(productId, productName) {
+      const quantityInput = document.getElementById('modal-quantity');
+      const quantity = quantityInput ? (parseInt(quantityInput.value) || 1) : 1;
 
-        // 2. Pasarlos a la función principal
-        addToCart(productName, productId, quantity, selectedSize, selectedColor);
+      // Capturar valores seleccionados
+      const selectedSize = document.getElementById('modal-size').value;
+      const selectedColor = document.getElementById('modal-color').value;
 
-        const modalEl = document.getElementById('premiumModal');
-        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-        if (modalInstance) modalInstance.hide();
-    }
+      // VALIDAR que se haya seleccionado talla y color
+      if (!selectedSize || !selectedColor) {
+          showToast('⚠️ Selecciona talla y color', 'error');
+          return;
+      }
 
-    // Modificamos esta función para aceptar los parámetros extra
-    function addToCart(productName, productId, quantity = 1, size = null, color = null) {
-        let cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
-        const cartItemId = `P${productId}`;
+      // Llamar a la función principal
+      addToCart(productName, productId, quantity, selectedSize, selectedColor);
 
-        // Lógica de guardado
-        if (cart[cartItemId]) {
-            cart[cartItemId].quantity += quantity;
-            // Actualizamos talla/color con la última selección (o puedes crear lógica para ítems separados)
-            if(size) cart[cartItemId].size = size;
-            if(color) cart[cartItemId].color = color;
-        } else {
-            cart[cartItemId] = {
-                quantity: quantity,
-                size: size,     // Guardamos Talla
-                color: color    // Guardamos Color
-            };
-        }
+      // Cerrar modal
+      const modalEl = document.getElementById('premiumModal');
+      const modalInstance = bootstrap.Modal.getInstance(modalEl);
+      if (modalInstance) modalInstance.hide();
+  }
 
-        localStorage.setItem('goldenFeetsCart', JSON.stringify(cart));
-        updateCartCount();
+  /**
+   * ⭐ FUNCIÓN PRINCIPAL PARA AGREGAR AL CARRITO
+   * Usa el formato de clave: productoId-talla-color
+   */
+  function addToCart(productName, productId, quantity = 1, size, color) {
+      // IMPORTANTE: Validar que tengamos talla y color
+      if (!size || !color) {
+          console.error('❌ Error: Se requiere talla y color');
+          showToast('⚠️ Por favor selecciona talla y color', 'error');
+          return;
+      }
 
-        // Feedback visual personalizado
-        const detailsMsg = size && color ? ` (Talla: ${size}, ${color})` : '';
-        showToast(`${productName}${detailsMsg} añadido al carrito`, 'success');
-    }
+      // ⭐ CLAVE ÚNICA: productoId-talla-color (ej: "5-34-Negro")
+      const cartKey = `${productId}-${size}-${color}`;
 
-    function updateCartCount() {
-        const cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
-        const count = Object.values(cart).reduce((sum, item) => sum + (item.quantity || 0), 0);
-        const cartCountElement = document.getElementById('cart-count');
-        if(cartCountElement) cartCountElement.textContent = count;
-    }
+      let cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
 
-    function showToast(msg, type) {
-        const toastContainer = document.getElementById('toast-notification');
-        const color = type === 'success' ? 'bg-success' : 'bg-dark';
+      // Si ya existe esta combinación exacta, incrementar cantidad
+      if (cart[cartKey]) {
+          cart[cartKey].quantity += quantity;
+          console.log(`✅ Cantidad actualizada para ${cartKey}: ${cart[cartKey].quantity}`);
+      } else {
+          // Crear nuevo item con todas las propiedades
+          cart[cartKey] = {
+              productoId: productId,
+              quantity: quantity,
+              talla: size,
+              color: color,
+              addedAt: new Date().toISOString()
+          };
+          console.log(`✅ Nuevo item agregado: ${cartKey}`);
+      }
 
-        const toastHTML = `
-            <div class="toast show align-items-center text-white ${color} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body fw-bold">
-                        <i class="bi bi-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i> ${msg}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            </div>
-        `;
-        toastContainer.innerHTML = toastHTML;
-        setTimeout(() => { toastContainer.innerHTML = ''; }, 3000);
-    }
+      // Guardar en localStorage
+      localStorage.setItem('goldenFeetsCart', JSON.stringify(cart));
+
+      // Actualizar contador
+      updateCartCount();
+
+      // Mostrar notificación
+      const detailsMsg = `Talla ${size} - ${color}`;
+      showToast(`✓ ${productName} (${detailsMsg}) añadido al carrito`, 'success');
+
+      console.log('🛒 Carrito actualizado:', cart);
+  }
+
+  // ============================================
+  // ACTUALIZAR CONTADOR DEL CARRITO
+  // ============================================
+  function updateCartCount() {
+      const cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
+      const count = Object.values(cart).reduce((sum, item) => sum + (item.quantity || 0), 0);
+      const cartCountElement = document.getElementById('cart-count');
+      if(cartCountElement) {
+          cartCountElement.textContent = count;
+
+          // Animación de "pop"
+          cartCountElement.style.transform = 'scale(1.3)';
+          setTimeout(() => {
+              cartCountElement.style.transform = 'scale(1)';
+          }, 200);
+      }
+
+      console.log(`🛒 Total items en carrito: ${count}`);
+  }
+
+  // ============================================
+  // NOTIFICACIONES MEJORADAS
+  // ============================================
+  function showToast(msg, type) {
+      const toastContainer = document.getElementById('toast-notification');
+
+      const colors = {
+          success: 'bg-success',
+          error: 'bg-danger',
+          info: 'bg-info'
+      };
+
+      const icons = {
+          success: 'check-circle-fill',
+          error: 'exclamation-triangle-fill',
+          info: 'info-circle-fill'
+      };
+
+      const bgColor = colors[type] || 'bg-dark';
+      const icon = icons[type] || 'info-circle';
+
+      const toastHTML = `
+          <div class="toast show align-items-center text-white ${bgColor} border-0"
+               role="alert" aria-live="assertive" aria-atomic="true"
+               style="box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-radius: 12px;">
+              <div class="d-flex">
+                  <div class="toast-body fw-bold">
+                      <i class="bi bi-${icon} me-2"></i> ${msg}
+                  </div>
+                  <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                          data-bs-dismiss="toast" aria-label="Close"></button>
+              </div>
+          </div>
+      `;
+
+      toastContainer.innerHTML = toastHTML;
+
+      setTimeout(() => {
+          toastContainer.innerHTML = '';
+      }, 3500);
+  }
 </script>
 
 </body>

@@ -19,11 +19,16 @@ public class DetalleVenta {
     private Venta venta;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    // 💥 CORRECCIÓN: Eliminamos 'referencedColumnName'.
-    // Solo indicamos que la columna (FK) en ESTA tabla se llama 'id_producto'.
-    // Hibernate buscará automáticamente el @Id en la entidad Producto.
     @JoinColumn(name = "id_producto", nullable = false)
     private Producto producto;
+
+    // === AGREGADO: CAMPOS PARA GUARDAR VARIANTE ===
+    @Column(name = "talla")
+    private String talla;
+
+    @Column(name = "color")
+    private String color;
+    // ==============================================
 
     @Column(name = "cantidad", nullable = false)
     private Integer cantidad;
@@ -38,11 +43,13 @@ public class DetalleVenta {
     public DetalleVenta() {
     }
 
-    public DetalleVenta(Venta venta, Producto producto, Integer cantidad, BigDecimal precioUnitario) {
+    public DetalleVenta(Venta venta, Producto producto, Integer cantidad, BigDecimal precioUnitario, String talla, String color) {
         this.venta = venta;
         this.producto = producto;
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
+        this.talla = talla;
+        this.color = color;
         if (precioUnitario != null && cantidad != null) {
             this.subtotal = precioUnitario.multiply(new BigDecimal(cantidad));
         }
@@ -74,15 +81,31 @@ public class DetalleVenta {
         this.producto = producto;
     }
 
+    // === NUEVOS GETTERS Y SETTERS PARA TALLA Y COLOR ===
+    public String getTalla() {
+        return talla;
+    }
+
+    public void setTalla(String talla) {
+        this.talla = talla;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+    // ====================================================
+
     public Integer getCantidad() {
         return cantidad;
     }
 
     public void setCantidad(Integer cantidad) {
         this.cantidad = cantidad;
-        if (this.precioUnitario != null && cantidad != null) {
-            this.subtotal = this.precioUnitario.multiply(new BigDecimal(cantidad));
-        }
+        recalcularSubtotal();
     }
 
     public BigDecimal getPrecioUnitario() {
@@ -91,9 +114,7 @@ public class DetalleVenta {
 
     public void setPrecioUnitario(BigDecimal precioUnitario) {
         this.precioUnitario = precioUnitario;
-        if (this.cantidad != null && precioUnitario != null) {
-            this.subtotal = precioUnitario.multiply(new BigDecimal(cantidad));
-        }
+        recalcularSubtotal();
     }
 
     public BigDecimal getSubtotal() {
@@ -104,11 +125,20 @@ public class DetalleVenta {
         this.subtotal = subtotal;
     }
 
+    // Método auxiliar para mantener coherencia
+    private void recalcularSubtotal() {
+        if (this.precioUnitario != null && this.cantidad != null) {
+            this.subtotal = this.precioUnitario.multiply(new BigDecimal(this.cantidad));
+        }
+    }
+
     @Override
     public String toString() {
         return "DetalleVenta{" +
                 "idDetalle=" + idDetalle +
                 ", producto=" + (producto != null ? producto.getNombre() : "N/A") +
+                ", talla='" + talla + '\'' +
+                ", color='" + color + '\'' +
                 ", cantidad=" + cantidad +
                 '}';
     }

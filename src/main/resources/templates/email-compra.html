@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        body { font-family: 'Helvetica', sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { background-color: #4C1D95; padding: 20px; text-align: center; color: white; }
+        .content { padding: 30px; color: #333333; }
+        .product-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .product-table th { text-align: left; border-bottom: 2px solid #ddd; padding: 10px; color: #4C1D95; }
+        .product-table td { border-bottom: 1px solid #eee; padding: 10px; }
+        .total-section { text-align: right; margin-top: 20px; font-size: 1.2em; font-weight: bold; color: #4C1D95; }
+        .footer { background-color: #eee; padding: 15px; text-align: center; font-size: 12px; color: #666; }
+        .btn { display: inline-block; background-color: #6D28D9; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>¡Gracias por tu compra!</h1>
+        <p>Pedido #GF-<span th:text="${venta.idVenta}">001</span></p>
+    </div>
+    <div class="content">
+        <p>Hola <strong th:text="${venta.cliente.nombre}">Usuario</strong>,</p>
+        <p>Tu pedido ha sido confirmado exitosamente. Estamos preparando tus zapatos para el envío a la dirección:
+            <strong th:text="${venta.cliente.direccion + ', ' + venta.cliente.ciudad}">Dirección</strong>.
+        </p>
+
+        <h3>Resumen de Compra:</h3>
+        <table class="product-table">
+            <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cant.</th>
+                <th>Precio</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="detalle : ${venta.detallesVenta}">
+                <td>
+                    <span th:text="${detalle.producto.nombre}">Zapato</span><br>
+                    <small style="color: #777;">
+                        Talla: <span th:text="${detalle.producto.talla}">40</span> |
+                        Color: <span th:text="${detalle.producto.color}">Negro</span>
+                    </small>
+                </td>
+                <td th:text="${detalle.cantidad}">1</td>
+                <td th:text="${'$' + #numbers.formatDecimal(detalle.subtotal, 0, 'POINT', 0, 'COMMA')}">$100.000</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="total-section">
+            Total Pagado: <span th:text="${'$' + #numbers.formatDecimal(venta.total, 0, 'POINT', 0, 'COMMA')}">$0</span>
+        </div>
+
+        <p style="text-align: center;">
+            <a th:href="@{'http://localhost:8080/perfil'}" class="btn">Ver Estado del Pedido</a>
+        </p>
+
+        <p><em>Adjunto a este correo encontrarás tu factura detallada en PDF.</em></p>
+    </div>
+    <div class="footer">
+        &copy; 2025 Golden Feets Store.<br>
+        Este es un correo automático, por favor no responder.
+    </div>
+</div>
+</body>
+</html>

@@ -2,15 +2,18 @@ package com.GoldenFeet.GoldenFeets.service;
 
 import com.GoldenFeet.GoldenFeets.entity.DetalleVenta;
 import com.GoldenFeet.GoldenFeets.entity.Entrega;
+import com.GoldenFeet.GoldenFeets.entity.Venta;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource; // IMPORTANTE
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
+import java.io.ByteArrayInputStream;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -20,10 +23,7 @@ public class EmailService {
 
     @Async
     public void enviarCorreoDeEntregaCompletada(Entrega entrega) {
-        if (entrega.getVenta() == null || entrega.getVenta().getCliente() == null) {
-            System.err.println("Error: No se puede enviar correo. Faltan datos de la venta o del cliente.");
-            return;
-        }
+        if (entrega.getVenta() == null || entrega.getVenta().getCliente() == null) return;
 
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -32,35 +32,57 @@ public class EmailService {
             helper.setTo(entrega.getVenta().getCliente().getEmail());
             helper.setSubject("✅ ¡Tu pedido de Golden Feets ha sido entregado!");
 
-            // --- Construcción del cuerpo del correo en HTML ---
-            StringBuilder htmlBody = new StringBuilder();
-            htmlBody.append("<html><body style='font-family: Arial, sans-serif; color: #333;'>");
-            htmlBody.append("<h1 style='color: #4D1C95;'>¡Hola, ").append(entrega.getVenta().getCliente().getNombre()).append("!</h1>");
-            htmlBody.append("<p>Nos complace informarte que tu pedido <strong>#").append(entrega.getVenta().getIdVenta()).append("</strong> ha sido entregado exitosamente.</p>");
-            htmlBody.append("<h2 style='color: #6C4AB6;'>Detalles de tu Compra:</h2>");
-            htmlBody.append("<table border='1' cellpadding='10' style='border-collapse: collapse; width: 100%;'>");
-            htmlBody.append("<thead style='background-color: #f2f2f2;'><tr><th>Producto</th><th>Cantidad</th><th>Precio Unitario</th><th>Subtotal</th></tr></thead>");
-            htmlBody.append("<tbody>");
+            // Construir HTML simple
+            StringBuilder html = new StringBuilder();
+            html.append("<html><body>");
+            html.append("<h1>¡Pedido #GF-").append(entrega.getVenta().getIdVenta()).append(" Entregado!</h1>");
+            html.append("<p>Gracias por tu compra. Esperamos que disfrutes tus productos.</p>");
+            html.append("</body></html>");
 
-            for (DetalleVenta detalle : entrega.getVenta().getDetallesVenta()) {
-                htmlBody.append("<tr>");
-                htmlBody.append("<td>").append(detalle.getProducto().getNombre()).append("</td>");
-                htmlBody.append("<td style='text-align: center;'>").append(detalle.getCantidad()).append("</td>");
-                htmlBody.append("<td style='text-align: right;'>$").append(detalle.getPrecioUnitario()).append("</td>");
-                htmlBody.append("<td style='text-align: right;'>$").append(detalle.getSubtotal()).append("</td>");
-                htmlBody.append("</tr>");
+            helper.setText(html.toString(), true);
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Async
+    public void enviarConfirmacionCompra(Venta venta, ByteArrayInputStream pdfStream) {
+        if (venta.getCliente() == null) return;
+
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(venta.getCliente().getEmail());
+            helper.setSubject("🎉 ¡Pedido Confirmado! #GF-" + venta.getIdVenta());
+
+            // HTML Resumen
+            StringBuilder html = new StringBuilder();
+            NumberFormat formato = NumberFormat.getCurrencyInstance(new Locale("es", "CO"));
+
+            html.append("<html><body style='font-family: sans-serif; padding: 20px;'>");
+            html.append("<h1 style='color: #4C1D95;'>¡Gracias por tu compra!</h1>");
+            html.append("<p>Tu pedido <strong>#GF-").append(venta.getIdVenta()).append("</strong> ha sido procesado.</p>");
+            html.append("<p>Adjunto encontrarás tu factura en PDF.</p>");
+            html.append("<h3>Total Pagado: ").append(formato.format(venta.getTotal())).append("</h3>");
+            html.append("</body></html>");
+
+            helper.setText(html.toString(), true);
+
+            // --- CORRECCIÓN CRÍTICA ---
+            if (pdfStream != null) {
+                // Convertir Stream a ByteArrayResource para evitar error de flujo cerrado
+                byte[] bytes = pdfStream.readAllBytes();
+                ByteArrayResource pdfResource = new ByteArrayResource(bytes);
+                helper.addAttachment("Factura_GF_" + venta.getIdVenta() + ".pdf", pdfResource);
             }
 
-            htmlBody.append("</tbody></table>");
-            htmlBody.append("<h3 style='text-align: right; color: #4D1C95;'>Total: $").append(entrega.getVenta().getTotal()).append("</h3>");
-            htmlBody.append("<p>¡Gracias por tu compra en <strong>Golden Feets</strong>!</p>");
-            htmlBody.append("</body></html>");
-
-            helper.setText(htmlBody.toString(), true); // true indica que el texto es HTML
-
             javaMailSender.send(message);
+            System.out.println("Correo enviado a: " + venta.getCliente().getEmail());
 
         } catch (Exception e) {
+            System.err.println("Error enviando correo: " + e.getMessage());
             e.printStackTrace();
         }
     }

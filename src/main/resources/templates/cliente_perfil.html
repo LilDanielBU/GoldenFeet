@@ -334,37 +334,16 @@
            color: var(--gray-900);
        }
 
-       .order-status {
-           padding: 0.5rem 1rem;
-           border-radius: 50px;
+       /* ESTILOS DE ESTADO (BADGES) */
+       .badge {
            font-size: 0.85rem;
            font-weight: 700;
+           letter-spacing: 0.5px;
        }
-
-       .status-pending {
-           background: #FEF3C7;
-           color: #92400E;
-       }
-
-       .status-processing {
-           background: #DBEAFE;
-           color: #1E40AF;
-       }
-
-       .status-shipped {
-           background: #D1FAE5;
-           color: #065F46;
-       }
-
-       .status-delivered {
-           background: var(--purple-100);
-           color: var(--purple-900);
-       }
-
-       .status-cancelled {
-           background: #FEE2E2;
-           color: #991B1B;
-       }
+       .bg-success { background-color: #198754 !important; color: white; }
+       .bg-warning { background-color: #ffc107 !important; color: #000; }
+       .bg-danger { background-color: #dc3545 !important; color: white; }
+       .bg-secondary { background-color: #6c757d !important; color: white; }
 
        .order-item {
            display: flex;
@@ -450,22 +429,6 @@
            border: 2px solid var(--gray-100);
            font-weight: 600;
            color: var(--gray-900);
-       }
-
-       /* === PROGRESS BAR === */
-       .progress-custom {
-           height: 8px;
-           border-radius: 10px;
-           background: var(--gray-100);
-           overflow: hidden;
-           margin-top: 1rem;
-       }
-
-       .progress-bar-custom {
-           height: 100%;
-           background: var(--gradient-primary);
-           border-radius: 10px;
-           transition: width 0.3s ease;
        }
     </style>
 </head>
@@ -576,34 +539,65 @@
 
                 <div th:if="${#lists.isEmpty(listaVentas)}">
                     <p class="text-muted">Aún no has realizado compras.</p>
+                    <a th:href="@{/catalogo}" class="btn btn-primary btn-sm mt-2">Ir a la tienda</a>
                 </div>
 
-                <div th:each="venta, iter : ${listaVentas}" th:if="${iter.index < 1}" class="order-card">
-                    <div class="order-header">
+                <div th:each="item, iter : ${listaVentas}" th:if="${iter.index < 1}" class="order-card">
+
+                    <div class="order-header d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="order-number" th:text="'#GF-' + ${venta.idVenta}">#GF-00000</div>
-                            <small class="text-muted" th:text="${venta.fechaVenta}">Fecha</small>
+                            <div class="order-number fs-5" th:text="'#GF-' + ${item.venta.idVenta}">#GF-000</div>
+                            <small class="text-muted"
+                                   th:text="${item.venta.fechaVenta != null ? #temporals.format(item.venta.fechaVenta, 'dd-MM-yyyy') : 'Fecha no disp.'}">
+                                Fecha
+                            </small>
                         </div>
-                        <span class="order-status"
-                              th:classappend="${venta.estado == 'Entregado' ? 'status-delivered' : (venta.estado == 'En Camino' ? 'status-shipped' : 'status-pending')}"
-                              th:text="${venta.estado}">Estado</span>
+
+                        <span class="badge rounded-pill px-3 py-2"
+                              th:classappend="${item.estadoVisual == 'Completado' ? 'bg-success' :
+                                             (item.estadoVisual == 'En Camino' ? 'bg-warning text-dark' :
+                                             (item.estadoVisual == 'Cancelado' ? 'bg-danger' : 'bg-secondary'))}"
+                              th:text="${item.estadoVisual}">
+                              Estado
+                        </span>
                     </div>
 
-                    <div th:each="detalle : ${venta.detallesVenta}" class="order-item">
-                        <img th:src="@{'/api/imagenes/' + ${detalle.producto.imagenNombre}}"
-                             th:onerror="this.src='https://via.placeholder.com/60'"
-                             alt="Producto"
-                             class="order-item-img"
-                             style="object-fit: cover;">
-                        <div class="order-item-details">
-                            <div class="order-item-name" th:text="${detalle.producto != null ? detalle.producto.nombre : 'Producto'}">Producto</div>
-                            <div class="order-item-meta">Cantidad: <span th:text="${detalle.cantidad}">1</span> • Precio: <span th:text="${detalle.precioUnitario}">0</span></div>
+                    <hr class="my-3" style="opacity: 0.1;">
+
+                    <div th:if="${not #lists.isEmpty(item.venta.detallesVenta)}">
+                        <div th:each="detalle : ${item.venta.detallesVenta}" class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <img th:if="${detalle.producto.imagenNombre != null}"
+                                     th:src="@{'/api/imagenes/' + ${detalle.producto.imagenNombre}}"
+                                     th:onerror="this.src='https://via.placeholder.com/60?text=IMG'"
+                                     class="rounded"
+                                     style="width: 60px; height: 60px; object-fit: cover;"
+                                     alt="Prod">
+                                <div th:unless="${detalle.producto.imagenNombre != null}"
+                                     class="rounded d-flex align-items-center justify-content-center bg-light"
+                                     style="width: 60px; height: 60px;">
+                                    <i class="bi bi-image text-muted"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold" th:text="${detalle.producto.nombre}">Nombre Producto</h6>
+                                <small class="text-muted">
+                                    Cant: <span th:text="${detalle.cantidad}">1</span> x
+                                    $<span th:text="${#numbers.formatDecimal(detalle.precioUnitario, 0, 'POINT', 0, 'COMMA')}">100</span>
+                                </small>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="order-total">
-                        <span class="order-total-label">Total:</span>
-                        <span class="order-total-value">$<span th:text="${#numbers.formatDecimal(venta.total, 0, 'POINT', 0, 'COMMA')}">0</span></span>
+                    <div th:if="${#lists.isEmpty(item.venta.detallesVenta)}" class="text-center py-2 text-muted">
+                        <small>No hay detalles de productos disponibles.</small>
+                    </div>
+
+                    <div class="order-total d-flex justify-content-between align-items-center pt-3 border-top">
+                        <span class="fw-bold text-dark">Total Pagado:</span>
+                        <span class="fs-4 fw-bold text-primary">
+                            $<span th:text="${item.venta.total != null ? #numbers.formatDecimal(item.venta.total, 0, 'POINT', 0, 'COMMA') : '0'}">0</span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -622,37 +616,53 @@
                     <a th:href="@{/catalogo}" class="btn btn-primary-custom mt-2">Ir a comprar</a>
                 </div>
 
-                <div th:each="venta : ${listaVentas}" class="order-card">
-                    <div class="order-header">
+                <div th:each="item : ${listaVentas}" class="order-card mb-4">
+                    <div class="order-header d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="order-number" th:text="'#GF-' + ${venta.idVenta}">#GF-000</div>
-                            <small class="text-muted" th:text="${venta.fechaVenta}">Fecha</small>
+                            <div class="order-number fs-5" th:text="'#GF-' + ${item.venta.idVenta}">#GF-000</div>
+                            <small class="text-muted"
+                                   th:text="${item.venta.fechaVenta != null ? #temporals.format(item.venta.fechaVenta, 'dd-MM-yyyy') : 'Fecha no disp.'}">
+                                Fecha
+                            </small>
                         </div>
-                        <span class="order-status"
-                              th:classappend="${venta.estado == 'Entregado' ? 'status-delivered' :
-                                             (venta.estado == 'En Camino' ? 'status-shipped' :
-                                             (venta.estado == 'Cancelado' ? 'status-cancelled' : 'status-pending'))}"
-                              th:text="${venta.estado}">Estado</span>
+
+                        <span class="badge rounded-pill px-3 py-2"
+                              th:classappend="${item.estadoVisual == 'Completado' ? 'bg-success' :
+                                             (item.estadoVisual == 'En Camino' ? 'bg-warning text-dark' :
+                                             (item.estadoVisual == 'Cancelado' ? 'bg-danger' : 'bg-secondary'))}"
+                              th:text="${item.estadoVisual}">
+                              Estado
+                        </span>
                     </div>
 
-                    <div th:each="detalle : ${venta.detallesVenta}" class="order-item">
-                        <img th:src="@{'/api/imagenes/' + ${detalle.producto.imagenNombre}}"
-                             th:onerror="this.src='https://via.placeholder.com/60'"
-                             alt="Producto"
-                             class="order-item-img"
-                             style="object-fit: cover;">
-                        <div class="order-item-details">
-                            <div class="order-item-name" th:text="${detalle.producto != null ? detalle.producto.nombre : 'Producto'}">Nombre Producto</div>
-                            <div class="order-item-meta">
-                                Cant: <span th:text="${detalle.cantidad}">0</span>
-                                • Subtotal: <span th:text="${detalle.subtotal}">0</span>
+                    <hr class="my-3" style="opacity: 0.1;">
+
+                    <div th:if="${not #lists.isEmpty(item.venta.detallesVenta)}">
+                        <div th:each="detalle : ${item.venta.detallesVenta}" class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <img th:if="${detalle.producto.imagenNombre != null}"
+                                     th:src="@{'/api/imagenes/' + ${detalle.producto.imagenNombre}}"
+                                     th:onerror="this.src='https://via.placeholder.com/60?text=IMG'"
+                                     class="rounded"
+                                     style="width: 60px; height: 60px; object-fit: cover;"
+                                     alt="Prod">
+                                <div th:unless="${detalle.producto.imagenNombre != null}" class="rounded bg-light" style="width: 60px; height: 60px;"></div>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold" th:text="${detalle.producto.nombre}">Prod</h6>
+                                <small class="text-muted">
+                                    Cant: <span th:text="${detalle.cantidad}">1</span> •
+                                    Subtotal: $<span th:text="${#numbers.formatDecimal(detalle.subtotal, 0, 'POINT', 0, 'COMMA')}">0</span>
+                                </small>
                             </div>
                         </div>
                     </div>
 
-                    <div class="order-total">
-                        <span class="order-total-label">Total Pagado:</span>
-                        <span class="order-total-value">$<span th:text="${#numbers.formatDecimal(venta.total, 0, 'POINT', 0, 'COMMA')}">0</span></span>
+                    <div class="order-total d-flex justify-content-between align-items-center pt-3 border-top">
+                        <span class="fw-bold text-dark">Total:</span>
+                        <span class="fs-5 fw-bold text-primary">
+                            $<span th:text="${item.venta.total != null ? #numbers.formatDecimal(item.venta.total, 0, 'POINT', 0, 'COMMA') : '0'}">0</span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -771,16 +781,6 @@
                         <button type="submit" class="btn-primary-custom">Actualizar Dirección</button>
                     </div>
                 </form>
-            </div>
-        </section>
-
-        <section class="section-content" id="favorites">
-            <div class="section-header">
-                <h1 class="section-title">Mis Favoritos</h1>
-                <p class="section-subtitle">Próximamente...</p>
-            </div>
-            <div class="content-card text-center">
-                <p>Funcionalidad de favoritos pendiente de implementar en base de datos.</p>
             </div>
         </section>
 

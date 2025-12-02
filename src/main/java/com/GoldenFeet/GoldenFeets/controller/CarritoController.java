@@ -1,86 +1,209 @@
 package com.GoldenFeet.GoldenFeets.controller;
 
-// --- Importaciones necesarias ---
-import com.GoldenFeet.GoldenFeets.dto.CarritoItemDTO;
-import com.GoldenFeet.GoldenFeets.dto.ProductoDTO;
-import com.GoldenFeet.GoldenFeets.entity.Usuario; // ¡Importante! Importa tu entidad Usuario
-import com.GoldenFeet.GoldenFeets.service.UsuarioService; // ¡Importante! Importa tu servicio de Usuario
+import com.GoldenFeet.GoldenFeets.entity.*;
+import com.GoldenFeet.GoldenFeets.repository.*;
+import com.GoldenFeet.GoldenFeets.service.EmailService;
+import com.GoldenFeet.GoldenFeets.service.PdfService;
 import com.GoldenFeet.GoldenFeets.service.ProductoService;
+import com.GoldenFeet.GoldenFeets.service.UsuarioService;
 import jakarta.servlet.http.HttpSession;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication; // Para obtener el usuario
-import org.springframework.security.core.context.SecurityContextHolder; // Para obtener el usuario
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Controller
-@RequiredArgsConstructor // Lombok se encargará de inyectar ambos servicios
+@RequiredArgsConstructor
 public class CarritoController {
 
-    private final ProductoService productoService;
-    private final UsuarioService usuarioService; // 1. Añadimos el servicio de usuario
+    private final UsuarioService usuarioService;
+    private final VentaRepository ventaRepository;
+    private final ProductoRepository productoRepository;
+    private final EntregaRepository entregaRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final PdfService pdfService;
+    private final EmailService emailService;
 
+    // === 1. VER CARRITO (Vista HTML) ===
     @GetMapping("/carrito")
     public String verCarrito(HttpSession session, Model model) {
-
-        // --- LÓGICA MEJORADA PARA VERIFICAR AUTENTICACIÓN ---
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        boolean usuarioAutenticado = authentication != null &&
-                authentication.isAuthenticated() &&
-                !"anonymousUser".equals(authentication.getName());
+        boolean usuarioAutenticado = authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getName());
 
         model.addAttribute("usuarioAutenticado", usuarioAutenticado);
 
-        // Si el usuario SÍ está autenticado, cargamos sus datos para autocompletar el formulario
         if (usuarioAutenticado) {
-            String userEmail = authentication.getName();
-            Usuario usuario = usuarioService.buscarPorEmail(userEmail);
-            if (usuario != null) {
-                model.addAttribute("usuario", usuario);
-            }
+            Usuario usuario = usuarioService.buscarPorEmail(authentication.getName());
+            if (usuario != null) model.addAttribute("usuario", usuario);
+        }
+        return "carrito";
+    }
+
+    // === 2. API PARA PROCESAR EL PEDIDO ===
+    @PostMapping("/api/carrito/procesar")
+    @ResponseBody
+    @Transactional // CRÍTICO: Si falla algo, revierte el descuento de stock
+    public ResponseEntity<Map<String, Object>> crearPedidoAPI(@RequestBody PedidoRequest request, HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            response.put("error", "Debes iniciar sesión.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        // ===================================================================
-        // PARTE 2: LÓGICA DEL CARRITO (TU CÓDIGO ORIGINAL, ESTÁ PERFECTO)
-        // ===================================================================
-        @SuppressWarnings("unchecked")
-        Map<Integer, Integer> carritoMap = (Map<Integer, Integer>) session.getAttribute("carrito");
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            response.put("error", "El carrito está vacío.");
+            return ResponseEntity.badRequest().body(response);
+        }
 
-        List<CarritoItemDTO> itemsDelCarrito = new ArrayList<>();
-        BigDecimal subtotal = BigDecimal.ZERO;
+        try {
+            // 1. Actualizar datos del usuario con la info de envío
+            Usuario usuario = usuarioService.buscarPorEmail(auth.getName());
+            if (request.getDireccion() != null) usuario.setDireccion(request.getDireccion());
+            if (request.getDepartamento() != null) usuario.setDepartamento(request.getDepartamento());
+            if (request.getCiudad() != null) usuario.setCiudad(request.getCiudad());
+            if (request.getLocalidad() != null) usuario.setLocalidad(request.getLocalidad());
+            if (request.getBarrio() != null) usuario.setBarrio(request.getBarrio());
+            if (request.getInformacionAdicional() != null) usuario.setInformacionAdicional(request.getInformacionAdicional());
+            usuarioRepository.save(usuario);
 
-        if (carritoMap != null && !carritoMap.isEmpty()) {
-            List<Integer> productoIds = new ArrayList<>(carritoMap.keySet());
-            List<ProductoDTO> productosEncontrados = productoService.listarPorIds(productoIds);
+            // 2. Crear Venta Cabecera
+            Venta venta = new Venta();
+            venta.setCliente(usuario);
+            venta.setFechaVenta(LocalDate.now());
+            venta.setEstado("Pendiente");
+            venta.setDireccionEnvio(request.getDireccion());
+            venta.setCiudadEnvio(request.getCiudad());
+            venta.setLocalidad(request.getLocalidad());
 
-            Map<Integer, ProductoDTO> productosMap = productosEncontrados.stream()
-                    .collect(Collectors.toMap(ProductoDTO::getId, Function.identity()));
+            if (venta.getDetallesVenta() == null) {
+                venta.setDetallesVenta(new ArrayList<>());
+            }
 
-            for (Map.Entry<Integer, Integer> entry : carritoMap.entrySet()) {
-                Integer productoId = entry.getKey();
-                Integer cantidad = entry.getValue();
-                ProductoDTO producto = productosMap.get(productoId);
+            // Guardamos primero la venta para tener ID (depende de tu configuración de cascade, pero es más seguro)
+            venta = ventaRepository.save(venta);
+
+            BigDecimal totalVenta = BigDecimal.ZERO;
+            List<DetalleVenta> detallesParaGuardar = new ArrayList<>();
+
+            // 3. Procesar Items y DESCONTAR STOCK
+            for (ItemPedido itemRequest : request.getItems()) {
+                Producto producto = productoRepository.findById(Long.valueOf(itemRequest.getProductoId())).orElse(null);
 
                 if (producto != null) {
-                    BigDecimal precioItem = producto.getPrecio().multiply(new BigDecimal(cantidad));
-                    itemsDelCarrito.add(new CarritoItemDTO(producto, cantidad, precioItem));
-                    subtotal = subtotal.add(precioItem);
+                    // --- A. VALIDAR Y DESCONTAR STOCK ---
+                    if (producto.getStock() < itemRequest.getCantidad()) {
+                        throw new RuntimeException("Stock insuficiente para: " + producto.getNombre() + ". Disponible: " + producto.getStock());
+                    }
+                    producto.setStock(producto.getStock() - itemRequest.getCantidad());
+                    productoRepository.save(producto); // Guardamos el stock actualizado inmediatamente
+
+                    // --- B. CREAR DETALLE ---
+                    DetalleVenta detalle = new DetalleVenta();
+                    detalle.setVenta(venta);
+                    detalle.setProducto(producto);
+                    detalle.setCantidad(itemRequest.getCantidad());
+
+                    // --- C. GUARDAR TALLA Y COLOR ESPECÍFICOS ---
+                    // Usamos la talla que viene del JSON (del carrito), si no, fallback al producto
+                    String tallaFinal = (itemRequest.getTalla() != null && !itemRequest.getTalla().isEmpty())
+                            ? itemRequest.getTalla()
+                            : String.valueOf(producto.getTalla());
+
+                    String colorFinal = (itemRequest.getColor() != null && !itemRequest.getColor().isEmpty())
+                            ? itemRequest.getColor()
+                            : producto.getColor();
+
+                    // ¡ASEGÚRATE QUE TU ENTIDAD DetalleVenta TENGA ESTOS SETTERS!
+                    detalle.setTalla(tallaFinal);
+                    detalle.setColor(colorFinal);
+
+                    BigDecimal precioUnitario = BigDecimal.valueOf(producto.getPrecio());
+                    detalle.setPrecioUnitario(precioUnitario);
+
+                    BigDecimal subtotalDetalle = precioUnitario.multiply(BigDecimal.valueOf(itemRequest.getCantidad()));
+                    detalle.setSubtotal(subtotalDetalle);
+
+                    detallesParaGuardar.add(detalle);
+                    totalVenta = totalVenta.add(subtotalDetalle);
                 }
             }
+
+            venta.setTotal(totalVenta);
+            // Agregamos los detalles a la venta y guardamos todo
+            venta.getDetallesVenta().clear();
+            venta.getDetallesVenta().addAll(detallesParaGuardar);
+            ventaRepository.save(venta);
+
+            // 4. Crear Entrega
+            Entrega entrega = new Entrega();
+            entrega.setVenta(venta);
+            entrega.setEstado("Pendiente");
+            entrega.setFechaCreacion(LocalDateTime.now());
+            entrega.setLocalidad(request.getLocalidad());
+            entregaRepository.save(entrega);
+
+            // 5. PDF y Correo (Opcional, envuelto en try para no fallar la venta si falla el correo)
+            try {
+                ByteArrayInputStream pdfFactura = pdfService.generarFacturaVenta(venta);
+                emailService.enviarConfirmacionCompra(venta, pdfFactura);
+            } catch (Exception e) {
+                System.err.println("Advertencia: No se pudo enviar el correo: " + e.getMessage());
+            }
+
+            session.removeAttribute("carrito"); // Limpiar sesión si usaras sesión de servidor (aunque usas localStorage)
+
+            response.put("success", true);
+            response.put("idVenta", venta.getIdVenta());
+            response.put("clienteEmail", usuario.getEmail());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Transactional hará rollback automáticamente aquí
+            response.put("error", "Error procesando pedido: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+    }
 
-        model.addAttribute("itemsCarrito", itemsDelCarrito);
-        model.addAttribute("subtotal", subtotal);
-        model.addAttribute("total", subtotal); // Puedes agregar lógica de envío o impuestos aquí más adelante
+    // DTOs Internos
+    @Data
+    static class PedidoRequest {
+        private List<ItemPedido> items;
+        private String direccion;
+        private String departamento;
+        private String ciudad;
+        private String localidad;
+        private String barrio;
+        private String informacionAdicional;
+        private String metodoPago;
+    }
 
-        return "carrito"; // Thymeleaf buscará la plantilla 'carrito.html'
+    @Data
+    static class ItemPedido {
+        private Integer productoId;
+        private Integer cantidad;
+        private String talla;
+        private String color;
     }
 }

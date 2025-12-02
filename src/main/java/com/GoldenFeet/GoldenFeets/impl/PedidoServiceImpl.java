@@ -53,7 +53,6 @@ public class PedidoServiceImpl implements PedidoService {
         Map<Long, Producto> productosMap = productoRepository.findAllById(productoIdsLong).stream()
                 .collect(Collectors.toMap(Producto::getId, Function.identity()));
 
-
         Venta nuevaVenta = new Venta();
         nuevaVenta.setFechaVenta(LocalDate.now());
         nuevaVenta.setEstado("PROCESANDO");
@@ -64,7 +63,8 @@ public class PedidoServiceImpl implements PedidoService {
 
         nuevaVenta.setCliente(cliente);
 
-        // 3. Inicializar campos de Venta
+        // 3. Inicializar campos de Venta con datos de envío
+        // Usamos los datos del request si vienen, si no, los del perfil del cliente
         String localidadVenta = pedidoRequest.getLocalidad() != null ? pedidoRequest.getLocalidad() : cliente.getLocalidad();
 
         nuevaVenta.setDireccionEnvio(pedidoRequest.getDireccionEnvio() != null ? pedidoRequest.getDireccionEnvio() : cliente.getDireccion());
@@ -107,12 +107,10 @@ public class PedidoServiceImpl implements PedidoService {
             detalle.setProducto(producto);
             detalle.setCantidad(cantidadPedida);
 
-            // 💥 CORRECCIÓN 1: Convertir Double a BigDecimal
+            // Conversión segura de Double a BigDecimal
             BigDecimal precioUnitario = BigDecimal.valueOf(producto.getPrecio());
             detalle.setPrecioUnitario(precioUnitario);
 
-            // 💥 CORRECCIÓN 2: Usar el BigDecimal convertido para multiplicar
-            // (Double no tiene método .multiply())
             BigDecimal subtotal = precioUnitario.multiply(new BigDecimal(cantidadPedida));
             detalle.setSubtotal(subtotal);
 
@@ -131,6 +129,10 @@ public class PedidoServiceImpl implements PedidoService {
         // 8. Creación EXPLÍCITA de Entrega
         Entrega nuevaEntrega = new Entrega();
         nuevaEntrega.setVenta(ventaGuardada);
+        nuevaEntrega.setEstado("Pendiente"); // Estado inicial
+        nuevaEntrega.setFechaCreacion(LocalDateTime.now());
+
+        // Asignamos la localidad para que el distribuidor pueda verla
         nuevaEntrega.setLocalidad(ventaGuardada.getLocalidad());
 
         // 9. Guardamos la Entrega.

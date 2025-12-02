@@ -21,8 +21,7 @@ public interface ProductoService {
 
     List<ProductoDTO> listarTodos();
 
-    // --- CORREGIDO ---
-    Optional<ProductoDTO> buscarPorId(Integer id); // De Long a Integer
+    Optional<ProductoDTO> buscarPorId(Integer id);
 
     List<CategoriaDTO> listarCategorias();
 
@@ -36,16 +35,13 @@ public interface ProductoService {
 
     List<String> listarMarcasDistintas();
 
-    // --- CORREGIDO ---
-    List<ProductoDTO> listarPorIds(List<Integer> ids); // De List<Long> a List<Integer>
+    List<ProductoDTO> listarPorIds(List<Integer> ids);
 
     List<ProductoDTO> obtenerProductosRecientes(int cantidad);
 
     Producto crearProducto(ProductoCreateDTO productoDTO);
 
-    // --- CORREGIDO ---
-    Producto actualizarProducto(Integer id, ProductoUpdateDTO productoDTO); // De Long a Integer
+    Producto actualizarProducto(Integer id, ProductoUpdateDTO productoDTO);
 
-    // --- CORREGIDO ---
-    void eliminarProducto(Integer id); // De Long a Integer
+    void eliminarProducto(Integer id);
 }

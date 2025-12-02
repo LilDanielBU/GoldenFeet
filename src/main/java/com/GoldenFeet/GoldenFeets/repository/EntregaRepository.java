@@ -9,10 +9,16 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional; // <--- IMPORTANTE: No olvides importar Optional
 
 @Repository
 public interface EntregaRepository extends JpaRepository<Entrega, Long> {
 
+    // === NUEVO MÉTODO NECESARIO PARA EL PERFIL ===
+    // Esto permite buscar la entrega usando el ID de la Venta
+    Optional<Entrega> findByVenta_IdVenta(Long idVenta);
+
+    // === MÉTODOS EXISTENTES (NO BORRAR) ===
     List<Entrega> findByDistribuidor_IdUsuario(Integer idUsuario);
 
     @Query("SELECT e FROM Entrega e LEFT JOIN FETCH e.venta v LEFT JOIN FETCH v.cliente c WHERE " +
