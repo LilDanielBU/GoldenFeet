@@ -6,13 +6,14 @@ import com.GoldenFeet.GoldenFeets.entity.Usuario;
 import com.GoldenFeet.GoldenFeets.service.EntregaService;
 import com.GoldenFeet.GoldenFeets.service.PdfService;
 import com.GoldenFeet.GoldenFeets.service.UsuarioService;
-import jakarta.persistence.EntityNotFoundException; // <-- IMPORT AÑADIDO
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -76,10 +77,8 @@ public class GerenteEntregasController {
             redirectAttributes.addFlashAttribute("successMessage", "Distribuidor asignado correctamente.");
         } catch (IllegalStateException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            System.err.println("Error al asignar: " + e.getMessage());
-        } catch (EntityNotFoundException e) { // <-- Ahora 'EntityNotFoundException' es reconocido
+        } catch (EntityNotFoundException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error: No se encontró la entrega o el distribuidor.");
-            System.err.println("Error al asignar: " + e.getMessage());
         }
         return "redirect:/gerente-entregas/dashboard";
     }
@@ -87,11 +86,13 @@ public class GerenteEntregasController {
     @PostMapping("/cancelar")
     public String procesarCancelacion(@RequestParam("entregaId") Long entregaId,
                                       @RequestParam("motivo") String motivo,
+                                      @AuthenticationPrincipal Usuario gerente, // <-- Inyectamos al gerente
                                       RedirectAttributes redirectAttributes) {
         try {
-            entregaService.cancelarEntrega(entregaId, motivo);
+            // Pasamos al gerente al servicio
+            entregaService.cancelarEntrega(entregaId, motivo, gerente);
             redirectAttributes.addFlashAttribute("successMessage", "Entrega cancelada correctamente.");
-        } catch (EntityNotFoundException e){ // <-- Ahora 'EntityNotFoundException' es reconocido
+        } catch (EntityNotFoundException e){
             redirectAttributes.addFlashAttribute("errorMessage", "Error al cancelar: Entrega no encontrada.");
         }
         return "redirect:/gerente-entregas/dashboard";
@@ -103,7 +104,7 @@ public class GerenteEntregasController {
         try {
             entregaService.desasignarDistribuidor(entregaId);
             redirectAttributes.addFlashAttribute("successMessage", "Distribuidor desasignado correctamente.");
-        } catch (EntityNotFoundException e){ // <-- Ahora 'EntityNotFoundException' es reconocido
+        } catch (EntityNotFoundException e){
             redirectAttributes.addFlashAttribute("errorMessage", "Error al desasignar: Entrega no encontrada.");
         }
         return "redirect:/gerente-entregas/dashboard";

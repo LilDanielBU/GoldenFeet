@@ -1,121 +1,265 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="'Detalle Entrega #' + ${entrega.idEntrega} + ' - Golden Feets'"></title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary-color: #4D1C95; --secondary-color: #6C4AB6; --light-bg: #f8f9fa;
-            --text-color: #343a40; --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); --border-color: #e9ecef;
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); }
-        .header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 1rem 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .header-title { font-family: 'Playfair Display', serif; font-size: 1.75rem; }
-        .main-container { max-width: 1200px; margin: 2rem auto; }
-        .details-card { border: none; border-radius: 15px; box-shadow: var(--card-shadow); overflow: hidden; }
-        .card-header { background-color: var(--primary-color); color: white; padding: 1.25rem; font-size: 1.25rem; font-weight: 500; }
-        .card-body { padding: 2rem; }
-        .info-section { margin-bottom: 2rem; }
-        .section-title { color: var(--primary-color); font-weight: 600; margin-bottom: 1rem; border-bottom: 2px solid var(--secondary-color); padding-bottom: 0.5rem; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1rem; }
-        .info-grid strong { color: var(--text-color); }
-        .status-badge { font-size: 0.9em; padding: 0.4em 0.9em; border-radius: 50px; font-weight: 500; color: white; }
-        .status-pendiente { background-color: #ffc107; color: #333; }
-        .status-en-camino { background-color: #0dcaf0; }
-        .status-entregado { background-color: #198754; }
-        .status-cancelada { background-color: #dc3545; }
-        .table thead { background-color: var(--secondary-color); color: white; }
+
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); }
+
+        /* HEADER PROFESIONAL */
+        .header-section {
+            background: var(--primary-gradient); padding: 1.5rem 0;
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.25); margin-bottom: 2rem; color: white;
+        }
+        .header-section h2 { font-weight: 700; margin: 0; font-size: 1.5rem; display: flex; align-items: center; }
+
+        /* TARJETAS DE INFORMACIÓN */
+        .card-custom {
+            background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm); margin-bottom: 1.5rem; overflow: hidden; height: 100%;
+        }
+        .card-header-custom {
+            background: #f8fafc; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color);
+            font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;
+        }
+
+        /* FILAS DE INFORMACIÓN */
+        .p-custom { padding: 1.5rem; }
+        .info-row { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid #f1f5f9; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
+        .info-value { font-weight: 600; color: var(--text-main); text-align: right; font-size: 0.95rem; }
+
+        /* BADGES DE ESTADO */
+        .status-badge {
+            padding: 0.35rem 0.85rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; color: white; display: inline-block; letter-spacing: 0.5px;
+        }
+        .status-pendiente { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .status-asignado { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .status-en-camino { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .status-entregado { background: linear-gradient(135deg, #10b981, #059669); }
+        .status-cancelada { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+        /* BOTÓN VOLVER */
+        .btn-back {
+            background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white;
+            padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; text-decoration: none;
+            transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;
+        }
+        .btn-back:hover { background: white; color: #4f46e5; transform: translateY(-1px); }
+
+        /* TABLAS */
+        .table-custom th { background-color: #f8fafc; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
+        .table-custom td { vertical-align: middle; color: #334155; font-weight: 500; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-<header class="header d-flex justify-content-between align-items-center">
-    <div class="header-title"><i class="fas fa-truck-fast me-3"></i>Golden Feets Logistics</div>
-    <form th:action="@{/logout}" method="post">
-        <button type="submit" class="btn btn-outline-light"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</button>
-    </form>
+<header class="header-section">
+    <div class="container d-flex justify-content-between align-items-center">
+        <h2><i class="fas fa-box-open me-3"></i>Detalle de Entrega</h2>
+        <a href="javascript:history.back()" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
 </header>
 
-<main class="main-container">
-    <div class="details-card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <span th:text="'Detalles de la Entrega #' + ${entrega.idEntrega}"></span>
-            <a th:href="@{/gerente-entregas/dashboard}" class="btn btn-light btn-sm"><i class="fas fa-arrow-left me-2"></i>Volver al Listado</a>
+<main class="container pb-5">
+
+    <div th:if="${entrega.estado == 'CANCELADA'}" class="alert alert-danger shadow-sm mb-4 border-danger" style="background-color: #fef2f2;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle fa-2x me-3 text-danger"></i>
+            <div>
+                <h5 class="alert-heading fw-bold mb-1" style="color: #991b1b;">Entrega Cancelada</h5>
+                <p class="mb-0 text-dark">
+                    <strong>Motivo reportado:</strong>
+                    <span th:text="${entrega.motivoCancelacion}" class="fst-italic">No se especificó motivo.</span>
+                </p>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="info-section">
-                        <h5 class="section-title"><i class="fas fa-shipping-fast me-2"></i>Resumen de Entrega</h5>
-                        <div class="info-grid">
-                            <strong>ID Entrega:</strong> <span th:text="${entrega.idEntrega}"></span>
-                            <strong>Estado:</strong>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card-custom">
+                <div class="card-header-custom"><i class="fas fa-info-circle text-primary me-2"></i> Resumen de Entrega</div>
+                <div class="p-custom">
+                    <div class="info-row">
+                        <span class="info-label">ID Entrega</span>
+                        <span class="info-value fw-bold text-primary" th:text="'#' + ${entrega.idEntrega}">#001</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Estado Actual</span>
+                        <span class="info-value">
                             <span class="status-badge" th:text="${entrega.estado}"
-                                  th:classappend="'status-' + ${#strings.toLowerCase(entrega.estado).replace(' ', '-')}"></span>
-                            <strong>Fecha Creación:</strong> <span th:text="${#temporals.format(entrega.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></span>
-                            <strong>Fecha Entregado:</strong> <span th:text="${entrega.fechaEntrega != null ? #temporals.format(entrega.fechaEntrega, 'dd/MM/yyyy') : 'N/A'}"></span>
-                        </div>
+                                  th:classappend="'status-' + ${#strings.toLowerCase(entrega.estado).replace(' ', '-')}">
+                                PENDIENTE
+                            </span>
+                        </span>
                     </div>
-                    <div class="info-section">
-                        <h5 class="section-title"><i class="fas fa-file-invoice-dollar me-2"></i>Datos de la Venta</h5>
-                        <div class="info-grid">
-                            <strong>ID Venta:</strong> <span th:text="${entrega.venta.idVenta}"></span>
-                            <strong>Total Pagado:</strong> <span th:text="'$' + ${#numbers.formatDecimal(entrega.venta.total, 1, 'POINT', 2, 'COMMA')}"></span>
-                            <strong>Fecha de Venta:</strong> <span th:text="${#temporals.format(entrega.venta.fechaVenta, 'dd/MM/yyyy')}"></span>
-                            <strong>Método de Pago:</strong> <span th:text="${entrega.venta.metodoPago}"></span>
-                        </div>
+                    <div class="info-row">
+                        <span class="info-label">Fecha Creación</span>
+                        <span class="info-value" th:text="${#temporals.format(entrega.fechaCreacion, 'dd/MM/yyyy HH:mm')}">01/01/2024</span>
                     </div>
-                    <div class="info-section">
-                        <h5 class="section-title"><i class="fas fa-truck-loading me-2"></i>Distribuidor Asignado</h5>
-                        <div class="info-grid">
-                            <strong>Nombre:</strong> <span th:text="${entrega.distribuidor != null ? entrega.distribuidor.nombre : 'Sin Asignar'}"></span>
-                            <strong>Email:</strong> <span th:text="${entrega.distribuidor != null ? entrega.distribuidor.email : 'N/A'}"></span>
-                        </div>
+                    <div class="info-row">
+                        <span class="info-label">Fecha Entrega</span>
+                        <span class="info-value" th:text="${entrega.fechaEntrega != null ? #temporals.format(entrega.fechaEntrega, 'dd/MM/yyyy') : 'Pendiente'}">--</span>
                     </div>
                 </div>
-                <div class="col-lg-6">
-                    <div class="info-section">
-                        <h5 class="section-title"><i class="fas fa-user-circle me-2"></i>Cliente y Envío</h5>
-                        <div class="info-grid">
-                            <strong>Nombre Cliente:</strong> <span th:text="${entrega.venta.cliente.nombre}"></span>
-                            <strong>Email:</strong> <span th:text="${entrega.venta.cliente.email}"></span>
-                            <strong>Dirección:</strong> <span th:text="${entrega.venta.direccionEnvio}"></span>
-                            <strong>Ciudad:</strong> <span th:text="${entrega.venta.ciudadEnvio}"></span>
-                        </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card-custom">
+                <div class="card-header-custom"><i class="fas fa-user-circle text-primary me-2"></i> Cliente y Envío</div>
+                <div class="p-custom">
+                    <div class="info-row">
+                        <span class="info-label">Cliente</span>
+                        <span class="info-value" th:text="${entrega.venta.cliente.nombre}">Nombre Cliente</span>
                     </div>
-                    <div class="info-section">
-                        <h5 class="section-title"><i class="fas fa-box-open me-2"></i>Productos del Pedido</h5>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered">
-                                <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th>Cant.</th>
-                                    <th>Precio Unit.</th>
-                                    <th>Subtotal</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:each="detalle : ${entrega.venta.detallesVenta}">
-                                    <td th:text="${detalle.producto.nombre}"></td>
-                                    <td class="text-center" th:text="${detalle.cantidad}"></td>
-                                    <td th:text="'$' + ${#numbers.formatDecimal(detalle.precioUnitario, 1, 'POINT', 2, 'COMMA')}"></td>
-                                    <td th:text="'$' + ${#numbers.formatDecimal(detalle.subtotal, 1, 'POINT', 2, 'COMMA')}"></td>
-                                </tr>
-                                </tbody>
-                            </table>
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span class="info-value" th:text="${entrega.venta.cliente.email}">email@test.com</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Dirección</span>
+                        <span class="info-value text-break" th:text="${entrega.venta.direccionEnvio}" style="max-width: 60%;">Calle 123</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Ciudad</span>
+                        <span class="info-value" th:text="${entrega.venta.ciudadEnvio}">Bogotá</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card-custom">
+                <div class="card-header-custom"><i class="fas fa-receipt text-primary me-2"></i> Datos de la Venta</div>
+                <div class="p-custom">
+                    <div class="info-row">
+                        <span class="info-label">ID Venta</span>
+                        <span class="info-value" th:text="${entrega.venta.idVenta}">123</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Total Pagado</span>
+                        <span class="info-value text-success" th:text="'$' + ${#numbers.formatDecimal(entrega.venta.total, 1, 'POINT', 2, 'COMMA')}">$0.00</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Fecha Venta</span>
+                        <span class="info-value" th:text="${#temporals.format(entrega.venta.fechaVenta, 'dd/MM/yyyy')}">01/01/2024</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Método Pago</span>
+                        <span class="info-value" th:text="${entrega.venta.metodoPago}">Efectivo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card-custom">
+                <div class="card-header-custom"><i class="fas fa-truck-moving text-primary me-2"></i> Distribuidor Asignado</div>
+                <div class="p-custom">
+                    <div class="text-center py-2" th:if="${entrega.distribuidor == null}">
+                        <div class="mb-2"><i class="fas fa-user-slash fa-2x text-muted opacity-50"></i></div>
+                        <span class="badge bg-light text-dark border">Sin Asignar</span>
+                    </div>
+                    <div th:if="${entrega.distribuidor != null}">
+                        <div class="info-row">
+                            <span class="info-label">Nombre</span>
+                            <span class="info-value" th:text="${entrega.distribuidor.nombre}">Nombre</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Email</span>
+                            <span class="info-value" th:text="${entrega.distribuidor.email}">email@dist.com</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Teléfono</span>
+                            <span class="info-value" th:text="${entrega.distribuidor.telefono != null ? entrega.distribuidor.telefono : 'N/A'}">--</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="card-custom mb-4">
+        <div class="card-header-custom"><i class="fas fa-boxes text-primary me-2"></i> Productos del Pedido</div>
+        <div class="table-responsive">
+            <table class="table table-hover table-custom mb-0">
+                <thead>
+                <tr>
+                    <th class="ps-4">Producto</th>
+                    <th class="text-center">Cant.</th>
+                    <th class="text-end">Precio Unit.</th>
+                    <th class="text-end pe-4">Subtotal</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="detalle : ${entrega.venta.detallesVenta}">
+                    <td class="ps-4" th:text="${detalle.producto.nombre}">Zapatos</td>
+                    <td class="text-center" th:text="${detalle.cantidad}">1</td>
+                    <td class="text-end" th:text="'$' + ${#numbers.formatDecimal(detalle.precioUnitario, 1, 'POINT', 2, 'COMMA')}">$100.00</td>
+                    <td class="text-end pe-4 fw-bold" th:text="'$' + ${#numbers.formatDecimal(detalle.subtotal, 1, 'POINT', 2, 'COMMA')}">$100.00</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card-custom">
+        <div class="card-header-custom bg-light">
+            <span class="text-dark"><i class="fas fa-history me-2 text-primary"></i>Historial de Novedades y Eventos</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-custom mb-0">
+                <thead>
+                <tr>
+                    <th class="ps-4" style="width: 20%;">Fecha</th>
+                    <th style="width: 20%;">Usuario</th>
+                    <th>Descripción del Evento</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${entrega.novedades.isEmpty()}">
+                    <td colspan="3" class="text-center text-muted py-4">No hay novedades registradas para esta entrega.</td>
+                </tr>
+                <tr th:each="novedad : ${entrega.novedades}">
+                    <td class="ps-4 text-muted" th:text="${#temporals.format(novedad.fecha, 'dd/MM/yyyy HH:mm')}">Fecha</td>
+                    <td>
+                        <span th:if="${novedad.usuarioReporta != null}"
+                              class="badge bg-secondary"
+                              th:text="${novedad.usuarioReporta.nombre}">Usuario</span>
+                        <span th:unless="${novedad.usuarioReporta != null}" class="badge bg-light text-dark border">Sistema</span>
+                    </td>
+                    <td class="text-dark" th:text="${novedad.descripcion}">Descripción</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -1,235 +1,403 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Entregas - Golden Feets</title>
-
+    <title>Gestión de Entregas - Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        :root {
-            --primary-color: #4D1C95; --secondary-color: #6C4AB6; --light-bg: #f8f9fa;
-            --text-color: #343a40; --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 50%, #faf5ff 100%);
+            min-height: 100vh;
+            color: #1a1a2e;
         }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); }
-        .header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 1rem 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .header-title { font-family: 'Playfair Display', serif; font-size: 1.75rem; }
-        .main-content { padding: 2rem; }
-        .card { border: none; border-radius: 15px; box-shadow: var(--card-shadow); }
-        .card-header { background-color: var(--primary-color); color: white; font-size: 1.25rem; font-weight: 500; border-top-left-radius: 15px; border-top-right-radius: 15px; padding: 1.25rem; }
-        .table thead { background-color: var(--secondary-color); color: white; }
-        .status-badge { font-size: 0.85em; padding: 0.4em 0.9em; border-radius: 50px; font-weight: 500; color: white; }
-        .status-pendiente { background-color: #ffc107; color: #333; }
-        .status-asignado { background-color: #6c757d; }
-        .status-en-camino { background-color: #0dcaf0; }
-        .status-entregado { background-color: #198754; }
-        .status-cancelada { background-color: #dc3545; }
-        .modal-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; }
+
+        /* Header */
+        .header-section {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.2);
+            margin-bottom: 2rem;
+        }
+        .header-section h2 { color: white; font-weight: 700; font-size: 2rem; margin: 0; }
+
+        .btn-logout {
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            color: white; font-weight: 500; padding: 0.5rem 1.2rem;
+            border-radius: 8px; transition: all 0.3s ease; background: transparent;
+        }
+        .btn-logout:hover {
+            background: white; color: #7c3aed;
+            transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Alerts */
+        .alert { border-radius: 12px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem; margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white; border-radius: 16px; padding: 2rem;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.08); border: 1px solid #e9d5ff;
+            transition: all 0.3s ease; position: relative; overflow: hidden;
+        }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 4px; background: linear-gradient(90deg, #7c3aed, #a855f7);
+        }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(124, 58, 237, 0.15); }
+        .stat-content { display: flex; justify-content: space-between; align-items: center; }
+        .stat-info h3 {
+            font-size: 2.5rem; font-weight: 700;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .stat-info p { color: #6b7280; font-size: 0.95rem; font-weight: 500; margin: 0; }
+        .stat-icon {
+            width: 60px; height: 60px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+        }
+        .stat-icon.total { background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: #7c3aed; }
+        .stat-icon.pending { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #f59e0b; }
+        .stat-icon.progress { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #3b82f6; }
+        .stat-icon.completed { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #10b981; }
+
+        /* Chart Section */
+        .chart-card {
+            background: white; border-radius: 16px; padding: 2rem;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.08); border: 1px solid #e9d5ff;
+            margin-bottom: 2rem;
+        }
+        .chart-card h4 { color: #7c3aed; font-weight: 600; margin-bottom: 1.5rem; font-size: 1.2rem; }
+        .chart-container {
+            position: relative; height: 350px; padding: 1rem;
+            background: linear-gradient(135deg, #faf5ff, #f5f3ff); border-radius: 12px;
+        }
+
+        /* Filters Section */
+        .filters-section {
+            background: linear-gradient(135deg, #f5f3ff, #faf5ff);
+            border-radius: 16px; padding: 2rem; border: 2px solid #e9d5ff;
+            margin-bottom: 2rem; box-shadow: 0 2px 10px rgba(124, 58, 237, 0.05);
+        }
+        .filters-section h4 {
+            color: #7c3aed; font-weight: 600; margin-bottom: 1.5rem;
+            display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+        }
+        .form-label { color: #6b7280; font-weight: 500; font-size: 0.9rem; }
+        .form-control, .form-select {
+            border: 2px solid #e9d5ff; border-radius: 8px; padding: 0.6rem 1rem; transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+        }
+        .btn-purple {
+            background: linear-gradient(135deg, #7c3aed, #a855f7); color: white;
+            border: none; padding: 0.6rem 1.5rem; border-radius: 8px; font-weight: 500; transition: all 0.3s ease;
+        }
+        .btn-purple:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3); }
+        .btn-pdf {
+            background: linear-gradient(135deg, #ef4444, #dc2626); color: white;
+            border: none; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem; font-weight: 500; text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-pdf:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3); color: white; }
+        .btn-reset {
+            background: white; color: #7c3aed; border: 2px solid #e9d5ff;
+            padding: 0.6rem 1.5rem; border-radius: 8px; font-weight: 500; transition: all 0.3s ease;
+        }
+        .btn-reset:hover { background: #f5f3ff; border-color: #a855f7; }
+
+        /* Deliveries Grid */
+        .deliveries-section {
+            background: white; border-radius: 16px; padding: 2rem;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.08); border: 1px solid #e9d5ff;
+        }
+        .deliveries-section h4 { color: #7c3aed; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .deliveries-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; }
+        .delivery-card {
+            background: white; border: 2px solid #f3e8ff; border-radius: 16px; padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
+        }
+        .delivery-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #7c3aed, #a855f7, #c084fc); opacity: 0; transition: opacity 0.3s ease;
+        }
+        .delivery-card:hover::before { opacity: 1; }
+        .delivery-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(124, 58, 237, 0.15); border-color: #c084fc; }
+        .delivery-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 2px solid #f3f4f6;
+        }
+        .delivery-id { font-size: 1.2rem; font-weight: 700; color: #7c3aed; }
+        .delivery-status {
+            padding: 0.5rem 1.2rem; border-radius: 25px; font-size: 0.75rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .status-pendiente { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; }
+        .status-asignado { background: linear-gradient(135deg, #e5e7eb, #d1d5db); color: #374151; }
+        .status-en-camino { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af; }
+        .status-entregado { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46; }
+        .status-cancelada { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; }
+
+        .delivery-info { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1rem; }
+        .info-row { display: flex; align-items: center; gap: 0.6rem; color: #4b5563; font-size: 0.9rem; padding: 0.3rem 0; }
+        .info-row i { color: #a855f7; width: 20px; text-align: center; }
+        .info-label { font-weight: 600; color: #6b7280; min-width: 90px; }
+
+        .delivery-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 1rem; border-top: 2px solid #f3f4f6; }
+        .btn-action {
+            flex: 1; min-width: 100px; padding: 0.6rem 1rem; border-radius: 10px; border: none;
+            font-size: 0.85rem; font-weight: 600; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex; align-items: center; justify-content: center; gap: 0.4rem; cursor: pointer;
+        }
+        .btn-view { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .btn-assign { background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; }
+        .btn-unassign { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .btn-cancel { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .btn-action:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        /* Modals */
+        .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); }
+        .modal-header { background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; border-radius: 16px 16px 0 0; padding: 1.5rem; }
+        .modal-title { font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+        .modal-body { padding: 2rem; }
+        .modal-footer { padding: 1rem 2rem; border-top: 2px solid #f3f4f6; }
+
+        @media (max-width: 768px) {
+            .deliveries-grid, .stats-grid { grid-template-columns: 1fr; }
+            .chart-container { height: 280px; }
+            .filters-section h4 { flex-direction: column; align-items: flex-start; gap: 1rem; }
+        }
     </style>
 </head>
 <body>
 
-<header class="header d-flex justify-content-between align-items-center">
-    <div class="header-title"><i class="fas fa-truck-fast me-3"></i>Golden Feets Logistics</div>
-    <form th:action="@{/logout}" method="post">
-        <button type="submit" class="btn btn-outline-light"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</button>
-    </form>
-</header>
+<div class="header-section">
+    <div class="container d-flex justify-content-between align-items-center">
+        <h2><i class="fas fa-truck-fast me-2"></i>Gestión de Entregas</h2>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-logout">
+                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+            </button>
+        </form>
+    </div>
+</div>
 
-<main class="main-content">
-
-    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+<div class="container">
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
         <i class="fas fa-check-circle me-2"></i>
         <span th:text="${successMessage}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
         <i class="fas fa-exclamation-triangle me-2"></i>
         <span th:text="${errorMessage}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-12 mb-4">
-            <div class="row">
-                <div class="col-md-6 col-lg-3 mb-3">
-                    <div class="card text-white bg-primary shadow-lg">
-                        <div class="card-body d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="card-title fs-2" th:text="${estadisticas.totalEntregas}">0</h5>
-                                <p class="card-text mb-0">Entregas Totales</p>
-                            </div>
-                            <i class="fas fa-cubes fa-3x opacity-50"></i>
-                        </div>
-                    </div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-info">
+                    <h3 th:text="${estadisticas.totalEntregas}">0</h3>
+                    <p>Entregas Totales</p>
                 </div>
-                <div class="col-md-6 col-lg-3 mb-3">
-                    <div class="card text-dark bg-warning shadow-lg">
-                        <div class="card-body d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="card-title fs-2" th:text="${estadisticas.entregasPendientes}">0</h5>
-                                <p class="card-text mb-0">Pendientes</p>
-                            </div>
-                            <i class="fas fa-clock fa-3x opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 mb-3">
-                    <div class="card text-white bg-info shadow-lg">
-                        <div class="card-body d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="card-title fs-2" th:text="${estadisticas.entregasEnCamino}">0</h5>
-                                <p class="card-text mb-0">En Camino</p>
-                            </div>
-                            <i class="fas fa-shipping-fast fa-3x opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 mb-3">
-                    <div class="card text-white bg-success shadow-lg">
-                        <div class="card-body d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="card-title fs-2" th:text="${estadisticas.entregasCompletadas}">0</h5>
-                                <p class="card-text mb-0">Completadas</p>
-                            </div>
-                            <i class="fas fa-check-circle fa-3x opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
+                <div class="stat-icon total"><i class="fas fa-cubes"></i></div>
             </div>
         </div>
-
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title text-primary"><i class="fas fa-chart-bar me-2"></i>Resumen Gráfico por Estado</h5>
-                    <div style="height: 350px; position: relative;">
-                        <canvas id="entregasChart"
-                                th:data-pendientes="${estadisticas.entregasPendientes}"
-                                th:data-encamino="${estadisticas.entregasEnCamino}"
-                                th:data-completadas="${estadisticas.entregasCompletadas}"
-                        ></canvas>
-                    </div>
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-info">
+                    <h3 th:text="${estadisticas.entregasPendientes}">0</h3>
+                    <p>Pendientes</p>
                 </div>
+                <div class="stat-icon pending"><i class="fas fa-clock"></i></div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-info">
+                    <h3 th:text="${estadisticas.entregasEnCamino}">0</h3>
+                    <p>En Camino</p>
+                </div>
+                <div class="stat-icon progress"><i class="fas fa-shipping-fast"></i></div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-info">
+                    <h3 th:text="${estadisticas.entregasCompletadas}">0</h3>
+                    <p>Completadas</p>
+                </div>
+                <div class="stat-icon completed"><i class="fas fa-check-circle"></i></div>
             </div>
         </div>
     </div>
 
-    <div class="card mt-4">
-        <div class="card-header"><i class="fas fa-tasks me-2"></i>Panel de Gestión de Entregas</div>
-        <div class="card-body p-4">
+    <div class="chart-card">
+        <h4><i class="fas fa-chart-pie me-2"></i>Análisis de Entregas por Estado</h4>
+        <div class="chart-container">
+            <canvas id="entregasChart"
+                    th:data-pendientes="${estadisticas.entregasPendientes}"
+                    th:data-encamino="${estadisticas.entregasEnCamino}"
+                    th:data-completadas="${estadisticas.entregasCompletadas}">
+            </canvas>
+        </div>
+    </div>
 
-            <div class="card shadow-sm mb-4 border">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-filter me-2 text-primary"></i>Panel de Búsqueda</h5>
-                    <a th:href="@{/gerente-entregas/exportar-pdf(
-                                    estado=${estadoFiltro},
-                                    distribuidorId=${distribuidorIdFiltro},
-                                    fechaInicio=${fechaInicioFiltro},
-                                    fechaFin=${fechaFinFiltro},
-                                    clienteEmail=${clienteEmailFiltro}
-                                )}"
-                       class="btn btn-danger btn-sm">
-                        <i class="fas fa-file-pdf me-2"></i>Descargar Reporte
+    <div class="filters-section">
+        <h4>
+            <span><i class="fas fa-filter"></i> Filtros de Búsqueda</span>
+            <a th:href="@{/gerente-entregas/exportar-pdf(
+                            estado=${estadoFiltro},
+                            distribuidorId=${distribuidorIdFiltro},
+                            fechaInicio=${fechaInicioFiltro},
+                            fechaFin=${fechaFinFiltro},
+                            clienteEmail=${clienteEmailFiltro}
+                        )}"
+               class="btn btn-pdf">
+                <i class="fas fa-file-pdf me-2"></i>Descargar Reporte
+            </a>
+        </h4>
+        <form th:action="@{/gerente-entregas/dashboard}" method="get">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select id="estado" name="estado" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="PENDIENTE" th:selected="${estadoFiltro == 'PENDIENTE'}">Pendiente</option>
+                        <option value="ASIGNADO" th:selected="${estadoFiltro == 'ASIGNADO'}">Asignado</option>
+                        <option value="EN CAMINO" th:selected="${estadoFiltro == 'EN CAMINO'}">En Camino</option>
+                        <option value="ENTREGADO" th:selected="${estadoFiltro == 'ENTREGADO'}">Entregado</option>
+                        <option value="CANCELADA" th:selected="${estadoFiltro == 'CANCELADA'}">Cancelada</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="distribuidorId" class="form-label">Distribuidor</label>
+                    <select id="distribuidorId" name="distribuidorId" class="form-select">
+                        <option value="">Todos</option>
+                        <option th:each="dist : ${distribuidores}"
+                                th:value="${dist.idUsuario}"
+                                th:text="|${dist.nombre} (${dist.localidad != null ? dist.localidad : 'N/A'}) - ${dist.entregasActivasHoy}/15|"
+                                th:selected="${distribuidorIdFiltro == dist.idUsuario}"></option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="fechaInicio" class="form-label">Desde</label>
+                    <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" th:value="${fechaInicioFiltro}">
+                </div>
+                <div class="col-md-3">
+                    <label for="fechaFin" class="form-label">Hasta</label>
+                    <input type="date" class="form-control" id="fechaFin" name="fechaFin" th:value="${fechaFinFiltro}">
+                </div>
+                <div class="col-md-9">
+                    <label for="clienteEmail" class="form-label">Email del Cliente</label>
+                    <input type="text" class="form-control" id="clienteEmail" name="clienteEmail" placeholder="Buscar por email..." th:value="${clienteEmailFiltro}">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-purple w-100">
+                        <i class="fas fa-search me-2"></i>Buscar
+                    </button>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12 text-end">
+                    <a th:href="@{/gerente-entregas/dashboard}" class="btn btn-reset">
+                        <i class="fas fa-redo me-2"></i>Limpiar Filtros
                     </a>
                 </div>
-                <div class="card-body">
-                    <form th:action="@{/gerente-entregas/dashboard}" method="get" class="row g-3">
-                        <div class="col-md-6 col-lg-3">
-                            <label for="estado" class="form-label">Estado</label>
-                            <select id="estado" name="estado" class="form-select">
-                                <option value="">Todos</option>
-                                <option value="PENDIENTE" th:selected="${estadoFiltro == 'PENDIENTE'}">Pendiente</option>
-                                <option value="ASIGNADO" th:selected="${estadoFiltro == 'ASIGNADO'}">Asignado</option>
-                                <option value="EN CAMINO" th:selected="${estadoFiltro == 'EN CAMINO'}">En Camino</option>
-                                <option value="ENTREGADO" th:selected="${estadoFiltro == 'ENTREGADO'}">Entregado</option>
-                                <option value="CANCELADA" th:selected="${estadoFiltro == 'CANCELADA'}">Cancelada</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 col-lg-3">
-                            <label for="distribuidorId" class="form-label">Distribuidor</label>
-                            <select id="distribuidorId" name="distribuidorId" class="form-select">
-                                <option value="">Todos</option>
-                                <option th:each="dist : ${distribuidores}"
-                                        th:value="${dist.idUsuario}"
-                                        th:text="|${dist.nombre} (${dist.localidad != null ? dist.localidad : 'N/A'}) - ${dist.entregasActivasHoy}/15|"
-                                        th:selected="${distribuidorIdFiltro == dist.idUsuario}"></option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 col-lg-3">
-                            <label for="fechaInicio" class="form-label">Desde</label>
-                            <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" th:value="${fechaInicioFiltro}">
-                        </div>
-                        <div class="col-md-6 col-lg-3">
-                            <label for="fechaFin" class="form-label">Hasta</label>
-                            <input type="date" class="form-control" id="fechaFin" name="fechaFin" th:value="${fechaFinFiltro}">
-                        </div>
-                        <div class="col-lg-9">
-                            <label for="clienteEmail" class="form-label">Email del Cliente</label>
-                            <input type="text" class="form-control" id="clienteEmail" name="clienteEmail" placeholder="Buscar por email..." th:value="${clienteEmailFiltro}">
-                        </div>
-                        <div class="col-lg-3 d-flex align-items-end">
-                            <div class="d-grid gap-2 w-100">
-                                <button type="submit" class="btn btn-primary"><i class="fas fa-search me-2"></i>Buscar</button>
-                                <a th:href="@{/gerente-entregas/dashboard}" class="btn btn-outline-secondary btn-sm">Limpiar Filtros</a>
-                            </div>
-                        </div>
-                    </form>
-                </div>
             </div>
+        </form>
+    </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover align-middle text-center">
-                    <thead>
-                    <tr>
-                        <th>ID Entrega</th>
-                        <th>ID Venta</th>
-                        <th>Fecha Creación</th>
-                        <th>Localidad</th>
-                        <th>Estado</th>
-                        <th>Distribuidor</th>
-                        <th>Acciones</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:if="${entregas.isEmpty()}">
-                        <td colspan="7" class="text-center text-muted py-4">No se encontraron entregas con los filtros aplicados.</td>
-                    </tr>
-                    <tr th:each="entrega : ${entregas}">
-                        <td class="fw-bold" th:text="'#' + ${entrega.idEntrega}"></td>
-                        <td th:text="${entrega.venta.idVenta}"></td>
-                        <td th:text="${#temporals.format(entrega.fechaCreacion, 'dd/MM/yyyy HH:mm')}"></td>
+    <div class="deliveries-section">
+        <h4><i class="fas fa-boxes-packing me-2"></i>Lista de Entregas</h4>
 
-                        <td th:text="${entrega.localidad != null ? entrega.localidad : (entrega.venta != null and entrega.venta.localidad != null ? entrega.venta.localidad : 'N/A')}"></td>
+        <div th:if="${entregas.isEmpty()}" class="alert alert-info text-center">
+            No se encontraron entregas con los filtros aplicados.
+        </div>
 
-                        <td>
-                            <span class="status-badge" th:text="${entrega.estado}"
-                                  th:classappend="'status-' + ${#strings.toLowerCase(entrega.estado).replace(' ', '-')}">
-                            </span>
-                        </td>
-                        <td th:text="${entrega.distribuidor != null ? entrega.distribuidor.nombre : 'Sin Asignar'}"></td>
-                        <td>
-                            <a th:href="@{/gerente-entregas/detalle/{id}(id=${entrega.idEntrega})}" class="btn btn-sm btn-success" title="Ver Detalles"><i class="fas fa-eye"></i></a>
-                            <button th:if="${entrega.distribuidor == null}" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalAsignar" th:data-entrega-id="${entrega.idEntrega}" title="Asignar Distribuidor"><i class="fas fa-user-plus"></i></button>
-                            <form th:action="@{/gerente-entregas/desasignar}" method="post" class="d-inline" th:if="${entrega.distribuidor != null}"><input type="hidden" name="entregaId" th:value="${entrega.idEntrega}" /><button type="submit" class="btn btn-sm btn-warning" title="Desasignar" onclick="return confirm('¿Seguro?')"><i class="fas fa-user-minus"></i></button></form>
-                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar" th:data-entrega-id="${entrega.idEntrega}" title="Cancelar Entrega" th:if="${entrega.estado != 'CANCELADA' and entrega.estado != 'ENTREGADO'}"><i class="fas fa-ban"></i></button>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+        <div class="deliveries-grid" th:unless="${entregas.isEmpty()}">
+            <div class="delivery-card" th:each="entrega : ${entregas}">
+                <div class="delivery-header">
+                    <div class="delivery-id" th:text="'#' + ${entrega.idEntrega}">#001</div>
+                    <span class="delivery-status" th:text="${entrega.estado}"
+                          th:classappend="'status-' + ${#strings.toLowerCase(entrega.estado).replace(' ', '-')}">
+                        PENDIENTE
+                    </span>
+                </div>
+
+                <div class="delivery-info">
+                    <div class="info-row">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="info-label">Venta:</span>
+                        <span th:text="${entrega.venta.idVenta}">V-001</span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-calendar"></i>
+                        <span class="info-label">Fecha:</span>
+                        <span th:text="${#temporals.format(entrega.fechaCreacion, 'dd/MM/yyyy HH:mm')}">01/01/2024</span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="info-label">Localidad:</span>
+                        <span th:text="${entrega.localidad != null ? entrega.localidad : (entrega.venta != null and entrega.venta.localidad != null ? entrega.venta.localidad : 'N/A')}">Lima</span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fas fa-user"></i>
+                        <span class="info-label">Distribuidor:</span>
+                        <span th:text="${entrega.distribuidor != null ? entrega.distribuidor.nombre : 'Sin Asignar'}">Sin Asignar</span>
+                    </div>
+                </div>
+
+                <div class="delivery-actions">
+                    <a th:href="@{/gerente-entregas/detalle/{id}(id=${entrega.idEntrega})}" class="btn-action btn-view" title="Ver Detalles">
+                        <i class="fas fa-eye"></i> Ver
+                    </a>
+
+                    <button th:if="${entrega.distribuidor == null}" class="btn-action btn-assign"
+                            data-bs-toggle="modal" data-bs-target="#modalAsignar"
+                            th:data-entrega-id="${entrega.idEntrega}" title="Asignar Distribuidor">
+                        <i class="fas fa-user-plus"></i> Asignar
+                    </button>
+
+                    <form th:action="@{/gerente-entregas/desasignar}" method="post" class="d-inline" th:if="${entrega.distribuidor != null}" style="flex: 1;">
+                        <input type="hidden" name="entregaId" th:value="${entrega.idEntrega}" />
+                        <button type="submit" class="btn-action btn-unassign w-100" title="Desasignar" onclick="return confirm('¿Seguro que deseas desasignar?')">
+                            <i class="fas fa-user-minus"></i> Desasignar
+                        </button>
+                    </form>
+
+                    <button class="btn-action btn-cancel" data-bs-toggle="modal" data-bs-target="#modalCancelar"
+                            th:data-entrega-id="${entrega.idEntrega}" title="Cancelar Entrega"
+                            th:if="${entrega.estado != 'CANCELADA' and entrega.estado != 'ENTREGADO'}">
+                        <i class="fas fa-ban"></i> Cancelar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</main>
+</div>
 
 <div class="modal fade" id="modalAsignar" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form th:action="@{/gerente-entregas/asignar}" method="post">
-                <div class="modal-header"><h5 class="modal-title"><i class="fas fa-user-check me-2"></i>Asignar Distribuidor</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-check me-2"></i>Asignar Distribuidor</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
                 <div class="modal-body">
                     <input type="hidden" name="entregaId" id="asignarEntregaId">
                     <div class="mb-3">
@@ -243,91 +411,135 @@
                             </option>
                         </select>
                         <div class="form-text text-muted small mt-2">
-                            Solo se pueden seleccionar distribuidores con menos de 15 entregas activas hoy.
+                            <i class="fas fa-info-circle"></i> Solo se pueden seleccionar distribuidores con menos de 15 entregas activas hoy.
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button><button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Confirmar</button></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-reset" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-purple">
+                        <i class="fas fa-save me-2"></i>Confirmar
+                    </button>
+                </div>
             </form>
         </div>
     </div>
 </div>
 
 <div class="modal fade" id="modalCancelar" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form th:action="@{/gerente-entregas/cancelar}" method="post">
-                <div class="modal-header"><h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Cancelar Entrega</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Cancelar Entrega</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
                 <div class="modal-body">
                     <input type="hidden" name="entregaId" id="cancelarEntregaId">
                     <p>Estás a punto de cancelar la entrega <strong id="cancelarEntregaLabel"></strong>. Por favor, especifica el motivo.</p>
                     <div class="mb-3">
-                        <label for="motivo" class="form-label">Motivo:</label>
-                        <textarea id="motivo" name="motivo" class="form-control" rows="3" required></textarea>
+                        <label for="motivo" class="form-label">Motivo de Cancelación:</label>
+                        <textarea id="motivo" name="motivo" class="form-control" rows="4" placeholder="Describe el motivo..." required></textarea>
                     </div>
                 </div>
-                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button><button type="submit" class="btn btn-danger">Confirmar Cancelación</button></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-reset" data-bs-dismiss="modal">Volver</button>
+                    <button type="submit" class="btn-cancel">
+                        <i class="fas fa-ban me-2"></i>Confirmar Cancelación
+                    </button>
+                </div>
             </form>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script th:inline="javascript">
-    document.addEventListener('DOMContentLoaded', function () {
-
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
         const modalAsignar = document.getElementById('modalAsignar');
-        if(modalAsignar) {
+        if (modalAsignar) {
             modalAsignar.addEventListener('show.bs.modal', function (event) {
                 const button = event.relatedTarget;
                 const entregaId = button.getAttribute('data-entrega-id');
-                modalAsignar.querySelector('#asignarEntregaId').value = entregaId;
+                const input = modalAsignar.querySelector('input[name="entregaId"]');
+                if (input) input.value = entregaId;
             });
         }
 
         const modalCancelar = document.getElementById('modalCancelar');
-        if(modalCancelar) {
+        if (modalCancelar) {
             modalCancelar.addEventListener('show.bs.modal', function (event) {
                 const button = event.relatedTarget;
                 const entregaId = button.getAttribute('data-entrega-id');
-                modalCancelar.querySelector('#cancelarEntregaId').value = entregaId;
-                modalCancelar.querySelector('#cancelarEntregaLabel').textContent = '#' + entregaId;
+                const input = modalCancelar.querySelector('input[name="entregaId"]');
+                if (input) input.value = entregaId;
+                const label = modalCancelar.querySelector('#cancelarEntregaLabel');
+                if(label) label.textContent = '#' + entregaId;
             });
         }
 
-        const chartCanvas = document.getElementById('entregasChart');
-        if (chartCanvas) {
-            const pendientes = parseInt(chartCanvas.getAttribute('data-pendientes')) || 0;
-            const enCamino = parseInt(chartCanvas.getAttribute('data-encamino')) || 0;
-            const completadas = parseInt(chartCanvas.getAttribute('data-completadas')) || 0;
+        const canvas = document.getElementById('entregasChart');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            const pendientes = parseInt(canvas.dataset.pendientes) || 0;
+            const enCamino = parseInt(canvas.dataset.encamino) || 0;
+            const completadas = parseInt(canvas.dataset.completadas) || 0;
 
-            const data = {
-                labels: ['Pendientes', 'En Camino', 'Completadas'],
-                datasets: [{
-                    label: 'Cantidad de Entregas',
-                    data: [pendientes, enCamino, completadas],
-                    backgroundColor: [ 'rgba(255, 193, 7, 0.6)', 'rgba(13, 202, 240, 0.6)', 'rgba(25, 135, 84, 0.6)' ],
-                    borderColor: [ '#ffc107', '#0dcaf0', '#198754' ],
-                    borderWidth: 2,
-                    borderRadius: 5
-                }]
-            };
-            const config = {
-                type: 'bar',
-                data: data,
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-                }
-            };
-            if (pendientes > 0 || enCamino > 0 || completadas > 0) {
-                new Chart(chartCanvas, config);
+            // Lógica de "No hay datos" de Golden Feets aplicada al estilo visual violeta
+            if (pendientes === 0 && enCamino === 0 && completadas === 0) {
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = "16px 'Inter', sans-serif";
+                ctx.fillStyle = '#6b7280';
+                ctx.fillText('No hay datos de estadísticas para mostrar.', canvas.width / 2, canvas.height / 2);
             } else {
-                const ctx = chartCanvas.getContext('2d');
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = "16px 'Poppins'"; ctx.fillStyle = '#6c757d';
-                ctx.fillText('No hay datos de estadísticas para mostrar.', chartCanvas.width / 2, chartCanvas.height / 2);
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Pendientes', 'En Camino', 'Completadas'],
+                        datasets: [{
+                            label: 'Entregas',
+                            data: [pendientes, enCamino, completadas],
+                            backgroundColor: [
+                                'linear-gradient(180deg, rgba(245, 158, 11, 0.9), rgba(245, 158, 11, 0.6))',
+                                'linear-gradient(180deg, rgba(124, 58, 237, 0.9), rgba(124, 58, 237, 0.6))',
+                                'linear-gradient(180deg, rgba(16, 185, 129, 0.9), rgba(16, 185, 129, 0.6))'
+                            ],
+                            borderColor: ['#f59e0b', '#7c3aed', '#10b981'],
+                            borderWidth: 2,
+                            borderRadius: 10,
+                            barThickness: 60
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleFont: { size: 14, weight: '600', family: "'Inter', sans-serif" },
+                                bodyFont: { size: 13, family: "'Inter', sans-serif" },
+                                cornerRadius: 8,
+                                displayColors: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(124, 58, 237, 0.1)', drawBorder: false },
+                                ticks: { font: { size: 12, weight: '600', family: "'Inter', sans-serif" }, color: '#7c3aed', stepSize: 1 }
+                            },
+                            y: {
+                                grid: { display: false, drawBorder: false },
+                                ticks: { font: { size: 13, weight: '600', family: "'Inter', sans-serif" }, color: '#6b21a8', padding: 10 }
+                            }
+                        },
+                        animation: { duration: 1500, easing: 'easeInOutQuart' }
+                    }
+                });
             }
         }
     });

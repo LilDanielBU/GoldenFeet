@@ -55,15 +55,13 @@ public class EntregaServiceImpl implements EntregaService {
     @Override
     @Transactional
     public void asignarDistribuidor(Long entregaId, Integer distribuidorId) {
-
         Entrega entrega = entregaRepository.findById(entregaId)
                 .orElseThrow(() -> new EntityNotFoundException("Entrega no encontrada con ID: " + entregaId));
         Usuario distribuidor = usuarioRepository.findById(distribuidorId)
                 .orElseThrow(() -> new EntityNotFoundException("Distribuidor no encontrado con ID: " + distribuidorId));
 
-        // --- VALIDACIÓN DE LOCALIDAD (CORREGIDA) ---
         String localidadEntrega = entrega.getLocalidad();
-        String localidadDistribuidor = distribuidor.getLocalidad(); // <-- CORRECCIÓN: Usamos .getLocalidad()
+        String localidadDistribuidor = distribuidor.getLocalidad();
 
         if (localidadDistribuidor == null || localidadEntrega == null || !localidadDistribuidor.equalsIgnoreCase(localidadEntrega)) {
             throw new IllegalStateException(
@@ -72,7 +70,6 @@ public class EntregaServiceImpl implements EntregaService {
             );
         }
 
-        // --- VALIDACIÓN LÍMITE DE 15 ---
         LocalDateTime inicioDelDia = LocalDate.now().atStartOfDay();
         LocalDateTime finDelDia = LocalDate.now().atTime(LocalTime.MAX);
 
@@ -84,27 +81,28 @@ public class EntregaServiceImpl implements EntregaService {
             throw new IllegalStateException("El distribuidor ya alcanzó el límite de 15 entregas asignadas para hoy.");
         }
 
-        // --- ASIGNACIÓN ---
         entrega.setDistribuidor(distribuidor);
         entrega.setEstado("ASIGNADO");
         entrega.setFechaAsignacion(LocalDateTime.now());
 
-        crearNovedad(entrega, distribuidor, "Entrega asignada al distribuidor: " + distribuidor.getNombre());
+        // Registramos quien asignó (en este caso el sistema o gerente, aquí pasamos null o podríamos pasar el usuario si lo tuviéramos)
+        crearNovedad(entrega, null, "Entrega asignada al distribuidor: " + distribuidor.getNombre());
 
         entregaRepository.save(entrega);
     }
 
     @Override
     @Transactional
-    public void cancelarEntrega(Long entregaId, String motivo) {
+    // --- MÉTODO ACTUALIZADO ---
+    public void cancelarEntrega(Long entregaId, String motivo, Usuario usuarioQueCancela) {
         Entrega entrega = entregaRepository.findById(entregaId)
                 .orElseThrow(() -> new EntityNotFoundException("Entrega no encontrada con ID: " + entregaId));
 
-        Usuario usuarioQueCancela = null; // Implementar lógica para obtener usuario autenticado
+        // Registramos la novedad con el usuario real
+        String nombreUsuario = (usuarioQueCancela != null) ? usuarioQueCancela.getNombre() : "Sistema/Gerente";
+        crearNovedad(entrega, usuarioQueCancela, "Entrega CANCELADA por " + nombreUsuario + ". Motivo: " + motivo);
 
-        crearNovedad(entrega, usuarioQueCancela, "Entrega CANCELADA. Motivo: " + motivo);
-
-        entrega.setEstado("PENDIENTE");
+        entrega.setEstado("CANCELADA");
         entrega.setMotivoCancelacion(motivo);
         entrega.setDistribuidor(null);
         entrega.setFechaAsignacion(null);
@@ -198,7 +196,7 @@ public class EntregaServiceImpl implements EntregaService {
                     dist.getIdUsuario(),
                     dist.getNombre(),
                     conteo,
-                    dist.getLocalidad() // <-- CORRECCIÓN: Usamos .getLocalidad()
+                    dist.getLocalidad()
             );
         }).collect(Collectors.toList());
     }

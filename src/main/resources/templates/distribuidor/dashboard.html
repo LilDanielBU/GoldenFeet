@@ -1,213 +1,402 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Entregas - Golden Feets</title>
-
+    <title>Portal del Distribuidor - Golden Feets</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary-color: #4D1C95; --secondary-color: #6C4AB6; --light-bg: #f8f9fa;
-            --text-color: #343a40; --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--light-bg); }
-        .header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 1rem 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .header-title { font-family: 'Playfair Display', serif; font-size: 1.75rem; }
-        .main-content { padding: 2rem; }
-        .card { border: none; border-radius: 15px; box-shadow: var(--card-shadow); }
-        .card-header { background-color: var(--primary-color); color: white; font-size: 1.25rem; font-weight: 500; border-top-left-radius: 15px; border-top-right-radius: 15px; padding: 1.25rem; }
-        .table thead { background-color: var(--secondary-color); color: white; }
-        .status-badge { font-size: 0.85em; padding: 0.4em 0.9em; border-radius: 50px; font-weight: 500; color: white; }
-        .status-asignado { background-color: #6c757d; }
-        .status-en-camino { background-color: #0dcaf0; }
-        .status-entregado { background-color: #198754; }
-        .status-cancelada { background-color: #dc3545; }
-        .modal-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            min-height: 100vh;
+            color: var(--text-main);
+        }
+
+        /* HEADER VIBRANTE */
+        .header-section {
+            background: var(--primary-gradient);
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.25);
+            margin-bottom: 2.5rem;
+            color: white;
+        }
+        .header-section h2 {
+            color: white;
+            font-size: 1.75rem;
+            font-weight: 700;
+            display: flex; align-items: center; margin: 0;
+        }
+        .header-icon-box {
+            background: rgba(255,255,255,0.2);
+            width: 45px; height: 45px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin-right: 1rem; backdrop-filter: blur(5px);
+        }
+
+        .user-welcome { font-weight: 500; color: rgba(255,255,255,0.9); margin-right: 1.5rem; }
+
+        .btn-logout {
+            background: rgba(255,255,255,0.15);
+            color: white; border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.5rem 1.2rem; border-radius: 8px; font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-logout:hover { background: white; color: #7c3aed; transform: translateY(-2px); }
+
+        /* STATISTICS CARDS */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem; margin-bottom: 2.5rem;
+        }
+        .stat-card {
+            background: var(--bg-card); border-radius: 16px; padding: 1.75rem;
+            border: 1px solid var(--border-color); box-shadow: var(--shadow-card);
+            transition: all 0.3s ease; position: relative; overflow: hidden;
+        }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: var(--primary-gradient);
+        }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
+
+        .stat-content { display: flex; justify-content: space-between; align-items: flex-start; }
+        .stat-info p { color: var(--text-muted); font-size: 0.9rem; font-weight: 600; text-transform: uppercase; margin: 0; }
+        .stat-info h3 {
+            font-size: 2.5rem; font-weight: 800; margin-top: 0.5rem; margin-bottom: 0;
+            background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .stat-icon {
+            width: 55px; height: 55px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+            color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .stat-icon.assigned { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .stat-icon.shipping { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .stat-icon.done { background: linear-gradient(135deg, #10b981, #059669); }
+
+        /* FILTERS SECTION */
+        .filters-section {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 16px; padding: 2rem;
+            border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); margin-bottom: 2.5rem;
+        }
+        .filters-header h4 { color: #4f46e5; font-weight: 700; margin: 0; font-size: 1.2rem; }
+
+        .form-label { font-weight: 600; font-size: 0.9rem; color: var(--text-muted); }
+        .form-control, .form-select {
+            border: 2px solid #e2e8f0; border-radius: 10px; padding: 0.65rem 1rem;
+            transition: all 0.2s; background-color: white;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .btn-primary-vibrant {
+            background: var(--primary-gradient); color: white; border: none;
+            padding: 0.7rem 1.5rem; border-radius: 10px; font-weight: 600;
+            transition: all 0.3s; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+        .btn-primary-vibrant:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3); color: white; }
+
+        .btn-pdf-vibrant {
+            background: white; color: #dc2626; border: 2px solid #fee2e2;
+            padding: 0.5rem 1.2rem; border-radius: 10px; font-weight: 600; text-decoration: none;
+            transition: all 0.2s; display: inline-flex; align-items: center;
+        }
+        .btn-pdf-vibrant:hover { background: #fef2f2; border-color: #dc2626; transform: translateY(-2px); color: #b91c1c; }
+
+        /* DELIVERIES GRID */
+        .deliveries-section h4 { color: #334155; font-weight: 700; margin-bottom: 1.5rem; font-size: 1.3rem; border-left: 5px solid #6366f1; padding-left: 1rem; }
+        .deliveries-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; }
+
+        .delivery-card {
+            background: white; border-radius: 16px; border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow-card); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden; display: flex; flex-direction: column;
+        }
+        .delivery-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: #818cf8; }
+
+        .delivery-header {
+            padding: 1.25rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .delivery-id { font-size: 1.15rem; font-weight: 800; color: #4f46e5; }
+
+        /* STATUS BADGES VIBRANTES */
+        .status-badge {
+            padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px; color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .status-asignado { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .status-en-camino { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .status-entregado { background: linear-gradient(135deg, #10b981, #059669); }
+        .status-cancelada { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+        .delivery-body { padding: 1.5rem; flex-grow: 1; }
+        .delivery-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+        .info-item { display: flex; flex-direction: column; }
+        .info-label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.3rem; }
+        .info-value { font-size: 1rem; font-weight: 600; color: #334155; }
+        .full-width { grid-column: span 2; }
+
+        .delivery-actions {
+            padding: 1rem 1.5rem; background: white; border-top: 1px solid #f1f5f9;
+            display: flex; gap: 0.8rem;
+        }
+
+        /* BOTONES DE ACCIÓN COLORIDOS */
+        .btn-card-action {
+            flex: 1; padding: 0.6rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer;
+            transition: all 0.2s; border: none; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-view { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-view:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3); }
+
+        .btn-update { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .btn-update:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3); }
+
+        .btn-cancel { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .btn-cancel:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3); }
+
+        /* MODALS */
+        .modal-content { border-radius: 16px; border: none; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+        .modal-header { background: var(--primary-gradient); color: white; padding: 1.5rem; border-radius: 16px 16px 0 0; }
+        .modal-title { font-weight: 700; display: flex; align-items: center; gap: 0.75rem; }
+        .btn-close-white { filter: invert(1) grayscale(100%) brightness(200%); }
+        .modal-body { padding: 2rem; }
+        .modal-footer { border-top: 1px solid #f1f5f9; padding: 1.25rem 2rem; }
+
+        @media (max-width: 768px) {
+            .deliveries-grid, .stats-grid { grid-template-columns: 1fr; }
+            .filters-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .delivery-info-grid { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+        }
     </style>
 </head>
 <body>
 
-<header class="header d-flex justify-content-between align-items-center">
-    <div class="header-title"><i class="fas fa-route me-3"></i>Portal del Distribuidor</div>
-    <div class="d-flex align-items-center">
-        <span class="me-3" th:text="'¡Hola, ' + ${distribuidor.nombre} + '!'"></span>
-        <form th:action="@{/logout}" method="post">
-            <button type="submit" class="btn btn-outline-light"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</button>
-        </form>
-    </div>
-</header>
-
-<main class="main-content">
-
-    <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="card text-white bg-primary shadow-lg">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="card-title fs-2" th:text="${estadisticas.totalAsignadas}">0</h5>
-                        <p class="card-text mb-0">Total Asignadas</p>
-                    </div>
-                    <i class="fas fa-boxes-stacked fa-3x opacity-50"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card text-white bg-info shadow-lg">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="card-title fs-2" th:text="${estadisticas.enCamino}">0</h5>
-                        <p class="card-text mb-0">En Camino</p>
-                    </div>
-                    <i class="fas fa-shipping-fast fa-3x opacity-50"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card text-white bg-success shadow-lg">
-                <div class="card-body d-flex justify-content-between align-items-center">
-                    <div>
-                        <h5 class="card-title fs-2" th:text="${estadisticas.completadasHoy}">0</h5>
-                        <p class="card-text mb-0">Completadas Hoy</p>
-                    </div>
-                    <i class="fas fa-calendar-check fa-3x opacity-50"></i>
-                </div>
-            </div>
+<div class="header-section">
+    <div class="container d-flex justify-content-between align-items-center">
+        <h2>
+            <div class="header-icon-box"><i class="fas fa-route"></i></div>
+            Portal Distribuidor
+        </h2>
+        <div class="d-flex align-items-center">
+            <span class="user-welcome d-none d-md-block">
+                ¡Hola, <span th:text="${distribuidor.nombre}" style="color: #fff; font-weight: 700;">Usuario</span>!
+            </span>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-logout">
+                    <i class="fas fa-sign-out-alt me-2"></i>Salir
+                </button>
+            </form>
         </div>
     </div>
+</div>
 
-    <div class="card">
-        <div class="card-header"><i class="fas fa-box-open me-2"></i>Mis Entregas Asignadas</div>
-        <div class="card-body p-4">
+<div class="container pb-5">
 
-            <div class="card shadow-sm mb-4 border">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-filter me-2 text-primary"></i>Filtrar Mis Entregas</h5>
-                    <a th:href="@{/distribuidor/exportar-pdf(
-                                    estado=${estadoFiltro},
-                                    fechaInicio=${fechaInicioFiltro},
-                                    fechaFin=${fechaFinFiltro}
-                                )}"
-                       class="btn btn-danger btn-sm">
-                        <i class="fas fa-file-pdf me-2"></i>Descargar Reporte
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-info">
+                    <p>Asignadas Total</p>
+                    <h3 th:text="${estadisticas.totalAsignadas}">0</h3>
+                </div>
+                <div class="stat-icon assigned"><i class="fas fa-boxes-stacked"></i></div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-info">
+                    <p>En Camino</p>
+                    <h3 th:text="${estadisticas.enCamino}">0</h3>
+                </div>
+                <div class="stat-icon shipping"><i class="fas fa-shipping-fast"></i></div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-content">
+                <div class="stat-info">
+                    <p>Completadas Hoy</p>
+                    <h3 th:text="${estadisticas.completadasHoy}">0</h3>
+                </div>
+                <div class="stat-icon done"><i class="fas fa-calendar-check"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="filters-section">
+        <div class="filters-header">
+            <h4><i class="fas fa-filter me-2" style="color: #4f46e5;"></i>Filtros de Mis Entregas</h4>
+            <a th:href="@{/distribuidor/exportar-pdf(
+                            estado=${estadoFiltro},
+                            fechaInicio=${fechaInicioFiltro},
+                            fechaFin=${fechaFinFiltro}
+                        )}"
+               class="btn-pdf-vibrant">
+                <i class="fas fa-file-pdf me-2"></i>Descargar PDF
+            </a>
+        </div>
+        <form th:action="@{/distribuidor/dashboard}" method="get">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select id="estado" name="estado" class="form-select">
+                        <option value="">Todos los estados</option>
+                        <option value="ASIGNADO" th:selected="${estadoFiltro == 'ASIGNADO'}">Asignado</option>
+                        <option value="EN CAMINO" th:selected="${estadoFiltro == 'EN CAMINO'}">En Camino</option>
+                        <option value="ENTREGADO" th:selected="${estadoFiltro == 'ENTREGADO'}">Entregado</option>
+                        <option value="CANCELADA" th:selected="${estadoFiltro == 'CANCELADA'}">Cancelada</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="fechaInicio" class="form-label">Desde</label>
+                    <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" th:value="${fechaInicioFiltro}">
+                </div>
+                <div class="col-md-3">
+                    <label for="fechaFin" class="form-label">Hasta</label>
+                    <input type="date" class="form-control" id="fechaFin" name="fechaFin" th:value="${fechaFinFiltro}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary-vibrant w-100">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <a th:href="@{/distribuidor/dashboard}" class="btn btn-outline-secondary w-100 text-center" style="border: 2px solid #cbd5e1; border-radius: 10px; padding: 0.65rem;">
+                        <i class="fas fa-redo"></i>
                     </a>
                 </div>
-                <div class="card-body">
-                    <form th:action="@{/distribuidor/dashboard}" method="get" class="row g-3">
-                        <div class="col-md-4">
-                            <label for="estado" class="form-label">Estado</label>
-                            <select id="estado" name="estado" class="form-select">
-                                <option value="">Todos</option>
-                                <option value="ASIGNADO" th:selected="${estadoFiltro == 'ASIGNADO'}">Asignado</option>
-                                <option value="EN CAMINO" th:selected="${estadoFiltro == 'EN CAMINO'}">En Camino</option>
-                                <option value="ENTREGADO" th:selected="${estadoFiltro == 'ENTREGADO'}">Entregado</option>
-                                <option value="CANCELADA" th:selected="${estadoFiltro == 'CANCELADA'}">Cancelada</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="fechaInicio" class="form-label">Desde</label>
-                            <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" th:value="${fechaInicioFiltro}">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="fechaFin" class="form-label">Hasta</label>
-                            <input type="date" class="form-control" id="fechaFin" name="fechaFin" th:value="${fechaFinFiltro}">
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <div class="d-grid gap-2 w-100">
-                                <button type="submit" class="btn btn-primary"><i class="fas fa-search me-2"></i>Buscar</button>
-                                <a th:href="@{/distribuidor/dashboard}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
-                            </div>
-                        </div>
-                    </form>
-                </div>
             </div>
+        </form>
+    </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover align-middle text-center">
-                    <thead>
-                    <tr>
-                        <th>ID Entrega</th>
-                        <th>Cliente</th>
-                        <th>Dirección</th>
-                        <th>Ciudad</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:if="${entregas.isEmpty()}">
-                        <td colspan="6" class="text-center text-muted py-4">No se encontraron entregas con los filtros aplicados.</td>
-                    </tr>
-                    <tr th:each="entrega : ${entregas}">
-                        <td class="fw-bold" th:text="'#' + ${entrega.idEntrega}"></td>
-                        <td th:text="${entrega.venta.cliente.nombre}"></td>
-                        <td th:text="${entrega.venta.direccionEnvio}"></td>
-                        <td th:text="${entrega.venta.ciudadEnvio}"></td>
-                        <td>
-                                <span class="status-badge" th:text="${entrega.estado}"
-                                      th:classappend="'status-' + ${#strings.toLowerCase(entrega.estado).replace(' ', '-')}">
-                                </span>
-                        </td>
-                        <td>
-                            <a th:href="@{/distribuidor/detalle/{id}(id=${entrega.idEntrega})}" class="btn btn-sm btn-success" title="Ver Detalles">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalCambiarEstado"
-                                    th:data-entrega-id="${entrega.idEntrega}" title="Actualizar Estado">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalCancelar"
-                                    th:data-entrega-id="${entrega.idEntrega}" title="Cancelar Entrega">
-                                <i class="fas fa-ban"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+    <div class="deliveries-section">
+        <h4>Mis Asignaciones</h4>
+
+        <div th:if="${entregas.isEmpty()}" class="alert alert-light text-center border shadow-sm py-4" style="background: #f8fafc;">
+            <i class="fas fa-inbox fa-3x mb-3 d-block" style="color: #cbd5e1;"></i>
+            <span class="text-muted fw-bold">No tienes entregas asignadas con estos criterios.</span>
+        </div>
+
+        <div class="deliveries-grid" th:unless="${entregas.isEmpty()}">
+            <div class="delivery-card" th:each="entrega : ${entregas}">
+                <div class="delivery-header">
+                    <div class="delivery-id" th:text="'#' + ${entrega.idEntrega}">#001</div>
+                    <span class="status-badge" th:text="${entrega.estado}"
+                          th:classappend="'status-' + ${#strings.toLowerCase(entrega.estado).replace(' ', '-')}">
+                        ASIGNADO
+                    </span>
+                </div>
+
+                <div class="delivery-body">
+                    <div class="delivery-info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Cliente</span>
+                            <span class="info-value" th:text="${entrega.venta.cliente.nombre}">Juan Perez</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Ciudad</span>
+                            <span class="info-value" th:text="${entrega.venta.ciudadEnvio}">Bogotá</span>
+                        </div>
+                        <div class="info-item full-width mt-2">
+                            <span class="info-label">Dirección de Entrega</span>
+                            <span class="info-value text-break" th:text="${entrega.venta.direccionEnvio}">Av. Siempre Viva 123</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="delivery-actions">
+                    <a th:href="@{/distribuidor/detalle/{id}(id=${entrega.idEntrega})}" class="btn-card-action btn-view" title="Ver Detalles">
+                        <i class="fas fa-eye"></i>
+                    </a>
+
+                    <button class="btn-card-action btn-update" data-bs-toggle="modal" data-bs-target="#modalCambiarEstado"
+                            th:data-entrega-id="${entrega.idEntrega}" title="Actualizar Estado">
+                        <i class="fas fa-pen-to-square"></i> Actualizar
+                    </button>
+
+                    <button class="btn-card-action btn-cancel" data-bs-toggle="modal" data-bs-target="#modalCancelar"
+                            th:data-entrega-id="${entrega.idEntrega}" title="Cancelar Entrega">
+                        <i class="fas fa-ban"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</main>
+</div>
 
 <div class="modal fade" id="modalCambiarEstado" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form th:action="@{/distribuidor/actualizar-estado}" method="post">
-                <div class="modal-header"><h5 class="modal-title"><i class="fas fa-edit me-2"></i>Actualizar Estado de la Entrega</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-truck-moving me-2"></i> Actualizar Estado</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
                 <div class="modal-body">
                     <input type="hidden" name="entregaId" id="entregaIdModalEstado">
-                    <p>Selecciona el nuevo estado para la entrega <strong id="entregaIdLabelEstado"></strong>:</p>
+                    <p class="text-muted mb-3">Selecciona el nuevo estado para la entrega <strong id="entregaIdLabelEstado" class="text-dark"></strong>:</p>
                     <div class="mb-3">
-                        <label for="nuevoEstado" class="form-label">Nuevo Estado:</label>
+                        <label for="nuevoEstado" class="form-label">Nuevo Estado</label>
                         <select id="nuevoEstado" name="nuevoEstado" class="form-select" required>
                             <option value="EN CAMINO">En Camino</option>
                             <option value="ENTREGADO">Entregado</option>
                         </select>
                     </div>
                 </div>
-                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Guardar</button></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-vibrant">
+                        Guardar Cambios
+                    </button>
+                </div>
             </form>
         </div>
     </div>
 </div>
 
 <div class="modal fade" id="modalCancelar" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form th:action="@{/distribuidor/cancelar}" method="post">
-                <div class="modal-header"><h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Cancelar Entrega</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                <div class="modal-header" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i> Cancelar Entrega</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
                 <div class="modal-body">
                     <input type="hidden" name="entregaId" id="cancelarEntregaId">
-                    <p>Estás a punto de cancelar la entrega <strong id="cancelarEntregaLabel"></strong>. Por favor, especifica el motivo.</p>
+                    <p class="text-muted mb-3">Estás a punto de cancelar la entrega <strong id="cancelarEntregaLabel" class="text-dark"></strong>. Esta acción requiere un motivo.</p>
                     <div class="mb-3">
-                        <label for="motivo" class="form-label">Motivo de la Cancelación:</label>
-                        <textarea id="motivo" name="motivo" class="form-control" rows="3" required></textarea>
+                        <label for="motivo" class="form-label">Motivo de la Cancelación <span class="text-danger">*</span></label>
+                        <textarea id="motivo" name="motivo" class="form-control" rows="3" placeholder="Describe la razón..." required></textarea>
                     </div>
                 </div>
-                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button><button type="submit" class="btn btn-danger">Confirmar Cancelación</button></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Volver</button>
+                    <button type="submit" class="btn btn-danger">
+                        Confirmar Cancelación
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -232,7 +421,8 @@
                 const button = event.relatedTarget;
                 const entregaId = button.getAttribute('data-entrega-id');
                 modalCancelar.querySelector('#cancelarEntregaId').value = entregaId;
-                modalCancelar.querySelector('#cancelarEntregaLabel').textContent = '#' + entregaId;
+                const label = modalCancelar.querySelector('#cancelarEntregaLabel');
+                if(label) label.textContent = '#' + entregaId;
             });
         }
     });

@@ -47,7 +47,6 @@ public class DistribuidorController {
         LocalDateTime fin = (fechaFin != null) ? fechaFin.atTime(LocalTime.MAX) : null;
 
         List<Entrega> misEntregas = entregaService.buscarConFiltros(estado, distribuidor.getIdUsuario(), inicio, fin, null);
-
         EstadisticasDistribuidorDTO estadisticas = entregaService.obtenerEstadisticasDistribuidor(distribuidor.getIdUsuario());
 
         model.addAttribute("estadisticas", estadisticas);
@@ -65,7 +64,6 @@ public class DistribuidorController {
         Entrega entrega = entregaService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("ID de Entrega no válido: " + id));
         model.addAttribute("entrega", entrega);
-        // Reutilizamos la misma vista de detalle del gerente
         return "gerente-entregas/detalle-entrega";
     }
 
@@ -78,8 +76,10 @@ public class DistribuidorController {
 
     @PostMapping("/cancelar")
     public String cancelarEntrega(@RequestParam("entregaId") Long entregaId,
-                                  @RequestParam("motivo") String motivo) {
-        entregaService.cancelarEntrega(entregaId, motivo);
+                                  @RequestParam("motivo") String motivo,
+                                  @AuthenticationPrincipal Usuario distribuidor) { // <-- Se inyecta el usuario
+        // Pasamos el distribuidor al servicio
+        entregaService.cancelarEntrega(entregaId, motivo, distribuidor);
         return "redirect:/distribuidor/dashboard";
     }
 
