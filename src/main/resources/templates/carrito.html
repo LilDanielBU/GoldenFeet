@@ -459,6 +459,9 @@
             }
         }
 
+        // =========================================================================
+        // CÓDIGO CORREGIDO PARA renderCartItems (Implementa stock real de variantes)
+        // =========================================================================
         renderCartItems() {
             const container = document.getElementById('cart-items-container');
             if (!container) return;
@@ -493,12 +496,42 @@
                 const tallaInfo = item.talla || specificTalla || product.talla || 'Única';
                 const colorInfo = item.color || specificColor || product.color || 'Estándar';
 
-                // ====== MODIFICACIÓN DE STOCK AQUÍ ======
-                // Asumimos que product.stock viene del backend. Si no, usamos 99 por defecto.
-                const maxStock = product.stock !== undefined ? product.stock : 99;
+                // =======================================================================
+                // LÓGICA DE CÁLCULO DE STOCK CRÍTICA
+                // =======================================================================
+                let maxStock = 999; // Default alto si no se encuentra la variante
+
+                // 1. Encontrar la VARIANTE que coincide con Talla/Color en el carrito
+                const matchingVariant = product.variantes?.find(v => {
+                    // Convertir a cadena y comparar, asegurando tolerancia a mayúsculas/minúsculas
+                    const variantTalla = String(v.talla);
+                    const variantColor = v.color ? String(v.color).toLowerCase() : '';
+
+                    const itemTalla = String(tallaInfo);
+                    const itemColor = colorInfo ? String(colorInfo).toLowerCase() : '';
+
+                    return variantTalla === itemTalla && variantColor === itemColor;
+                });
+
+                if (matchingVariant && matchingVariant.stock !== undefined) {
+                    maxStock = matchingVariant.stock;
+                } else if (product.stock !== undefined) {
+                    // Fallback si el producto tiene stock total pero no variantes
+                    maxStock = product.stock;
+                }
+
+                // 2. Limpiar cantidad si excede el stock real (por si el inventario se redujo después de agregar al carrito)
+                if (item.quantity > maxStock) {
+                     item.quantity = maxStock > 0 ? maxStock : 1; // Ajustar a maxStock o a 1 si el stock es 0 (para no perder el item)
+                     this.saveCart();
+                }
+
+                // 3. Deshabilitar botones/inputs según el stock
                 const isMaxReached = item.quantity >= maxStock;
-                const btnPlusDisabled = isMaxReached ? 'disabled' : '';
-                // ========================================
+                const btnPlusDisabled = isMaxReached || maxStock <= 0 ? 'disabled' : '';
+                const btnMinusDisabled = item.quantity <= 1 ? 'disabled' : ''; // Deshabilitar si la cantidad es 1 o menos
+                const inputDisabled = maxStock <= 0 ? 'disabled' : '';
+                // =======================================================================
 
                 const colorMap = {
                     'negro': '#000000', 'blanco': '#ffffff', 'rojo': '#dc3545',
@@ -509,8 +542,6 @@
                 const borderStyle = colorInfo.toLowerCase() === 'blanco' ? '1px solid #ccc' : 'none';
 
                 // === CORRECCIÓN DE IMAGEN CRÍTICA ===
-                // item.imagen contiene la URL COMPLETA (con /api/imagenes/) guardada desde el modal
-                // product.imagenUrl contiene solo el FILENAME, por si el item es antiguo y no tiene URL.
                 const finalImgSrc = item.imagen ? item.imagen : (product.imagenUrl ? '/api/imagenes/' + product.imagenUrl : 'https://via.placeholder.com/100?text=Sin+Imagen');
                 // ====================================
 
@@ -540,11 +571,11 @@
                         <div class="d-flex align-items-center gap-3">
                             <div class="d-flex flex-column">
                                 <div class="quantity-selector">
-                                    <button class="quantity-btn minus" type="button">−</button>
-                                    <input type="number" class="quantity-input" value="${item.quantity}" min="1" max="${maxStock}" readonly>
+                                    <button class="quantity-btn minus" type="button" ${btnMinusDisabled}>−</button>
+                                    <input type="number" class="quantity-input" value="${item.quantity}" min="1" max="${maxStock}" readonly ${inputDisabled}>
                                     <button class="quantity-btn plus" type="button" ${btnPlusDisabled} data-max="${maxStock}">+</button>
                                 </div>
-                                <small class="text-muted text-center mt-1" style="font-size:0.75rem;">Disponibles: ${maxStock}</small>
+                                <small class="text-muted text-center mt-1" style="font-size:0.75rem;">Disponibles: ${maxStock > 0 ? maxStock : '0'}</small>
                             </div>
 
                             <button class="btn-remove" type="button">
@@ -561,6 +592,7 @@
                 container.appendChild(el);
             }
         }
+        // =========================================================================
 
         updateOrderSummary() {
             let subtotal = 0, itemCount = 0;
@@ -639,19 +671,19 @@
                     if (e.target.closest('.quantity-btn.minus')) {
                         this.updateQuantity(pId, this.cart[pId].quantity - 1);
                     } else if (e.target.closest('.quantity-btn.plus')) {
-                        // ====== VALIDACIÓN DE STOCK AL HACER CLICK ======
+                        // ====== VALIDACIÓN DE STOCK AL HACER CLICK (Ahora usa data-max real) ======
                         const btnPlus = e.target.closest('.quantity-btn.plus');
-                        // Leer el stock máximo del atributo data-max
-                        const maxStock = parseInt(btnPlus.dataset.max) || 99;
+                        // Leer el stock máximo del atributo data-max (establecido en renderCartItems con stock real)
+                        const maxStock = parseInt(btnPlus.dataset.max) || 999;
                         const currentQty = this.cart[pId].quantity;
 
                         if (currentQty < maxStock) {
                             this.updateQuantity(pId, currentQty + 1);
-                        } else {
-                            // Feedback extra por si acaso
+                        } else if (currentQty >= maxStock) {
+                            // Feedback por si el botón no estaba deshabilitado (aunque debería estarlo)
                             alert(`Solo hay ${maxStock} unidades disponibles de este producto.`);
                         }
-                        // ===============================================
+                        // =========================================================================
                     } else if (e.target.closest('.btn-remove')) {
                         this.removeItem(pId, itemEl);
                     }
@@ -706,10 +738,12 @@
                     const itemEl = document.querySelector(`.cart-item[data-product-id="${key}"]`);
                     this.removeItem(key, itemEl, true);
                 } else {
+                    // La lógica de ajuste de maxStock se hace ahora dentro de renderCartItems.
+                    // Aquí solo actualizamos la cantidad en el modelo de datos.
                     this.cart[key].quantity = quantity;
                     this.saveCart();
                     this.updateCartCountBadge();
-                    // Importante: al llamar renderCartItems se revalúa si el botón + debe estar habilitado
+                    // Re-renderizar para actualizar el estado de los botones '+' y el campo de cantidad.
                     this.renderCartItems();
                     this.updateOrderSummary();
                 }

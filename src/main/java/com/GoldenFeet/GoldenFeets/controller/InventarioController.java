@@ -11,7 +11,7 @@ import com.GoldenFeet.GoldenFeets.service.ProductoService;
 import com.GoldenFeet.GoldenFeets.service.ReporteInventarioPDF;
 
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid; // Se mantiene el import, pero se quita el uso en el método crítico
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
@@ -142,17 +142,22 @@ public class InventarioController {
     @PostMapping("/productos/actualizar/{id}")
     public String procesarActualizacion(@PathVariable("id") Long id,
                                         // ----------------------------------------------------
-                                        // ¡CAMBIO CRÍTICO DE DIAGNÓSTICO!
-                                        // Eliminamos @Valid y el chequeo de errors para forzar
-                                        // la excepción de BD/JPA, que es el error real.
+                                        // ¡CORRECCIÓN! Reinsertamos @Valid
                                         // ----------------------------------------------------
-                                        @ModelAttribute("productoDTO") ProductoUpdateDTO productoDTO,
-                                        BindingResult bindingResult, // Se mantiene, pero se ignora temporalmente
+                                        @Valid @ModelAttribute("productoDTO") ProductoUpdateDTO productoDTO,
+                                        BindingResult bindingResult,
                                         RedirectAttributes redirectAttributes,
                                         Model model) {
 
-        // --- BLOQUE if (bindingResult.hasErrors()) ELIMINADO ---
-        // Ahora el código de servicio se ejecuta inmediatamente.
+        // --- BLOQUE DE VALIDACIÓN REINCLUIDO ---
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("categorias", categoriaRepository.findAll());
+            model.addAttribute("titulo", "Editar Producto");
+            model.addAttribute("isEditMode", true);
+            // Spring/Thymeleaf mantiene el productoDTO con los errores en el modelo
+            return "producto-form";
+        }
+        // --- FIN BLOQUE DE VALIDACIÓN ---
 
         try {
             productoService.actualizarProducto(id, productoDTO);

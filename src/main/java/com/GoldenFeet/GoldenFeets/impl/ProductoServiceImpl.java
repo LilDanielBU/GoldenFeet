@@ -273,6 +273,7 @@ public class ProductoServiceImpl implements ProductoService {
                         varianteExistente.setColor(vDTO.getColor());
                         // NOTA: El stock NO se actualiza aquí, solo con movimientos de inventario
 
+                        // La lógica para la imagen es correcta: solo actualiza si se sube un nuevo archivo.
                         if (vDTO.getImagenArchivo() != null && !vDTO.getImagenArchivo().isEmpty()) {
                             String imgVar = almacenamientoService.almacenarArchivo(vDTO.getImagenArchivo());
                             varianteExistente.setImagenNombre(imgVar);
@@ -326,7 +327,7 @@ public class ProductoServiceImpl implements ProductoService {
         }
 
         // ************************************************************
-        // CORRECCIÓN FINAL CRÍTICA: Sincronizar la colección del padre
+        // CORRECCIÓN FINAL CRÍTICA 1: Sincronizar la colección del padre
         // ************************************************************
         // Esto le indica a Hibernate cuál es el nuevo estado de la colección de variantes
         // y es esencial para que la transacción funcione, especialmente con @OneToMany.
@@ -338,7 +339,7 @@ public class ProductoServiceImpl implements ProductoService {
         Producto productoActualizado = productoRepository.save(producto);
 
         // ********************************************
-        // CORRECCIÓN DE FLUSH: Forzar la ejecución del UPDATE
+        // CORRECCIÓN FINAL CRÍTICA 2: Forzar la ejecución del UPDATE
         // ********************************************
         productoRepository.flush();
 
