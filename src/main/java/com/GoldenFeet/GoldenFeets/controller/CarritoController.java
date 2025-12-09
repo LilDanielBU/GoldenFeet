@@ -4,7 +4,6 @@ import com.GoldenFeet.GoldenFeets.entity.*;
 import com.GoldenFeet.GoldenFeets.repository.*;
 import com.GoldenFeet.GoldenFeets.service.EmailService;
 import com.GoldenFeet.GoldenFeets.service.PdfService;
-import com.GoldenFeet.GoldenFeets.service.ProductoService;
 import com.GoldenFeet.GoldenFeets.service.UsuarioService;
 import jakarta.servlet.http.HttpSession;
 import lombok.Data;
@@ -36,7 +35,8 @@ public class CarritoController {
 
     private final UsuarioService usuarioService;
     private final VentaRepository ventaRepository;
-    private final ProductoRepository productoRepository;
+    // private final ProductoRepository productoRepository; // Ya no lo usamos directamente para el stock
+    private final VarianteProductoRepository varianteRepository; // NUEVA DEPENDENCIA
     private final EntregaRepository entregaRepository;
     private final UsuarioRepository usuarioRepository;
     private final PdfService pdfService;
@@ -99,57 +99,62 @@ public class CarritoController {
                 venta.setDetallesVenta(new ArrayList<>());
             }
 
-            // Guardamos primero la venta para tener ID (depende de tu configuración de cascade, pero es más seguro)
             venta = ventaRepository.save(venta);
 
             BigDecimal totalVenta = BigDecimal.ZERO;
             List<DetalleVenta> detallesParaGuardar = new ArrayList<>();
 
-            // 3. Procesar Items y DESCONTAR STOCK
+            // 3. Procesar Items y DESCONTAR STOCK (USANDO VARIANTES)
             for (ItemPedido itemRequest : request.getItems()) {
-                Producto producto = productoRepository.findById(Long.valueOf(itemRequest.getProductoId())).orElse(null);
 
-                if (producto != null) {
-                    // --- A. VALIDAR Y DESCONTAR STOCK ---
-                    if (producto.getStock() < itemRequest.getCantidad()) {
-                        throw new RuntimeException("Stock insuficiente para: " + producto.getNombre() + ". Disponible: " + producto.getStock());
-                    }
-                    producto.setStock(producto.getStock() - itemRequest.getCantidad());
-                    productoRepository.save(producto); // Guardamos el stock actualizado inmediatamente
+                // Conversión de datos del request
+                Long productoId = Long.valueOf(itemRequest.getProductoId());
+                Integer tallaRequerida = Integer.parseInt(itemRequest.getTalla());
+                String colorRequerido = itemRequest.getColor();
 
-                    // --- B. CREAR DETALLE ---
-                    DetalleVenta detalle = new DetalleVenta();
-                    detalle.setVenta(venta);
-                    detalle.setProducto(producto);
-                    detalle.setCantidad(itemRequest.getCantidad());
+                // BUSCAR LA VARIANTE ESPECÍFICA
+                // CORRECCIÓN: Usamos el método findByProductoId
+                List<VarianteProducto> variantesDelProducto = varianteRepository.findByProductoId(productoId);
 
-                    // --- C. GUARDAR TALLA Y COLOR ESPECÍFICOS ---
-                    // Usamos la talla que viene del JSON (del carrito), si no, fallback al producto
-                    String tallaFinal = (itemRequest.getTalla() != null && !itemRequest.getTalla().isEmpty())
-                            ? itemRequest.getTalla()
-                            : String.valueOf(producto.getTalla());
+                VarianteProducto variante = variantesDelProducto.stream()
+                        .filter(v -> v.getTalla().equals(tallaRequerida) && v.getColor().equalsIgnoreCase(colorRequerido))
+                        .findFirst()
+                        .orElseThrow(() -> new RuntimeException("Variante no encontrada: " + colorRequerido + " Talla " + tallaRequerida));
 
-                    String colorFinal = (itemRequest.getColor() != null && !itemRequest.getColor().isEmpty())
-                            ? itemRequest.getColor()
-                            : producto.getColor();
-
-                    // ¡ASEGÚRATE QUE TU ENTIDAD DetalleVenta TENGA ESTOS SETTERS!
-                    detalle.setTalla(tallaFinal);
-                    detalle.setColor(colorFinal);
-
-                    BigDecimal precioUnitario = BigDecimal.valueOf(producto.getPrecio());
-                    detalle.setPrecioUnitario(precioUnitario);
-
-                    BigDecimal subtotalDetalle = precioUnitario.multiply(BigDecimal.valueOf(itemRequest.getCantidad()));
-                    detalle.setSubtotal(subtotalDetalle);
-
-                    detallesParaGuardar.add(detalle);
-                    totalVenta = totalVenta.add(subtotalDetalle);
+                // --- A. VALIDAR Y DESCONTAR STOCK EN LA VARIANTE ---
+                if (variante.getStock() < itemRequest.getCantidad()) {
+                    throw new RuntimeException("Stock insuficiente para: " + variante.getSku() + ". Disponible: " + variante.getStock());
                 }
+
+                // Actualizar stock
+                variante.setStock(variante.getStock() - itemRequest.getCantidad());
+                varianteRepository.save(variante);
+
+                // --- B. CREAR DETALLE ---
+                DetalleVenta detalle = new DetalleVenta();
+                detalle.setVenta(venta);
+
+                // IMPORTANTE: Ahora asignamos la variante, no el producto directo
+                detalle.setVariante(variante);
+
+                detalle.setCantidad(itemRequest.getCantidad());
+
+                // Guardamos talla y color como histórico (String)
+                detalle.setTalla(String.valueOf(variante.getTalla()));
+                detalle.setColor(variante.getColor());
+
+                // Precio viene del Producto Padre
+                BigDecimal precioUnitario = BigDecimal.valueOf(variante.getProducto().getPrecio());
+                detalle.setPrecioUnitario(precioUnitario);
+
+                BigDecimal subtotalDetalle = precioUnitario.multiply(BigDecimal.valueOf(itemRequest.getCantidad()));
+                detalle.setSubtotal(subtotalDetalle);
+
+                detallesParaGuardar.add(detalle);
+                totalVenta = totalVenta.add(subtotalDetalle);
             }
 
             venta.setTotal(totalVenta);
-            // Agregamos los detalles a la venta y guardamos todo
             venta.getDetallesVenta().clear();
             venta.getDetallesVenta().addAll(detallesParaGuardar);
             ventaRepository.save(venta);
@@ -162,15 +167,16 @@ public class CarritoController {
             entrega.setLocalidad(request.getLocalidad());
             entregaRepository.save(entrega);
 
-            // 5. PDF y Correo (Opcional, envuelto en try para no fallar la venta si falla el correo)
+            // 5. PDF y Correo
             try {
+                // NOTA: Asegúrate que pdfService sepa leer detalle.getVariante().getProducto().getNombre()
                 ByteArrayInputStream pdfFactura = pdfService.generarFacturaVenta(venta);
                 emailService.enviarConfirmacionCompra(venta, pdfFactura);
             } catch (Exception e) {
                 System.err.println("Advertencia: No se pudo enviar el correo: " + e.getMessage());
             }
 
-            session.removeAttribute("carrito"); // Limpiar sesión si usaras sesión de servidor (aunque usas localStorage)
+            session.removeAttribute("carrito");
 
             response.put("success", true);
             response.put("idVenta", venta.getIdVenta());
@@ -180,7 +186,6 @@ public class CarritoController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            // Transactional hará rollback automáticamente aquí
             response.put("error", "Error procesando pedido: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }

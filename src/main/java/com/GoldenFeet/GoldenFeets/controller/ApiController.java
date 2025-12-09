@@ -3,8 +3,8 @@ package com.GoldenFeet.GoldenFeets.controller;
 import com.GoldenFeet.GoldenFeets.dto.ProductoDTO;
 import com.GoldenFeet.GoldenFeets.service.ProductoService;
 import jakarta.servlet.http.HttpSession;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,43 +14,55 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-@AllArgsConstructor
+@RequiredArgsConstructor // Usa esto preferiblemente para inyección de dependencias final
 public class ApiController {
 
     private final ProductoService productoService;
 
     /**
-     * Obtiene los detalles de un producto por su ID.
+     * ✅ ENDPOINT CLAVE PARA EL MODAL
+     * Obtiene el producto y sus variantes (Tallas, Colores, Stock real).
      */
     @GetMapping("/productos/{id}")
-    public ResponseEntity<ProductoDTO> obtenerProducto(@PathVariable Integer id) {
-        return productoService.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ProductoDTO> obtenerProducto(@PathVariable Long id) {
+        // Usamos el método que creamos en el paso anterior para incluir las variantes
+        ProductoDTO producto = productoService.obtenerProductoConVariantes(id);
+
+        if (producto != null) {
+            return ResponseEntity.ok(producto);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
+
     /**
-     * Recibe una lista de IDs de productos y devuelve los detalles de cada uno.
+     * Recibe una lista de IDs y devuelve los detalles.
+     * Útil para refrescar el carrito si usas LocalStorage.
      */
     @PostMapping("/productos/by-ids")
-    // --- CORRECCIÓN: Cambiado de List<Long> a List<Integer> ---
-    public ResponseEntity<List<ProductoDTO>> obtenerProductosPorIds(@RequestBody List<Integer> ids) {
+    public ResponseEntity<List<ProductoDTO>> obtenerProductosPorIds(@RequestBody List<Long> ids) {
+        // Asegúrate de que tu servicio tenga este método aceptando List<Long>
         List<ProductoDTO> productos = productoService.listarPorIds(ids);
         return ResponseEntity.ok(productos);
     }
 
+    // ========================================================================
+    // SECCIÓN DE CARRITO DE SESIÓN (Opcional si usas LocalStorage en el front)
+    // ========================================================================
+
     /**
-     * Agrega un producto al carrito de compras almacenado en la sesión.
+     * Agrega un producto al carrito de compras almacenado en la sesión (Backend Session).
      */
     @PostMapping("/carrito/agregar")
     public Map<String, Object> agregarAlCarrito(@RequestBody ItemCarritoRequest request, HttpSession session) {
-        // --- CORRECCIÓN: El mapa del carrito ahora usa Integer como clave ---
         @SuppressWarnings("unchecked")
-        Map<Integer, Integer> carrito = (Map<Integer, Integer>) session.getAttribute("carrito");
+        Map<Long, Integer> carrito = (Map<Long, Integer>) session.getAttribute("carrito");
+
         if (carrito == null) {
             carrito = new HashMap<>();
         }
 
-        int productoId = request.getProductoId();
+        Long productoId = request.getProductoId();
         int cantidadActual = carrito.getOrDefault(productoId, 0);
         carrito.put(productoId, cantidadActual + request.getCantidad());
 
@@ -67,13 +79,12 @@ public class ApiController {
     }
 
     /**
-     * Obtiene el número total de items en el carrito.
+     * Obtiene el número total de items en el carrito de sesión.
      */
     @GetMapping("/carrito/total")
     public Map<String, Object> obtenerTotalCarrito(HttpSession session) {
         @SuppressWarnings("unchecked")
-        // --- CORRECCIÓN: El mapa del carrito ahora usa Integer como clave ---
-        Map<Integer, Integer> carrito = (Map<Integer, Integer>) session.getAttribute("carrito");
+        Map<Long, Integer> carrito = (Map<Long, Integer>) session.getAttribute("carrito");
 
         int totalItems = 0;
         if (carrito != null) {
@@ -87,11 +98,11 @@ public class ApiController {
 }
 
 /**
- * Clase DTO para recibir la solicitud de agregar un item al carrito.
+ * DTO interno para solicitudes de carrito
+ * (Puedes moverlo a un archivo separado en el paquete dto si prefieres)
  */
 @Data
 class ItemCarritoRequest {
-    // --- CORRECCIÓN: Cambiado de long a int ---
-    private int productoId;
+    private Long productoId; // Cambiado a Long por consistencia
     private int cantidad;
 }

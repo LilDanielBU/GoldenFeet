@@ -18,17 +18,17 @@ public class DetalleVenta {
     @JsonBackReference
     private Venta venta;
 
+    // --- CAMBIO IMPORTANTE: Reemplazamos Producto por VarianteProducto ---
+    // Ya no mapeamos "id_producto" porque esa columna se eliminó en la base de datos
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_producto", nullable = false)
-    private Producto producto;
+    @JoinColumn(name = "variante_id", nullable = false)
+    private VarianteProducto variante;
 
-    // === AGREGADO: CAMPOS PARA GUARDAR VARIANTE ===
     @Column(name = "talla")
     private String talla;
 
     @Column(name = "color")
     private String color;
-    // ==============================================
 
     @Column(name = "cantidad", nullable = false)
     private Integer cantidad;
@@ -43,9 +43,10 @@ public class DetalleVenta {
     public DetalleVenta() {
     }
 
-    public DetalleVenta(Venta venta, Producto producto, Integer cantidad, BigDecimal precioUnitario, String talla, String color) {
+    // Constructor actualizado para recibir VarianteProducto
+    public DetalleVenta(Venta venta, VarianteProducto variante, Integer cantidad, BigDecimal precioUnitario, String talla, String color) {
         this.venta = venta;
-        this.producto = producto;
+        this.variante = variante;
         this.cantidad = cantidad;
         this.precioUnitario = precioUnitario;
         this.talla = talla;
@@ -73,15 +74,23 @@ public class DetalleVenta {
         this.venta = venta;
     }
 
+    // === NUEVOS GETTERS Y SETTERS PARA VARIANTE ===
+    public VarianteProducto getVariante() {
+        return variante;
+    }
+
+    public void setVariante(VarianteProducto variante) {
+        this.variante = variante;
+    }
+
+    // MÉTODOS DE COMPATIBILIDAD (Opcional):
+    // Si tienes código antiguo llamando a getProducto(), esto ayuda a que no se rompa tanto,
+    // obteniendo el producto a través de la variante.
     public Producto getProducto() {
-        return producto;
+        return variante != null ? variante.getProducto() : null;
     }
+    // ==============================================
 
-    public void setProducto(Producto producto) {
-        this.producto = producto;
-    }
-
-    // === NUEVOS GETTERS Y SETTERS PARA TALLA Y COLOR ===
     public String getTalla() {
         return talla;
     }
@@ -97,7 +106,6 @@ public class DetalleVenta {
     public void setColor(String color) {
         this.color = color;
     }
-    // ====================================================
 
     public Integer getCantidad() {
         return cantidad;
@@ -125,7 +133,6 @@ public class DetalleVenta {
         this.subtotal = subtotal;
     }
 
-    // Método auxiliar para mantener coherencia
     private void recalcularSubtotal() {
         if (this.precioUnitario != null && this.cantidad != null) {
             this.subtotal = this.precioUnitario.multiply(new BigDecimal(this.cantidad));
@@ -136,9 +143,7 @@ public class DetalleVenta {
     public String toString() {
         return "DetalleVenta{" +
                 "idDetalle=" + idDetalle +
-                ", producto=" + (producto != null ? producto.getNombre() : "N/A") +
-                ", talla='" + talla + '\'' +
-                ", color='" + color + '\'' +
+                ", variante=" + (variante != null ? variante.getSku() : "N/A") +
                 ", cantidad=" + cantidad +
                 '}';
     }

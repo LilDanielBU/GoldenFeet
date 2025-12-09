@@ -1,16 +1,18 @@
 package com.GoldenFeet.GoldenFeets.impl;
 
+import com.GoldenFeet.GoldenFeets.dto.ItemPedidoDTO; // Importar el DTO de item de pedido (asumo este nombre)
 import com.GoldenFeet.GoldenFeets.dto.PedidoRequestDTO;
 import com.GoldenFeet.GoldenFeets.entity.DetalleVenta;
 import com.GoldenFeet.GoldenFeets.entity.InventarioMovimiento;
-import com.GoldenFeet.GoldenFeets.entity.Producto;
+import com.GoldenFeet.GoldenFeets.entity.VarianteProducto; // NUEVO IMPORT
 import com.GoldenFeet.GoldenFeets.entity.Venta;
 import com.GoldenFeet.GoldenFeets.entity.Usuario;
 import com.GoldenFeet.GoldenFeets.entity.Entrega;
-import com.GoldenFeet.GoldenFeets.repository.ProductoRepository;
+// Quitamos ProductoRepository, ya que no se usa para stock
 import com.GoldenFeet.GoldenFeets.repository.VentaRepository;
 import com.GoldenFeet.GoldenFeets.repository.InventarioMovimientoRepository;
 import com.GoldenFeet.GoldenFeets.repository.EntregaRepository;
+import com.GoldenFeet.GoldenFeets.repository.VarianteProductoRepository; // NUEVO REPOSITORIO
 import com.GoldenFeet.GoldenFeets.service.PedidoService;
 import com.GoldenFeet.GoldenFeets.service.UsuarioService;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,10 +26,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,36 +35,25 @@ import java.util.stream.Collectors;
 public class PedidoServiceImpl implements PedidoService {
 
     private final VentaRepository ventaRepository;
-    private final ProductoRepository productoRepository;
     private final InventarioMovimientoRepository inventarioMovimientoRepository;
     private final UsuarioService usuarioService;
     private final EntregaRepository entregaRepository;
+    private final VarianteProductoRepository varianteRepository; // NUEVA INYECCIÓN
 
     @Override
     @Transactional
     public Venta crearPedido(PedidoRequestDTO pedidoRequest) {
 
-        // 1. Convertir IDs de Producto (Integer del DTO) a List<Long>
-        List<Long> productoIdsLong = pedidoRequest.getItems().stream()
-                .map(item -> item.getProductoId().longValue())
-                .collect(Collectors.toList());
-
-        // Mapa de productos para búsqueda rápida
-        Map<Long, Producto> productosMap = productoRepository.findAllById(productoIdsLong).stream()
-                .collect(Collectors.toMap(Producto::getId, Function.identity()));
-
-        Venta nuevaVenta = new Venta();
-        nuevaVenta.setFechaVenta(LocalDate.now());
-        nuevaVenta.setEstado("PROCESANDO");
-
-        // 2. Asignar el cliente
+        // 1. Asignar el cliente
         Usuario cliente = usuarioService.buscarPorId(pedidoRequest.getClienteId())
                 .orElseThrow(() -> new EntityNotFoundException("Cliente no encontrado con ID: " + pedidoRequest.getClienteId()));
 
+        Venta nuevaVenta = new Venta();
         nuevaVenta.setCliente(cliente);
+        nuevaVenta.setFechaVenta(LocalDate.now());
+        nuevaVenta.setEstado("PROCESANDO");
 
-        // 3. Inicializar campos de Venta con datos de envío
-        // Usamos los datos del request si vienen, si no, los del perfil del cliente
+        // 2. Inicializar campos de Venta con datos de envío
         String localidadVenta = pedidoRequest.getLocalidad() != null ? pedidoRequest.getLocalidad() : cliente.getLocalidad();
 
         nuevaVenta.setDireccionEnvio(pedidoRequest.getDireccionEnvio() != null ? pedidoRequest.getDireccionEnvio() : cliente.getDireccion());
@@ -76,26 +65,40 @@ public class PedidoServiceImpl implements PedidoService {
         Set<DetalleVenta> detalles = new HashSet<>();
         BigDecimal totalPedido = BigDecimal.ZERO;
 
-        for (var itemDTO : pedidoRequest.getItems()) {
+        // 3. Procesar Ítems (Usando Variantes)
+        for (ItemPedidoDTO itemDTO : pedidoRequest.getItems()) {
 
-            // Usamos Long para buscar en el mapa
-            Producto producto = productosMap.get(itemDTO.getProductoId().longValue());
-            if (producto == null) throw new RuntimeException("Producto no encontrado con ID: " + itemDTO.getProductoId());
+            // CRÍTICO: Obtenemos datos de la variante requerida
+            Long productoId = itemDTO.getProductoId().longValue();
 
-            int stockActual = producto.getStock() != null ? producto.getStock() : 0;
+            // Asumiendo que getTalla() y getColor() devuelven el formato correcto (String)
+            Integer tallaRequerida = Integer.parseInt(itemDTO.getTalla());
+            String colorRequerido = itemDTO.getColor();
             int cantidadPedida = itemDTO.getCantidad();
 
+            // Buscar la VARIANTE específica
+            // CORRECCIÓN: Usamos findByProductoId (sin guion bajo)
+            List<VarianteProducto> variantesDelProducto = varianteRepository.findByProductoId(productoId);
+
+            VarianteProducto variante = variantesDelProducto.stream()
+                    .filter(v -> v.getTalla().equals(tallaRequerida) && v.getColor().equalsIgnoreCase(colorRequerido))
+                    .findFirst()
+                    .orElseThrow(() -> new EntityNotFoundException("Variante no encontrada: " + colorRequerido + " T" + tallaRequerida));
+
+            // Verificamos el stock en la VARIANTE
+            int stockActual = variante.getStock() != null ? variante.getStock() : 0;
+
             if (stockActual < cantidadPedida) {
-                throw new RuntimeException("Stock insuficiente para: " + producto.getNombre() + ". Stock actual: " + stockActual);
+                throw new RuntimeException("Stock insuficiente para: " + variante.getSku() + ". Stock actual: " + stockActual);
             }
 
-            // 4. REDUCCIÓN DE STOCK
-            producto.setStock(stockActual - cantidadPedida);
-            productoRepository.save(producto);
+            // 4. REDUCCIÓN DE STOCK en la VARIANTE
+            variante.setStock(stockActual - cantidadPedida);
+            varianteRepository.save(variante); // Guardamos la variante
 
             // 5. REGISTRO DE MOVIMIENTO
             InventarioMovimiento movimiento = new InventarioMovimiento();
-            movimiento.setProducto(producto);
+            movimiento.setVariante(variante); // Seteamos la variante
             movimiento.setTipoMovimiento("VENTA");
             movimiento.setCantidad(cantidadPedida);
             movimiento.setMotivo("Venta de producto registrada.");
@@ -104,15 +107,19 @@ public class PedidoServiceImpl implements PedidoService {
 
             // 6. CREACIÓN DE DETALLE
             DetalleVenta detalle = new DetalleVenta();
-            detalle.setProducto(producto);
+            detalle.setVariante(variante); // Seteamos la variante
             detalle.setCantidad(cantidadPedida);
 
-            // Conversión segura de Double a BigDecimal
-            BigDecimal precioUnitario = BigDecimal.valueOf(producto.getPrecio());
+            // Obtenemos el precio del Producto Padre
+            BigDecimal precioUnitario = BigDecimal.valueOf(variante.getProducto().getPrecio());
             detalle.setPrecioUnitario(precioUnitario);
 
             BigDecimal subtotal = precioUnitario.multiply(new BigDecimal(cantidadPedida));
             detalle.setSubtotal(subtotal);
+
+            // Guardamos Talla y Color como datos históricos
+            detalle.setTalla(itemDTO.getTalla());
+            detalle.setColor(itemDTO.getColor());
 
             detalle.setVenta(nuevaVenta);
 
@@ -129,10 +136,8 @@ public class PedidoServiceImpl implements PedidoService {
         // 8. Creación EXPLÍCITA de Entrega
         Entrega nuevaEntrega = new Entrega();
         nuevaEntrega.setVenta(ventaGuardada);
-        nuevaEntrega.setEstado("Pendiente"); // Estado inicial
+        nuevaEntrega.setEstado("Pendiente");
         nuevaEntrega.setFechaCreacion(LocalDateTime.now());
-
-        // Asignamos la localidad para que el distribuidor pueda verla
         nuevaEntrega.setLocalidad(ventaGuardada.getLocalidad());
 
         // 9. Guardamos la Entrega.

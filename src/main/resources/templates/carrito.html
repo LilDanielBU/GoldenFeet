@@ -97,7 +97,7 @@
         .shipping-option.active, .payment-option.active { border-color: var(--primary-purple); background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%); box-shadow: 0 4px 20px rgba(108, 43, 217, 0.2); }
 
         /* CREDIT CARD */
-        .credit-card-visual { background: linear-gradient(135deg, #6c2bd9 0%, #8b5cf6 100%); border-radius: 15px; color: white; padding: 1.5rem; height: 200px; box-shadow: 0 15px 30px -5px rgba(108, 43, 217, 0.4); margin-bottom: 1.5rem; position: relative; overflow: hidden; transition: all 0.3s ease; }
+        .credit-card-visual { background: var(--gradient-primary); border-radius: 15px; color: white; padding: 1.5rem; height: 200px; box-shadow: 0 15px 30px -5px rgba(108, 43, 217, 0.4); margin-bottom: 1.5rem; position: relative; overflow: hidden; transition: all 0.3s ease; }
         .credit-card-visual:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -5px rgba(108, 43, 217, 0.5); }
         .chip { width: 50px; height: 35px; background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); border-radius: 5px; margin-bottom: 15px; opacity: 0.9; }
         .card-number-display { font-size: 1.4rem; letter-spacing: 3px; margin-bottom: 20px; font-family: 'Courier New', monospace; font-weight: 600; }
@@ -508,13 +508,19 @@
                 const hexColor = colorMap[colorInfo.toLowerCase()] || '#ccc';
                 const borderStyle = colorInfo.toLowerCase() === 'blanco' ? '1px solid #ccc' : 'none';
 
+                // === CORRECCIÓN DE IMAGEN CRÍTICA ===
+                // item.imagen contiene la URL COMPLETA (con /api/imagenes/) guardada desde el modal
+                // product.imagenUrl contiene solo el FILENAME, por si el item es antiguo y no tiene URL.
+                const finalImgSrc = item.imagen ? item.imagen : (product.imagenUrl ? '/api/imagenes/' + product.imagenUrl : 'https://via.placeholder.com/100?text=Sin+Imagen');
+                // ====================================
+
                 const el = document.createElement('div');
                 el.className = 'cart-item animate__animated animate__fadeIn';
                 el.dataset.productId = key;
 
                 el.innerHTML = `
                     <div class="cart-item-image">
-                        <img src="${product.imagenUrl || '/img/no_image.png'}" alt="${product.nombre}">
+                        <img src="${finalImgSrc}" alt="${product.nombre}" onerror="this.src='https://via.placeholder.com/100?text=Error+Carga'">
                     </div>
                     <div class="flex-grow-1">
                         <a href="/producto/${product.id}" class="cart-item-title">${product.nombre}</a>

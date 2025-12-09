@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo Premium - Golden Feets</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -16,28 +17,20 @@
             --purple-500: #7C3AED;
             --purple-100: #EDE9FE;
             --purple-50: #F5F3FF;
-
             --gray-900: #111827;
             --gray-600: #4B5563;
             --gray-100: #F3F4F6;
             --white: #FFFFFF;
-
             --gradient-primary: linear-gradient(135deg, var(--purple-600), var(--purple-900));
             --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
             --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(109, 40, 217, 0.3);
-
             --radius-card: 20px;
             --font-sans: 'Inter', sans-serif;
             --font-serif: 'Playfair Display', serif;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: var(--font-sans);
-            background-color: #FAFAFA;
-            color: var(--gray-900);
-        }
+        body { font-family: var(--font-sans); background-color: #FAFAFA; color: var(--gray-900); }
 
         /* === HEADER PREMIUM === */
         .header-premium {
@@ -46,7 +39,6 @@
             border-bottom: 1px solid rgba(255,255,255,0.1);
             padding: 1rem 0;
         }
-
         .brand-premium {
             font-family: var(--font-serif);
             font-weight: 900;
@@ -57,14 +49,12 @@
             letter-spacing: -0.5px;
             text-decoration: none;
         }
-
         .search-premium .input-group-text {
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-right: none;
             color: rgba(255, 255, 255, 0.7);
         }
-
         .search-premium input {
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -78,7 +68,6 @@
             box-shadow: none;
             border-color: rgba(255, 255, 255, 0.3);
         }
-
         .nav-btn-premium {
             color: white;
             background: rgba(255, 255, 255, 0.1);
@@ -103,11 +92,10 @@
             border: 1px solid var(--gray-100);
             box-shadow: var(--shadow-card);
             position: sticky;
-            top: 2rem;
+            top: 6rem;
         }
         .filter-header { border-bottom: 2px solid var(--purple-100); }
         .filter-title { font-family: var(--font-serif); color: var(--purple-900); font-weight: 800; }
-
         .category-link {
             padding: 0.75rem 1rem;
             border-radius: 12px;
@@ -129,7 +117,6 @@
             color: white;
             box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
         }
-
         input[type=range] {
             accent-color: var(--purple-600);
             height: 6px;
@@ -150,13 +137,11 @@
             display: flex;
             flex-direction: column;
         }
-
         .product-card-premium:hover {
             transform: translateY(-8px);
             box-shadow: var(--shadow-hover);
             border-color: transparent;
         }
-
         .product-card-premium::before {
             content: '';
             position: absolute;
@@ -172,7 +157,6 @@
             pointer-events: none;
         }
         .product-card-premium:hover::before { opacity: 1; }
-
         .card-img-wrapper {
             position: relative;
             aspect-ratio: 1;
@@ -186,7 +170,6 @@
             transition: transform 0.5s ease;
         }
         .product-card-premium:hover .card-img-top { transform: scale(1.08); }
-
         .badge-discount {
             position: absolute;
             top: 10px;
@@ -200,7 +183,6 @@
             z-index: 2;
             color: white;
         }
-
         .btn-favorite {
             position: absolute;
             top: 1rem;
@@ -221,7 +203,6 @@
         }
         .btn-favorite:hover { transform: scale(1.15); color: #EF4444; }
         .btn-favorite.active { background: #EF4444; color: white; }
-
         .card-body-premium {
             padding: 1.5rem;
             display: flex;
@@ -242,7 +223,6 @@
             margin: 0;
             color: var(--gray-900);
         }
-
         .price-box {
             margin-top: auto;
             display: flex;
@@ -250,17 +230,8 @@
             gap: 0.5rem;
             padding-top: 1rem;
         }
-        .price-current {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: var(--purple-600);
-        }
-        .price-old {
-            text-decoration: line-through;
-            color: var(--gray-600);
-            font-size: 0.9rem;
-        }
-
+        .price-current { font-size: 1.5rem; font-weight: 900; color: var(--purple-600); }
+        .price-old { text-decoration: line-through; color: var(--gray-600); font-size: 0.9rem; }
         .actions-grid {
             display: grid;
             grid-template-columns: 1fr auto;
@@ -304,14 +275,8 @@
             overflow: hidden;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
         }
-        .modal-body-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-        }
-        @media (max-width: 992px) {
-            .modal-body-grid { grid-template-columns: 1fr; }
-        }
-
+        .modal-body-grid { display: grid; grid-template-columns: 1fr 1fr; }
+        @media (max-width: 992px) { .modal-body-grid { grid-template-columns: 1fr; } }
         .gallery-section {
             background: var(--gray-100);
             padding: 2.5rem;
@@ -326,12 +291,7 @@
             background: white;
             aspect-ratio: 1;
         }
-        .main-img-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
+        .main-img-box img { width: 100%; height: 100%; object-fit: cover; }
         .details-section {
             padding: 2.5rem;
             background: white;
@@ -353,11 +313,7 @@
             z-index: 10;
             transition: 0.3s;
         }
-        .modal-close-btn:hover {
-            transform: rotate(90deg);
-            color: var(--purple-600);
-        }
-
+        .modal-close-btn:hover { transform: rotate(90deg); color: var(--purple-600); }
         .modal-title-lg {
             font-family: var(--font-serif);
             font-size: 2.2rem;
@@ -380,31 +336,23 @@
             font-weight: 800;
             color: var(--purple-700);
         }
-        .spec-value {
-            font-weight: 700;
-            color: var(--gray-900);
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-up { animation: fadeInUp 0.6s ease forwards; }
+        .spec-value { font-weight: 700; color: var(--gray-900); }
         .form-select-premium {
-
-    border: 2px solid var(--gray-100);
-    border-radius: 12px;
-    padding: 0.75rem;
-    font-weight: 600;
-    color: var(--gray-600);
-    transition: all 0.3s;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236D28D9' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-}
-.form-select-premium:focus {
-    border-color: var(--purple-600);
-    box-shadow: 0 0 0 4px var(--purple-50);
-    color: var(--purple-900);
-}
+            border: 2px solid var(--gray-100);
+            border-radius: 12px;
+            padding: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            transition: all 0.3s;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236D28D9' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+        }
+        .form-select-premium:focus {
+            border-color: var(--purple-600);
+            box-shadow: 0 0 0 4px var(--purple-50);
+            color: var(--purple-900);
+        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeInUp 0.6s ease forwards; }
     </style>
 </head>
 <body>
@@ -444,6 +392,7 @@
                             <span class="d-none d-xl-inline font-weight-bold small">Carrito</span>
                             <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill">0</span>
                         </a>
+
                         <div class="nav-item d-none d-lg-block">
                             <a th:href="${usuario != null ? '/perfil' : '/login'}"
                                class="nav-link text-white d-flex align-items-center gap-2"
@@ -452,11 +401,10 @@
                                 <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm"
                                      style="width: 35px; height: 35px;">
 
-            <span th:if="${usuario != null}"
-                  th:text="${usuario.nombre.substring(0,1).toUpperCase()}">ID</span>
+                                    <span th:if="${usuario != null}"
+                                          th:text="${usuario.nombre.substring(0,1).toUpperCase()}" style="color: var(--purple-900);">U</span>
 
-                                    <i th:if="${usuario == null}" class="bi bi-person-fill" style="font-size: 1.2rem;"></i>
-
+                                    <i th:if="${usuario == null}" class="bi bi-person-fill" style="font-size: 1.2rem; color: var(--purple-900);"></i>
                                 </div>
                             </a>
                         </div>
@@ -468,7 +416,6 @@
 </header>
 
 <main class="container py-5">
-
     <div class="d-flex align-items-end justify-content-between mb-5 animate-fade-up">
         <div>
             <h1 class="display-4 fw-bold" style="font-family: var(--font-serif); color: var(--purple-900);">
@@ -500,7 +447,7 @@
                         <a th:each="cat : ${categorias}"
                            th:href="@{/catalogo(categoria=${cat.nombre})}"
                            class="category-link"
-                           th:classappend="${param.categoria == cat.nombre} ? 'active'"
+                           th:classappend="${param.categoria != null and param.categoria[0] == cat.nombre} ? 'active'"
                            th:text="${cat.nombre}">
                         </a>
                     </div>
@@ -531,7 +478,10 @@
                         </button>
 
                         <div class="card-img-wrapper">
-                            <img th:src="${producto.imagenUrl}" class="card-img-top" th:alt="${producto.nombre}">
+                            <img th:src="${producto.imagenUrl != null ? '/api/imagenes/' + producto.imagenUrl : 'https://via.placeholder.com/500?text=Sin+Imagen'}"
+                                 class="card-img-top"
+                                 th:alt="${producto.nombre}"
+                                 onerror="this.src='https://via.placeholder.com/500?text=Error+Carga'">
                         </div>
 
                         <span th:if="${producto.originalPrice != null and producto.originalPrice > producto.precio}"
@@ -592,316 +542,298 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+    let favorites = JSON.parse(localStorage.getItem('goldenFeetsFavorites')) || [];
+    let currentVariants = [];
+    // Variable global para guardar la URL de la imagen principal del producto
+    let currentProductDefaultImgUrl = '';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initFavorites();
+        updateCartCount();
+        updateWishlistCount();
+
+        const range = document.getElementById('price-range');
+        const display = document.getElementById('price-display');
+        if(range && display) {
+            range.addEventListener('input', (e) => {
+                const formattedValue = new Intl.NumberFormat('es-CO').format(e.target.value);
+                display.querySelector('span').innerText = formattedValue;
+            });
+        }
+    });
+
     // ============================================
-  // REEMPLAZA TODO EL <script> AL FINAL DE TU catalogo.html
-  // ============================================
+    // VISTA RÁPIDA (CON CORRECCIÓN DE IMÁGENES)
+    // ============================================
+    async function quickViewPremium(productId) {
+        const modalEl = document.getElementById('premiumModal');
+        const wrapper = document.getElementById('modal-content-wrapper');
+        const modal = new bootstrap.Modal(modalEl);
 
-  const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
-  let favorites = JSON.parse(localStorage.getItem('goldenFeetsFavorites')) || [];
+        wrapper.innerHTML = '<div class="d-flex justify-content-center align-items-center p-5" style="height: 400px;"><div class="spinner-border text-primary"></div></div>';
+        modal.show();
 
-  // Definimos las opciones disponibles
-  const availableSizes = Array.from({length: 12}, (_, i) => i + 30); // [30, 31, ... 41]
-  const availableColors = ["Negro", "Blanco", "Rojo", "Azul", "Verde", "Gris", "Beige", "Cafe", "Rosa", "Amarillo", "Multicolor"];
+        try {
+            const response = await fetch(`/api/productos/${productId}`);
 
-  document.addEventListener('DOMContentLoaded', () => {
-      initFavorites();
-      updateCartCount();
-      updateWishlistCount();
+            if(response.status === 401 || response.status === 403) {
+                throw new Error("Acceso denegado. Es posible que debas iniciar sesión o configurar permisos.");
+            }
+            if(!response.ok) throw new Error('Error al obtener datos');
 
-      const range = document.getElementById('price-range');
-      const display = document.getElementById('price-display');
-      if(range) {
-          range.addEventListener('input', (e) => {
-              const formattedValue = new Intl.NumberFormat('es-CO').format(e.target.value);
-              display.querySelector('span').innerText = formattedValue;
-          });
-      }
-  });
+            const p = await response.json();
+            currentVariants = p.variantes || [];
 
-  // ============================================
-  // FAVORITOS (Sin cambios)
-  // ============================================
-  function initFavorites() {
-      document.querySelectorAll('.btn-favorite').forEach(btn => {
-          const id = parseInt(btn.dataset.id);
-          if(favorites.includes(id)) {
-              btn.classList.add('active');
-              btn.querySelector('i').classList.replace('bi-heart', 'bi-heart-fill');
-          }
-      });
-  }
+            const availableSizes = [...new Set(currentVariants.map(v => v.talla))].sort((a,b) => a - b);
+            const availableColors = [...new Set(currentVariants.map(v => v.color))];
 
-  function toggleFavorite(btn, id) {
-      const icon = btn.querySelector('i');
-      if(favorites.includes(id)) {
-          favorites = favorites.filter(f => f !== id);
-          btn.classList.remove('active');
-          icon.classList.replace('bi-heart-fill', 'bi-heart');
-          showToast('Eliminado de favoritos', 'info');
-      } else {
-          favorites.push(id);
-          btn.classList.add('active');
-          icon.classList.replace('bi-heart', 'bi-heart-fill');
-          showToast('Añadido a favoritos', 'success');
-      }
-      localStorage.setItem('goldenFeetsFavorites', JSON.stringify(favorites));
-      updateWishlistCount();
-  }
+            let sizeOptions = '<option value="">Selecciona...</option>';
+            availableSizes.forEach(s => sizeOptions += `<option value="${s}">${s}</option>`);
 
-  function updateWishlistCount() {
-      const wishlistCountElement = document.getElementById('wishlist-count');
-      if (wishlistCountElement) wishlistCountElement.textContent = favorites.length;
-  }
+            let colorOptions = '<option value="">Selecciona...</option>';
+            availableColors.forEach(c => colorOptions += `<option value="${c}">${c}</option>`);
 
-  // ============================================
-  // VISTA PREVIA CON SELECTORES DE VARIANTES
-  // ============================================
-  async function quickViewPremium(productId) {
-      const modalEl = document.getElementById('premiumModal');
-      const wrapper = document.getElementById('modal-content-wrapper');
-      const modal = new bootstrap.Modal(modalEl);
+            // 1. Construir la URL de la imagen principal
+            const imgUrlFull = p.imagenUrl ? `/api/imagenes/${p.imagenUrl}` : 'https://via.placeholder.com/500?text=No+Image';
 
-      wrapper.innerHTML = '<div class="d-flex justify-content-center align-items-center p-5" style="height: 400px;"><div class="spinner-border text-primary"></div></div>';
-      modal.show();
+            // 2. Almacenar la URL principal globalmente para que updateModalStockState pueda volver a ella
+            currentProductDefaultImgUrl = imgUrlFull;
 
-      try {
-          const response = await fetch(`/api/productos/${productId}`);
-          if(!response.ok) throw new Error('Error al obtener datos');
-          const p = await response.json();
+            wrapper.innerHTML = `
+                <button type="button" class="modal-close-btn" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+                <div class="modal-body-grid">
+                    <div class="gallery-section">
+                        <div class="main-img-box">
+                            <img src="${currentProductDefaultImgUrl}" id="main-modal-img" alt="${p.nombre}" onerror="this.src='https://via.placeholder.com/500?text=Error+Carga'">
+                        </div>
+                    </div>
+                    <div class="details-section">
+                        <div>
+                            <span class="text-uppercase fw-bold text-muted small mb-2 d-block tracking-wide">
+                                ${p.nombreCategoria || 'Golden Feets'}
+                            </span>
+                            <h2 class="modal-title-lg mb-3">${p.nombre}</h2>
+                            <p class="text-muted lh-lg">${p.descripcion || 'Sin descripción.'}</p>
+                        </div>
+                        <div class="row g-3 mb-2">
+                            <div class="col-6">
+                                <label class="spec-label mb-2">Talla</label>
+                                <select id="modal-size" class="form-select form-select-premium" onchange="updateModalStockState()">
+                                    ${sizeOptions}
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="spec-label mb-2">Color</label>
+                                <select id="modal-color" class="form-select form-select-premium" onchange="updateModalStockState()">
+                                    ${colorOptions}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="spec-grid">
+                            <div>
+                                <div class="spec-label">Precio</div>
+                                <div class="fs-2 fw-black" style="color: var(--purple-600);">
+                                    ${formatter.format(p.precio)}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="spec-label">Disponibilidad</div>
+                                <div id="stock-display" class="fw-bold text-muted">
+                                    -- Selecciona variantes --
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-auto">
+                            <div class="d-flex gap-3">
+                                <div class="input-group" style="width: 140px; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
+                                    <button class="btn btn-light px-3" type="button" onclick="changeQty(-1)">-</button>
+                                    <input type="number" id="modal-quantity" class="form-control text-center border-0 bg-white fw-bold" value="1" min="1" readonly>
+                                    <button class="btn btn-light px-3" type="button" onclick="changeQty(1)">+</button>
+                                </div>
+                                <button id="btn-add-modal"
+                                        onclick="addToCartFromModal(${p.id}, '${p.nombre.replace(/'/g, "\\'")}', ${p.precio}, '${imgUrlFull}')"
+                                        class="btn flex-grow-1 text-white fw-bold fs-5"
+                                        disabled
+                                        style="background: var(--gray-600); border-radius: 12px;">
+                                    Selecciona Opciones
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } catch (err) {
+            console.error(err);
+            wrapper.innerHTML = `<div class="p-5 text-center text-danger fw-bold">Error: ${err.message}</div>`;
+        }
+    }
 
-          const stock = p.stock !== undefined ? p.stock : 0;
-          const categoriaNombre = p.nombreCategoria || (p.categoria ? p.categoria.nombre : 'Golden Feets');
-          const sku = p.sku || `ID-${p.id}`;
+    // ============================================
+    // ACTUALIZAR STOCK Y CAMBIAR IMAGEN DE VARIANTE (CORREGIDO)
+    // ============================================
+    function updateModalStockState() {
+        const sizeSelect = document.getElementById('modal-size');
+        const colorSelect = document.getElementById('modal-color');
+        const stockDisplay = document.getElementById('stock-display');
+        const addBtn = document.getElementById('btn-add-modal');
+        const qtyInput = document.getElementById('modal-quantity');
+        const mainImg = document.getElementById('main-modal-img'); // Elemento de la imagen
 
-          // Generar opciones de Talla
-          let sizeOptions = availableSizes.map(s =>
-              `<option value="${s}" ${p.talla === s ? 'selected' : ''}>${s}</option>`
-          ).join('');
+        const size = sizeSelect.value ? parseInt(sizeSelect.value) : null;
+        const color = colorSelect.value;
 
-          // Generar opciones de Color
-          let colorOptions = availableColors.map(c =>
-              `<option value="${c}" ${p.color === c ? 'selected' : ''}>${c}</option>`
-          ).join('');
+        // Reiniciar la imagen principal si no hay selección válida
+        mainImg.src = currentProductDefaultImgUrl;
 
-          wrapper.innerHTML = `
-              <button type="button" class="modal-close-btn" data-bs-dismiss="modal">
-                  <i class="bi bi-x-lg"></i>
-              </button>
+        if (!size || !color) {
+            stockDisplay.innerHTML = '<span class="text-muted">-- Selecciona variantes --</span>';
+            addBtn.disabled = true;
+            addBtn.style.background = 'var(--gray-600)';
+            addBtn.innerText = 'Selecciona Opciones';
+            return;
+        }
 
-              <div class="modal-body-grid">
-                  <div class="gallery-section">
-                      <div class="main-img-box">
-                          <img src="${p.imagenUrl}" id="main-modal-img" alt="${p.nombre}" onerror="this.src='https://via.placeholder.com/500?text=No+Image'">
-                      </div>
-                  </div>
+        const varianteEncontrada = currentVariants.find(v => v.talla === size && v.color === color);
 
-                  <div class="details-section">
-                      <div>
-                          <span class="text-uppercase fw-bold text-muted small mb-2 d-block tracking-wide">
-                              ${categoriaNombre}
-                          </span>
-                          <h2 class="modal-title-lg mb-3">${p.nombre}</h2>
-                          <p class="text-muted lh-lg">${p.descripcion || 'Sin descripción disponible.'}</p>
-                      </div>
+        if (varianteEncontrada) {
 
-                      <div class="row g-3 mb-2">
-                          <div class="col-6">
-                              <label class="spec-label mb-2">Talla</label>
-                              <select id="modal-size" class="form-select form-select-premium">
-                                  ${sizeOptions}
-                              </select>
-                          </div>
-                          <div class="col-6">
-                              <label class="spec-label mb-2">Color</label>
-                              <select id="modal-color" class="form-select form-select-premium">
-                                  ${colorOptions}
-                              </select>
-                          </div>
-                      </div>
+            // LÓGICA DE CAMBIO DE IMAGEN: Si la variante tiene su propia imagen, úsala.
+            if (varianteEncontrada.imagenUrl && varianteEncontrada.imagenUrl !== '') {
+                 // El DTO ahora solo devuelve el filename (ej: "zapato_azul.jpg")
+                 const newImgSrc = `/api/imagenes/${varianteEncontrada.imagenUrl}`;
+                 mainImg.src = newImgSrc;
+            }
+            // Si la variante no tiene imagen propia, se mantiene la imagen principal del producto (currentProductDefaultImgUrl),
+            // lo cual ya se maneja con la línea: mainImg.src = currentProductDefaultImgUrl; al principio de la función.
 
-                      <div class="spec-grid">
-                          <div>
-                              <div class="spec-label">Precio</div>
-                              <div class="fs-2 fw-black" style="font-family: var(--font-serif); font-weight: 900; color: var(--purple-600);">
-                                  ${formatter.format(p.precio)}
-                              </div>
-                          </div>
-                          <div>
-                              <div class="spec-label">Disponibilidad</div>
-                              <div class="${stock > 0 ? 'text-success' : 'text-danger'} fw-bold d-flex align-items-center gap-1">
-                                  <i class="bi ${stock > 0 ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
-                                  ${stock > 0 ? stock + ' en stock' : 'Agotado'}
-                              </div>
-                          </div>
-                          <div>
-                              <div class="spec-label">SKU</div>
-                              <div class="spec-value">${sku}</div>
-                          </div>
-                          <div>
-                              <div class="spec-label">Envío</div>
-                              <div class="spec-value">Gratis</div>
-                          </div>
-                      </div>
+            const stockReal = varianteEncontrada.stock;
+            if (stockReal > 0) {
+                stockDisplay.innerHTML = `<div class="text-success d-flex align-items-center gap-1"><i class="bi bi-check-circle-fill"></i> ${stockReal} disponibles</div>`;
+                addBtn.disabled = false;
+                addBtn.style.background = 'var(--gradient-primary)';
+                addBtn.innerText = '✓ Añadir al Carrito';
+                qtyInput.setAttribute('max', stockReal);
+                if(parseInt(qtyInput.value) > stockReal) qtyInput.value = stockReal;
+            } else {
+                stockDisplay.innerHTML = `<div class="text-danger d-flex align-items-center gap-1"><i class="bi bi-x-circle-fill"></i> Agotado</div>`;
+                addBtn.disabled = true;
+                addBtn.style.background = 'var(--gray-600)';
+                addBtn.innerText = 'Sin Stock';
+            }
+        } else {
+            stockDisplay.innerHTML = '<span class="text-danger">Combinación no disponible</span>';
+            addBtn.disabled = true;
+            addBtn.style.background = 'var(--gray-600)';
+            addBtn.innerText = 'No Disponible';
+        }
+    }
 
-                      <div class="mt-auto">
-                          <div class="d-flex gap-3">
-                              <div class="input-group" style="width: 140px; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
-                                  <button class="btn btn-light px-3" type="button" onclick="this.nextElementSibling.stepDown()" ${stock === 0 ? 'disabled' : ''}>-</button>
-                                  <input type="number" id="modal-quantity" class="form-control text-center border-0 bg-white fw-bold" value="1" min="1" max="${stock}" ${stock === 0 ? 'disabled' : ''}>
-                                  <button class="btn btn-light px-3" type="button" onclick="this.previousElementSibling.stepUp()" ${stock === 0 ? 'disabled' : ''}>+</button>
-                              </div>
+    function changeQty(delta) {
+        const input = document.getElementById('modal-quantity');
+        const max = parseInt(input.getAttribute('max')) || 100;
+        let val = parseInt(input.value) || 1;
+        val += delta;
+        if(val < 1) val = 1;
+        if(val > max) val = max;
+        input.value = val;
+    }
 
-                              <button onclick="addToCartFromModal(${p.id}, '${p.nombre.replace(/'/g, "\\'")}')"
-                                      class="btn flex-grow-1 text-white fw-bold fs-5"
-                                      ${stock === 0 ? 'disabled' : ''}
-                                      style="background: var(--gradient-primary); border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(109, 40, 217, 0.4);">
-                                  ${stock > 0 ? '✓ Añadir al Carrito' : 'Sin Stock'}
-                              </button>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          `;
+    // ============================================
+    // CARRITO Y FAVORITOS
+    // ============================================
+    function addToCartFromModal(productId, productName, productPrice, productImg) {
+        const quantity = parseInt(document.getElementById('modal-quantity').value);
+        const size = document.getElementById('modal-size').value;
+        const color = document.getElementById('modal-color').value;
 
-      } catch (err) {
-          console.error(err);
-          wrapper.innerHTML = '<div class="p-5 text-center text-danger fw-bold">No se pudieron cargar los detalles.</div>';
-      }
-  }
+        // CRÍTICO: Usar la imagen actual del modal, que puede ser la de la variante
+        const currentModalImgSrc = document.getElementById('main-modal-img').src;
 
-  // ============================================
-  // ⭐ AÑADIR AL CARRITO - CORREGIDO CON VARIANTES
-  // ============================================
-  function addToCartFromModal(productId, productName) {
-      const quantityInput = document.getElementById('modal-quantity');
-      const quantity = quantityInput ? (parseInt(quantityInput.value) || 1) : 1;
+        addToCart(productName, productId, quantity, size, color, productPrice, currentModalImgSrc);
 
-      // Capturar valores seleccionados
-      const selectedSize = document.getElementById('modal-size').value;
-      const selectedColor = document.getElementById('modal-color').value;
+        const modalEl = document.getElementById('premiumModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) modalInstance.hide();
+    }
 
-      // VALIDAR que se haya seleccionado talla y color
-      if (!selectedSize || !selectedColor) {
-          showToast('⚠️ Selecciona talla y color', 'error');
-          return;
-      }
+    function addToCart(productName, productId, quantity, size, color, price, img) {
+        const cartKey = `${productId}-${size}-${color}`;
+        let cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
 
-      // Llamar a la función principal
-      addToCart(productName, productId, quantity, selectedSize, selectedColor);
+        if (cart[cartKey]) {
+            cart[cartKey].quantity += quantity;
+        } else {
+            cart[cartKey] = {
+                productoId: productId, nombre: productName, precio: price, imagen: img,
+                quantity: quantity, talla: size, color: color, addedAt: new Date().toISOString()
+            };
+        }
+        localStorage.setItem('goldenFeetsCart', JSON.stringify(cart));
+        updateCartCount();
+        showToast(`✓ ${productName} añadido al carrito`, 'success');
+    }
 
-      // Cerrar modal
-      const modalEl = document.getElementById('premiumModal');
-      const modalInstance = bootstrap.Modal.getInstance(modalEl);
-      if (modalInstance) modalInstance.hide();
-  }
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
+        const count = Object.values(cart).reduce((sum, item) => sum + (item.quantity || 0), 0);
+        const el = document.getElementById('cart-count');
+        if(el) {
+            el.innerText = count;
+            el.style.transform = 'scale(1.3)';
+            setTimeout(() => { el.style.transform = 'scale(1)'; }, 200);
+        }
+    }
 
-  /**
-   * ⭐ FUNCIÓN PRINCIPAL PARA AGREGAR AL CARRITO
-   * Usa el formato de clave: productoId-talla-color
-   */
-  function addToCart(productName, productId, quantity = 1, size, color) {
-      // IMPORTANTE: Validar que tengamos talla y color
-      if (!size || !color) {
-          console.error('❌ Error: Se requiere talla y color');
-          showToast('⚠️ Por favor selecciona talla y color', 'error');
-          return;
-      }
+    function initFavorites() {
+        document.querySelectorAll('.btn-favorite').forEach(btn => {
+            const id = parseInt(btn.dataset.id);
+            if(favorites.includes(id)) {
+                btn.classList.add('active');
+                btn.querySelector('i').classList.replace('bi-heart', 'bi-heart-fill');
+            }
+        });
+    }
 
-      // ⭐ CLAVE ÚNICA: productoId-talla-color (ej: "5-34-Negro")
-      const cartKey = `${productId}-${size}-${color}`;
+    function toggleFavorite(btn, id) {
+        const icon = btn.querySelector('i');
+        if(favorites.includes(id)) {
+            favorites = favorites.filter(f => f !== id);
+            btn.classList.remove('active');
+            icon.classList.replace('bi-heart-fill', 'bi-heart');
+            showToast('Eliminado de favoritos', 'info');
+        } else {
+            favorites.push(id);
+            btn.classList.add('active');
+            icon.classList.replace('bi-heart', 'bi-heart-fill');
+            showToast('Añadido a favoritos', 'success');
+        }
+        localStorage.setItem('goldenFeetsFavorites', JSON.stringify(favorites));
+        updateWishlistCount();
+    }
 
-      let cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
+    function updateWishlistCount() {
+        const wishlistCountElement = document.getElementById('wishlist-count');
+        if (wishlistCountElement) wishlistCountElement.textContent = favorites.length;
+    }
 
-      // Si ya existe esta combinación exacta, incrementar cantidad
-      if (cart[cartKey]) {
-          cart[cartKey].quantity += quantity;
-          console.log(`✅ Cantidad actualizada para ${cartKey}: ${cart[cartKey].quantity}`);
-      } else {
-          // Crear nuevo item con todas las propiedades
-          cart[cartKey] = {
-              productoId: productId,
-              quantity: quantity,
-              talla: size,
-              color: color,
-              addedAt: new Date().toISOString()
-          };
-          console.log(`✅ Nuevo item agregado: ${cartKey}`);
-      }
+    function showToast(msg, type) {
+        const toastContainer = document.getElementById('toast-notification');
+        const bg = type === 'success' ? 'bg-success' : (type === 'error' ? 'bg-danger' : 'bg-info');
+        const icon = type === 'success' ? 'check-circle-fill' : (type === 'error' ? 'exclamation-triangle-fill' : 'info-circle-fill');
 
-      // Guardar en localStorage
-      localStorage.setItem('goldenFeetsCart', JSON.stringify(cart));
-
-      // Actualizar contador
-      updateCartCount();
-
-      // Mostrar notificación
-      const detailsMsg = `Talla ${size} - ${color}`;
-      showToast(`✓ ${productName} (${detailsMsg}) añadido al carrito`, 'success');
-
-      console.log('🛒 Carrito actualizado:', cart);
-  }
-
-  // ============================================
-  // ACTUALIZAR CONTADOR DEL CARRITO
-  // ============================================
-  function updateCartCount() {
-      const cart = JSON.parse(localStorage.getItem('goldenFeetsCart')) || {};
-      const count = Object.values(cart).reduce((sum, item) => sum + (item.quantity || 0), 0);
-      const cartCountElement = document.getElementById('cart-count');
-      if(cartCountElement) {
-          cartCountElement.textContent = count;
-
-          // Animación de "pop"
-          cartCountElement.style.transform = 'scale(1.3)';
-          setTimeout(() => {
-              cartCountElement.style.transform = 'scale(1)';
-          }, 200);
-      }
-
-      console.log(`🛒 Total items en carrito: ${count}`);
-  }
-
-  // ============================================
-  // NOTIFICACIONES MEJORADAS
-  // ============================================
-  function showToast(msg, type) {
-      const toastContainer = document.getElementById('toast-notification');
-
-      const colors = {
-          success: 'bg-success',
-          error: 'bg-danger',
-          info: 'bg-info'
-      };
-
-      const icons = {
-          success: 'check-circle-fill',
-          error: 'exclamation-triangle-fill',
-          info: 'info-circle-fill'
-      };
-
-      const bgColor = colors[type] || 'bg-dark';
-      const icon = icons[type] || 'info-circle';
-
-      const toastHTML = `
-          <div class="toast show align-items-center text-white ${bgColor} border-0"
-               role="alert" aria-live="assertive" aria-atomic="true"
-               style="box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-radius: 12px;">
-              <div class="d-flex">
-                  <div class="toast-body fw-bold">
-                      <i class="bi bi-${icon} me-2"></i> ${msg}
-                  </div>
-                  <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                          data-bs-dismiss="toast" aria-label="Close"></button>
-              </div>
-          </div>
-      `;
-
-      toastContainer.innerHTML = toastHTML;
-
-      setTimeout(() => {
-          toastContainer.innerHTML = '';
-      }, 3500);
-  }
+        toastContainer.innerHTML = `
+            <div class="toast show align-items-center text-white ${bg} border-0 p-2" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                <div class="d-flex">
+                    <div class="toast-body fw-bold">
+                        <i class="bi bi-${icon} me-2"></i> ${msg}
+                    </div>
+                </div>
+            </div>`;
+        setTimeout(() => toastContainer.innerHTML = '', 3000);
+    }
 </script>
 
 </body>

@@ -30,7 +30,7 @@ public class PdfService {
     private static final DeviceRgb COLOR_PRIMARIO = new DeviceRgb(76, 29, 149); // Morado #4C1D95
     private static final DeviceRgb COLOR_SECUNDARIO = new DeviceRgb(240, 240, 240); // Gris claro
 
-    // === 1. REPORTE DE ENTREGAS (Tu método existente) ===
+    // === 1. REPORTE DE ENTREGAS ===
     public ByteArrayInputStream generarPdfEntregas(List<Entrega> entregas) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
@@ -72,7 +72,7 @@ public class PdfService {
         return new ByteArrayInputStream(out.toByteArray());
     }
 
-    // === 2. FACTURA DE VENTA (Nuevo Método para el Cliente) ===
+    // === 2. FACTURA DE VENTA ===
     public ByteArrayInputStream generarFacturaVenta(Venta venta) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -138,14 +138,27 @@ public class PdfService {
 
             // Filas
             for (DetalleVenta dv : venta.getDetallesVenta()) {
-                // Producto y Color
-                String desc = dv.getProducto().getNombre();
-                if(dv.getProducto().getColor() != null) desc += "\nColor: " + dv.getProducto().getColor();
+
+                // CORRECCIÓN 1: Obtener nombre del producto a través de la Variante
+                String nombreProducto = "Producto";
+                if (dv.getVariante() != null && dv.getVariante().getProducto() != null) {
+                    nombreProducto = dv.getVariante().getProducto().getNombre();
+                } else if (dv.getProducto() != null) {
+                    // Fallback por si acaso mantuviste el método getProducto en DetalleVenta
+                    nombreProducto = dv.getProducto().getNombre();
+                }
+
+                String desc = nombreProducto;
+
+                // CORRECCIÓN 2: Usar dv.getColor() (histórico) en lugar de getProducto().getColor()
+                if (dv.getColor() != null && !dv.getColor().isEmpty()) {
+                    desc += "\nColor: " + dv.getColor();
+                }
 
                 productosTable.addCell(new Paragraph(desc).setFontSize(10));
 
-                // Talla (Conversión explícita de Integer a String para evitar errores)
-                String talla = dv.getProducto().getTalla() != null ? String.valueOf(dv.getProducto().getTalla()) : "-";
+                // CORRECCIÓN 3: Usar dv.getTalla() (histórico) en lugar de getProducto().getTalla()
+                String talla = dv.getTalla() != null ? dv.getTalla() : "-";
                 productosTable.addCell(new Paragraph(talla).setTextAlignment(TextAlignment.CENTER).setFontSize(10));
 
                 // Cantidad
@@ -165,9 +178,8 @@ public class PdfService {
             totalTable.setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.RIGHT);
             totalTable.setMarginTop(10);
 
-            // Cálculos simples (Ajusta según tu lógica de impuestos)
             double totalVenta = venta.getTotal().doubleValue();
-            double subtotalBase = totalVenta / 1.19; // Asumiendo IVA incluido del 19%
+            double subtotalBase = totalVenta / 1.19;
             double iva = totalVenta - subtotalBase;
 
             agregarFilaTotal(totalTable, "Subtotal:", subtotalBase, currencyFormatter, false);
@@ -193,7 +205,6 @@ public class PdfService {
     }
 
     // --- Métodos Auxiliares ---
-
     private Cell crearCeldaEncabezado(String texto) {
         return new Cell().add(new Paragraph(texto).setBold().setFontColor(ColorConstants.WHITE))
                 .setBackgroundColor(COLOR_PRIMARIO)

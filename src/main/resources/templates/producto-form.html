@@ -7,7 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* === ESTILOS MANTENIDOS DEL PANEL === */
         :root {
             --primary: #7C3AED; --primary-dark: #6D28D9; --primary-light: #F5F3FF;
             --secondary: #06B6D4; --success: #10B981; --warning: #F59E0B; --danger: #EF4444;
@@ -35,6 +34,7 @@
         .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(124,58,237,0.1); outline: none; }
         .alert { border-radius: 12px; max-width: 800px; margin: 0 auto 1.5rem auto; }
         .img-preview-container { background: var(--gray-50); border: 2px dashed var(--gray-300); border-radius: 12px; padding: 1rem; text-align: center; }
+        .form-control-static { padding: 0.75rem 1rem; background-color: var(--gray-100); border-radius: 8px; border: 1px solid var(--gray-200); }
     </style>
 </head>
 <body>
@@ -60,12 +60,12 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
-    <div th:if="${#fields.hasErrors('${productoDTO.*}')}" class="alert alert-danger">
+    <div th:if="${#fields.hasErrors('productoDTO.*')}" class="alert alert-danger">
         <div class="d-flex align-items-center mb-2">
             <i class="fas fa-times-circle me-2 fs-5"></i> <strong>Por favor corrige los siguientes errores:</strong>
         </div>
         <ul class="mb-0 ps-3">
-            <li th:each="err : ${#fields.errors('${productoDTO.*}')}" th:text="${err}">Error</li>
+            <li th:each="err : ${#fields.allErrors()}" th:text="${err}">Error</li>
         </ul>
     </div>
 
@@ -78,7 +78,9 @@
             <form th:action="${isEditMode} ? @{/inventario/productos/actualizar/{id}(id=${productoDTO.id})} : @{/inventario/productos/guardar}"
                   th:object="${productoDTO}" method="post" enctype="multipart/form-data" id="productoForm">
 
-                <input type="hidden" th:field="*{id}" />
+                <div th:if="${isEditMode}">
+                    <input type="hidden" th:field="*{id}" />
+                </div>
 
                 <div class="mb-4">
                     <label for="nombre" class="form-label">Nombre del Producto</label>
@@ -97,41 +99,92 @@
                         <label for="precio" class="form-label">Precio Actual</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">$</span>
-                            <input type="number" step="0.01" class="form-control border-start-0 ps-1" id="precio" th:field="*{precio}" placeholder="0.00" required>
+                            <input type="number" step="0.01" class="form-control border-start-0 ps-1" id="precio" th:field="*{precio}"
+                                   th:value="${productoDTO.precio != null ? productoDTO.precio : 0.0}" required>
                         </div>
-                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('precio')}" th:errors="*{precio}"></div>
                     </div>
                     <div class="col-md-6">
-                        <label for="originalPrice" class="form-label">Precio Original <span class="text-muted fw-normal">(Opcional)</span></label>
+                        <label for="originalPrice" class="form-label">Precio Original</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">$</span>
-                            <input type="number" step="0.01" class="form-control border-start-0 ps-1" id="originalPrice" th:field="*{originalPrice}" placeholder="0.00">
+                            <input type="number" step="0.01" class="form-control border-start-0 ps-1" id="originalPrice" th:field="*{originalPrice}"
+                                   th:value="${productoDTO.originalPrice != null ? productoDTO.originalPrice : 0.0}">
                         </div>
                     </div>
                 </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <label for="talla" class="form-label"><i class="fas fa-ruler me-1"></i> Talla</label>
-                        <select class="form-select" id="talla" th:field="*{talla}" required>
-                            <option value="">Seleccione Talla</option>
-                            <option th:each="t : ${tallas}" th:value="${t}" th:text="${t}"></option>
-                        </select>
-                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('talla')}" th:errors="*{talla}"></div>
+                <div class="card p-3 mb-4">
+                    <h5 class="card-title">Administración de Variantes</h5>
+                    <div id="variantes-container">
+                        <p class="text-muted" th:if="${#lists.isEmpty(productoDTO.variantes)}">
+                            Aún no hay variantes agregadas. Usa el botón 'Agregar Variante' para empezar.
+                        </p>
+
+                        <div th:each="v, stat : *{variantes}" class="row mb-3 align-items-center border-bottom pb-2" th:id="'variante-' + ${stat.index}">
+                            <input type="hidden" th:if="${isEditMode and v.id != null}" th:name="'variantes[' + ${stat.index} + '].id'" th:value="${v.id}" />
+
+                            <div class="col-md-3">
+                                <label class="form-label">Talla:</label>
+                                <input type="number" class="form-control" th:name="'variantes[' + ${stat.index} + '].talla'"
+                                       th:value="${v.talla != null ? v.talla : 0}"
+                                       placeholder="Talla" required min="10" max="50" />
+                                <span class="text-danger small" th:if="${#fields.hasErrors('variantes[' + stat.index + '].talla')}" th:errors="*{'variantes[' + stat.index + '].talla'}"></span>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Color:</label>
+                                <input type="text" class="form-control" th:name="'variantes[' + ${stat.index} + '].color'" th:value="${v.color}" placeholder="Color" required />
+                                <span class="text-danger small" th:if="${#fields.hasErrors('variantes[' + stat.index + '].color')}" th:errors="*{'variantes[' + stat.index + '].color'}"></span>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label class="form-label" th:text="${isEditMode and v.id != null} ? 'Stock Actual' : 'Stock Inicial'"></label>
+
+                                <div th:if="${isEditMode and v.id != null}">
+                                    <p class="form-control-static fw-bold mb-0" th:text="${v.stock}">0</p>
+                                    <input type="hidden" th:name="'variantes[' + ${stat.index} + '].stock'"
+                                           th:value="${v.stock != null ? v.stock : 0}" />
+                                </div>
+                                <div th:unless="${isEditMode and v.id != null}">
+                                    <input type="number" class="form-control" th:name="'variantes[' + ${stat.index} + '].stock'"
+                                           th:value="${v.stock != null ? v.stock : 0}" required min="0" />
+                                    <span class="text-danger small" th:if="${#fields.hasErrors('variantes[' + stat.index + '].stock')}" th:errors="*{'variantes[' + stat.index + '].stock'}"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label">Imagen:</label>
+                                <span th:if="${isEditMode and v.imagenUrl != null and v.id != null}" class="d-block text-truncate small"
+                                      th:text="${v.imagenUrl}">Usar Principal</span>
+
+                                <input type="file" class="form-control form-control-sm" th:name="'variantes[' + ${stat.index} + '].imagenArchivo'" accept="image/*" th:required="${!isEditMode}"/>
+                                <input type="hidden" th:if="${isEditMode}" th:name="'variantes[' + ${stat.index} + '].imagenUrl'" th:value="${v.imagenUrl}" />
+                            </div>
+
+                            <div class="col-md-1 d-flex justify-content-end align-self-center pt-2">
+                                <form th:if="${isEditMode and v.id != null}"
+                                      th:action="@{/inventario/variantes/eliminar/{id}(id=${v.id})}" method="post" class="d-inline"
+                                      onsubmit="return confirm('¿Está seguro de eliminar esta variante? Esto eliminará todos los registros de stock y ventas asociados.');">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Eliminar Variante Existente">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                <button th:unless="${isEditMode and v.id != null}" type="button" class="btn btn-sm btn-outline-danger remove-variante" th:attr="data-index=${stat.index}" title="Quitar de la lista">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
-                    <div class="col-md-6">
-                        <label for="color" class="form-label"><i class="fas fa-palette me-1"></i> Color</label>
-                        <select class="form-select" id="color" th:field="*{color}" required>
-                            <option value="">Seleccione Color</option>
-                            <option th:each="c : ${colores}" th:value="${c}" th:text="${c}"></option>
-                        </select>
-                        <div class="text-danger small mt-1" th:if="${#fields.hasErrors('color')}" th:errors="*{color}"></div>
-                    </div>
+                    <button type="button" class="btn btn-outline-primary mt-3" id="add-variante-btn">
+                        <i class="fas fa-plus-circle"></i> Agregar Nueva Variante
+                    </button>
                 </div>
+
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <label for="marca" class="form-label">Marca</label>
-                        <input type="text" class="form-control" id="marca" th:field="*{marca}" placeholder="Ej: Nike, Adidas" required>
+                        <input type="text" class="form-control" id="marca" th:field="*{marca}" required>
                     </div>
                     <div class="col-md-6">
                         <label for="categoria" class="form-label">Categoría</label>
@@ -143,14 +196,15 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="imagenFile" class="form-label">Imagen del Producto</label>
-                    <input class="form-control" type="file" id="imagenFile" name="imagenArchivo" accept="image/*">
+                    <label for="imagenFile" class="form-label">Imagen Principal del Producto</label>
+                    <input class="form-control" type="file" id="imagenFile" name="imagenArchivo" accept="image/*" th:required="${!isEditMode}">
                     <div class="form-text" th:if="${isEditMode}">Deja vacío para mantener la imagen actual.</div>
                 </div>
 
-                <div class="mb-4 img-preview-container" th:if="${isEditMode} and ${imagenActualUrl != null}">
+                <div class="mb-4 img-preview-container"
+                     th:if="${isEditMode and productoDTO.imagenUrl != null}">
                     <label class="form-label d-block fw-bold text-start mb-2">Imagen Actual:</label>
-                    <img th:src="@{${imagenActualUrl}}" alt="Imagen Actual" class="img-fluid rounded shadow-sm" style="max-height: 180px;">
+                    <img th:src="@{/api/imagenes/{filename}(filename=${productoDTO.imagenUrl})}" alt="Imagen Actual" class="img-fluid rounded shadow-sm" style="max-height: 180px;">
                 </div>
 
                 <div class="form-check mb-5 p-3 rounded bg-light border border-light">
@@ -159,8 +213,14 @@
                 </div>
 
                 <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-                    <a href="#" id="btnCancelar" class="btn btn-secondary px-4"> <i class="fas fa-times me-2"></i> Cancelar </a>
-                    <button type="submit" class="btn btn-success px-4" th:text="${isEditMode} ? 'Actualizar' : 'Guardar'"></button>
+                    <a href="#" id="btnCancelar" class="btn btn-secondary px-4">
+                        <i class="fas fa-times me-2"></i> Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-success px-4"
+                            th:text="${isEditMode} ? 'Confirmar Cambios' : 'Guardar Producto'">
+                        Guardar
+                    </button>
                 </div>
 
             </form>
@@ -169,57 +229,37 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
 
-<script>
-    // 1. Detectar Origen al Cargar
-    // Verificamos si en la URL está ?origen=admin
-    const params = new URLSearchParams(window.location.search);
-    const esAdmin = params.get('origen') === 'admin';
-    const returnUrl = esAdmin ? '/admin/panel?tab=inventario' : '/inventario/panel';
+    /* ELIMINAMOS TODO EL CÓDIGO JS DE MANEJO DE VARIANTES Y VALIDACIÓN DE JAVASCRIPT */
 
-    // 2. Configurar el botón "Cancelar" y Logo
-    document.getElementById('btnCancelar').href = returnUrl;
+    document.addEventListener("DOMContentLoaded", function () {
 
+        // --- Lógica de Cancelar/Volver ---
+        const params = new URLSearchParams(window.location.search);
+        const esAdmin = params.get("origen") === "admin";
+        const returnUrl = esAdmin ? "/admin/panel?tab=inventario" : "/inventario/panel";
+        const btnCancelar = document.getElementById("btnCancelar");
+        if (btnCancelar) btnCancelar.href = returnUrl;
+    });
+
+    // --- Lógica de navegación ---
     function volverAlPanel(e) {
         e.preventDefault();
+        const params = new URLSearchParams(window.location.search);
+        const esAdmin = params.get("origen") === "admin";
+        const returnUrl = esAdmin ? "/admin/panel?tab=inventario" : "/inventario/panel";
         window.location.href = returnUrl;
     }
 
-    // 3. Interceptar Envío del Formulario
-    const form = document.getElementById('productoForm');
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault(); // Detenemos el envío normal que redirige mal
+    // --- Función Placeholder para agregar variante (NO FUNCIONARÁ) ---
+    const addVarianteBtn = document.getElementById("add-variante-btn");
+    if (addVarianteBtn) {
+        addVarianteBtn.addEventListener("click", () => {
+            alert("La funcionalidad de 'Agregar Nueva Variante' está temporalmente deshabilitada para diagnóstico. Por favor, reinicie la página de edición para ver las variantes existentes.");
+        });
+    }
 
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerText;
-
-        // Mostrar carga
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-
-        const formData = new FormData(form);
-
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: formData
-            });
-
-            if (response.ok || response.redirected) {
-                // SI TODO SALE BIEN: REDIRIGIMOS MANUALMENTE AL LUGAR CORRECTO
-                window.location.href = returnUrl;
-            } else {
-                alert('Hubo un error al guardar. Por favor revisa los campos.');
-                submitBtn.disabled = false;
-                submitBtn.innerText = originalText;
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error de conexión con el servidor.');
-            submitBtn.disabled = false;
-            submitBtn.innerText = originalText;
-        }
-    });
 </script>
 
 </body>

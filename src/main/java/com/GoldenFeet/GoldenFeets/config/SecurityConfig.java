@@ -38,7 +38,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/gerente-entregas/**").hasRole("GERENTEENTREGAS")
                         .requestMatchers("/distribuidor/**").hasRole("DISTRIBUIDOR")
-
+                        .requestMatchers("/api/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))

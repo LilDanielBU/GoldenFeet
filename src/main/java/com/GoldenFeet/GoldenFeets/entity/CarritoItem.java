@@ -31,4 +31,10 @@ public class CarritoItem {
     protected void onAdd() {
         this.fechaAgregado = LocalDateTime.now();
     }
+
+    // Cambia la relación @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variante_id", nullable = false)
+    private VarianteProducto variante; // En lugar de Producto
+
 }

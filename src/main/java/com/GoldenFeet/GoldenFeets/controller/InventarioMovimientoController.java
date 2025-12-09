@@ -2,6 +2,8 @@ package com.GoldenFeet.GoldenFeets.controller;
 
 import com.GoldenFeet.GoldenFeets.dto.HistorialDTO;
 import com.GoldenFeet.GoldenFeets.dto.IngresoDTO;
+import com.GoldenFeet.GoldenFeets.entity.VarianteProducto;
+import com.GoldenFeet.GoldenFeets.repository.VarianteProductoRepository;
 import com.GoldenFeet.GoldenFeets.service.InventarioMovimientoService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,31 +16,29 @@ import java.util.List;
 
 /**
  * Controlador REST para gestionar las operaciones de movimientos de inventario.
- * Expone los endpoints para que el frontend pueda interactuar con el servicio.
  */
 @RestController
 @RequestMapping("/api/inventario") // Todas las URLs de este controlador empezarán con /api/inventario
-@CrossOrigin(origins = "*") // Permite peticiones desde cualquier origen (frontend)
+@CrossOrigin(origins = "*")
 public class InventarioMovimientoController {
 
     private final InventarioMovimientoService inventarioMovimientoService;
+    // Necesitas inyectar el repositorio de variantes para consultar stock directamente desde el controlador si es necesario
+    private final VarianteProductoRepository varianteRepository;
 
-    // Inyectamos el servicio que contiene la lógica
     @Autowired
-    public InventarioMovimientoController(InventarioMovimientoService inventarioMovimientoService) {
+    public InventarioMovimientoController(InventarioMovimientoService inventarioMovimientoService,
+                                          VarianteProductoRepository varianteRepository) {
         this.inventarioMovimientoService = inventarioMovimientoService;
+        this.varianteRepository = varianteRepository;
     }
 
     /**
      * Endpoint para REGISTRAR UN INGRESO de stock.
-     * Escucha en: POST http://localhost:8080/api/inventario/ingreso
-     *
-     * @param ingresoDTO El JSON que envía el frontend con {productoId, cantidad, motivo}
-     * @return Una respuesta HTTP.
      */
     @PostMapping("/ingreso")
     public ResponseEntity<String> registrarIngreso(@RequestBody IngresoDTO ingresoDTO) {
-        // Este método está perfecto, no necesita cambios.
+        // El DTO debe contener el ID de la VARIANTE (antes era productoId)
         try {
             inventarioMovimientoService.registrarIngreso(ingresoDTO);
             return ResponseEntity.ok("Ingreso registrado exitosamente.");
@@ -52,22 +52,51 @@ public class InventarioMovimientoController {
         }
     }
 
-    /**
-     * Endpoint para OBTENER EL HISTORIAL de un producto.
-     * Escucha en: GET http://localhost:8080/api/inventario/historial/1 (donde 1 es el ID del producto)
-     *
-     * @param productoId El ID del producto que viene en la URL.
-     * @return Una lista del historial (HistorialDTO) o un error.
-     */
-    @GetMapping("/historial/{productoId}")
-    // --- INICIO DE CORRECCIÓN ---
-    // 1. Cambiamos @PathVariable Long a Integer para que coincida con el servicio.
-    public ResponseEntity<?> getHistorialPorProducto(@PathVariable Integer productoId) {
-        // --- FIN DE CORRECCIÓN ---
+    // ✔ MÉTODO AÑADIDO: Registrar Salida (Necesario para el flujo de inventario)
+    @PostMapping("/salida")
+    public ResponseEntity<String> registrarSalida(@RequestBody IngresoDTO salidaDTO) {
         try {
-            // 2. Ya no necesitamos Math.toIntExact(), pasamos el Integer directamente.
-            List<HistorialDTO> historial = inventarioMovimientoService.getHistorialPorProducto(productoId);
-            return ResponseEntity.ok(historial); // Devuelve la lista como JSON con estado 200 OK
+            inventarioMovimientoService.registrarSalida(salidaDTO);
+            return ResponseEntity.ok("Salida registrada exitosamente.");
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al registrar la salida: " + e.getMessage());
+        }
+    }
+
+    // ✔ MÉTODO AÑADIDO: Obtener STOCK actual de la VARIANTE
+    @GetMapping("/stock/{varianteId}")
+    // Aquí el ID en la URL es el ID de la Variante
+    public ResponseEntity<?> obtenerStockVariante(@PathVariable("varianteId") Long varianteId) {
+        try {
+            VarianteProducto variante = varianteRepository.findById(varianteId)
+                    .orElseThrow(() -> new EntityNotFoundException("Variante no encontrada con ID: " + varianteId));
+
+            // Devolvemos el stock de la variante
+            return ResponseEntity.ok(variante.getStock());
+
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Variante no encontrada.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al obtener stock.");
+        }
+    }
+
+
+    /**
+     * Endpoint para OBTENER EL HISTORIAL de una VARIANTE.
+     */
+    @GetMapping("/historial/{varianteId}")
+    // El nombre de la variable de path debería ser `varianteId` para ser claro.
+    public ResponseEntity<?> getHistorialPorProducto(@PathVariable Integer varianteId) {
+        try {
+            // El servicio (ServiceImpl) ya fue corregido para buscar por ID de variante
+            List<HistorialDTO> historial = inventarioMovimientoService.getHistorialPorProducto(varianteId);
+            return ResponseEntity.ok(historial);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al consultar el historial: " + e.getMessage());

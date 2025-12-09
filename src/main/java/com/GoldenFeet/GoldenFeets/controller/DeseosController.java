@@ -23,20 +23,22 @@ public class DeseosController {
     @GetMapping("/lista_deseos")
     public String verListaDeseos(HttpSession session, Model model) {
 
-        // --- CORRECCIÓN AQUÍ ---
-        // Se cambia el tipo de dato de Long a Integer para que coincida con el servicio.
+        // Recuperamos como Integer (ya que así se guardó originalmente en sesión)
         @SuppressWarnings("unchecked")
         Set<Integer> deseosIds = (Set<Integer>) session.getAttribute("deseos");
 
         if (deseosIds == null || deseosIds.isEmpty()) {
             model.addAttribute("productosDeseados", Collections.emptyList());
         } else {
-            // Esta llamada ahora funciona porque deseosIds contiene Integers.
             List<ProductoDTO> productosDeseados = deseosIds.stream()
+                    // 1. Convertimos de Integer a Long explícitamente
+                    .map(Integer::longValue)
+                    // 2. Ahora sí podemos llamar al servicio que espera Long
                     .map(productoService::buscarPorId)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .collect(Collectors.toList());
+
             model.addAttribute("productosDeseados", productosDeseados);
         }
 

@@ -3,6 +3,8 @@ package com.GoldenFeet.GoldenFeets.controller;
 import com.GoldenFeet.GoldenFeets.entity.Producto;
 import com.GoldenFeet.GoldenFeets.entity.Usuario;
 import com.GoldenFeet.GoldenFeets.entity.Venta;
+import com.GoldenFeet.GoldenFeets.entity.VarianteProducto; // NUEVO IMPORT
+import com.GoldenFeet.GoldenFeets.repository.VarianteProductoRepository; // NUEVO IMPORT
 import com.GoldenFeet.GoldenFeets.service.ProductoService;
 import com.GoldenFeet.GoldenFeets.service.UsuarioService;
 import com.GoldenFeet.GoldenFeets.service.VentaService;
@@ -21,6 +23,8 @@ public class AdminApiController {
     @Autowired private VentaService ventaService;
     @Autowired private ProductoService productoService;
     @Autowired private UsuarioService usuarioService;
+    // --- NUEVA INYECCIÓN ---
+    @Autowired private VarianteProductoRepository varianteRepository;
 
     // 1. ELIMINAR USUARIO
     @DeleteMapping("/usuarios/{id}")
@@ -55,17 +59,22 @@ public class AdminApiController {
         }
     }
 
-    // 3. ESTADÍSTICAS (¡ESTE ES EL IMPORTANTE!)
-    // 3. ESTADÍSTICAS GENERALES Y ACTIVIDAD
+    // 3. ESTADÍSTICAS GENERALES Y ACTIVIDAD (CORREGIDO PARA VARIANTES)
     @GetMapping("/stats")
     public ResponseEntity<?> obtenerEstadisticas() {
         try {
-            // --- A. INVENTARIO ---
-            Collection<Producto> productos = productoService.listarProductos();
+            // --- A. INVENTARIO (CORREGIDO) ---
+            Collection<Producto> productos = productoService.listarProductos(); // Total de modelos (productos padre)
             if (productos == null) productos = new ArrayList<>();
             long totalProductos = productos.size();
-            long stockBajo = productos.stream().filter(p -> p.getStock() > 0 && p.getStock() < 5).count();
-            long sinStock = productos.stream().filter(p -> p.getStock() == 0).count();
+
+            // 1. Obtenemos todas las variantes para el cálculo de stock real
+            List<VarianteProducto> variantes = varianteRepository.findAll();
+
+            // 2. Calculamos KPIs basados en las variantes
+            long stockBajo = variantes.stream().filter(v -> v.getStock() > 0 && v.getStock() < 5).count();
+            long sinStock = variantes.stream().filter(v -> v.getStock() == 0).count();
+
             double valorInventario = 0;
             try { valorInventario = productoService.calcularValorTotalInventario(); } catch (Exception e) {}
 
@@ -85,7 +94,7 @@ public class AdminApiController {
                 }
             } catch (Exception e) {}
 
-            // --- D. CONSTRUIR ACTIVIDAD RECIENTE (NUEVO) ---
+            // --- D. CONSTRUIR ACTIVIDAD RECIENTE ---
             List<Map<String, Object>> actividad = new ArrayList<>();
 
             // 1. Últimas 2 Ventas
@@ -101,13 +110,13 @@ public class AdminApiController {
                 item.put("tipo", "venta");
                 item.put("titulo", "Nueva Venta #" + v.getIdVenta());
                 item.put("desc", "Total: $" + v.getTotal());
-                item.put("tiempo", "Reciente"); // Podrías calcular "Hace 2 horas" con la fecha real
+                item.put("tiempo", "Reciente");
                 actividad.add(item);
             }
 
-            // 2. Últimos 2 Productos (Asumiendo que los últimos de la lista son los nuevos)
+            // 2. Últimos 2 Productos Agregados (Modelos)
             List<Producto> listaProd = new ArrayList<>(productos);
-            // Si tienes un campo fechaCreacion en producto úsalo, si no, invertimos la lista
+            // Si no hay campo de fecha de creación, se asume el orden inverso de la lista (último agregado)
             Collections.reverse(listaProd);
 
             for (int i = 0; i < Math.min(2, listaProd.size()); i++) {
@@ -115,20 +124,21 @@ public class AdminApiController {
                 Map<String, Object> item = new HashMap<>();
                 item.put("tipo", "producto");
                 item.put("titulo", "Producto Agregado");
-                item.put("desc", p.getNombre() + " - Stock: " + p.getStock());
+                // FIX: Ya no hay stock en el producto padre, solo mostramos el modelo
+                item.put("desc", p.getNombre() + " (Modelo)");
                 item.put("tiempo", "Reciente");
                 actividad.add(item);
             }
 
             // --- E. RESPUESTA FINAL ---
             Map<String, Object> stats = new HashMap<>();
-            stats.put("totalProductos", totalProductos);
-            stats.put("stockBajo", stockBajo);
-            stats.put("sinStock", sinStock);
+            stats.put("totalProductos", totalProductos); // Total de modelos
+            stats.put("stockBajo", stockBajo); // Basado en variantes
+            stats.put("sinStock", sinStock);   // Basado en variantes
             stats.put("comprasPendientes", comprasPendientes);
             stats.put("usuariosActivos", usuariosActivos);
             stats.put("valorInventario", valorInventario);
-            stats.put("actividadReciente", actividad); // <--- ENVIAMOS LA LISTA
+            stats.put("actividadReciente", actividad);
 
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
@@ -157,21 +167,17 @@ public class AdminApiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
-    // --- 5. HISTORIAL DE VENTAS (TABLA) ---
 
-    // --- 5. HISTORIAL DE VENTAS (BLINDADO CONTRA ERRORES) ---
+    // --- 5. HISTORIAL DE VENTAS (TABLA) ---
     @GetMapping("/ventas/historial")
     public ResponseEntity<?> obtenerHistorialVentas() {
         try {
-            // Usamos ArrayList para garantizar que sea una lista manipulable
             List<Venta> listaVentas = new ArrayList<>(ventaService.obtenerTodasLasVentas());
 
-            // Si no hay ventas, devolvemos lista vacía
             if (listaVentas.isEmpty()) {
                 return ResponseEntity.ok(new ArrayList<>());
             }
 
-            // Ordenar con seguridad (evita error si id es null)
             listaVentas.sort((v1, v2) -> {
                 if (v1.getIdVenta() == null) return 1;
                 if (v2.getIdVenta() == null) return -1;
@@ -180,14 +186,12 @@ public class AdminApiController {
 
             List<Map<String, Object>> historial = new ArrayList<>();
 
-            // Limitamos a las últimas 10 para no saturar
             for (int i = 0; i < Math.min(10, listaVentas.size()); i++) {
                 Venta v = listaVentas.get(i);
 
-                // Construir nombre del cliente con seguridad
                 String clienteNombre = "Cliente Desconocido";
                 try {
-                    if (v.getCliente() != null) { // <--- USAMOS getCliente()
+                    if (v.getCliente() != null) {
                         String nombre = v.getCliente().getNombre() != null ? v.getCliente().getNombre() : "";
                         String apellido = v.getCliente().getApellido() != null ? v.getCliente().getApellido() : "";
                         clienteNombre = (nombre + " " + apellido).trim();
@@ -195,7 +199,6 @@ public class AdminApiController {
                     }
                 } catch (Exception e) { System.out.println("Error leyendo cliente: " + e.getMessage()); }
 
-                // Construir fecha con seguridad
                 String fechaStr = "Fecha desconocida";
                 if (v.getFechaVenta() != null) {
                     fechaStr = v.getFechaVenta().toString();
@@ -214,7 +217,7 @@ public class AdminApiController {
             return ResponseEntity.ok(historial);
 
         } catch (Exception e) {
-            e.printStackTrace(); // Mira la consola de IntelliJ si sale error aquí
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al cargar historial: " + e.getMessage());
         }

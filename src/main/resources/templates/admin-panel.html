@@ -361,16 +361,19 @@
                 <table class="table table-modern mb-0" id="inventoryTable">
                     <thead><tr><th>ID</th><th>Producto</th><th>Marca</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Acciones</th></tr></thead>
                     <tbody>
-                    <tr th:each="p : ${productos}" th:data-stock="${p.stock}">
+                    <tr th:each="p : ${productos}"
+                        th:with="totalStock=${p.variantes == null or p.variantes.isEmpty() ? 0 : #aggregates.sum(p.variantes.![stock])}"
+                        th:data-stock="${totalStock}">
+
                         <td class="text-muted" th:text="${'#' + p.id}"></td>
                         <td><div class="product-name" th:text="${p.nombre}"></div></td>
                         <td class="product-brand" th:text="${p.marca}"></td>
                         <td><span class="badge bg-light text-dark border product-category" th:text="${p.categoria.nombre}"></span></td>
                         <td class="fw-bold" th:text="${#numbers.formatCurrency(p.precio)}"></td>
                         <td>
-                            <span th:if="${p.stock == 0}" class="badge bg-danger">Agotado</span>
-                            <span th:if="${p.stock > 0 and p.stock < 5}" class="badge bg-warning text-dark" th:text="${p.stock + ' (Bajo)'}"></span>
-                            <span th:if="${p.stock >= 5}" class="badge bg-success" th:text="${p.stock + ' Unidades'}"></span>
+                            <span th:if="${totalStock == 0}" class="badge bg-danger">Agotado</span>
+                            <span th:if="${totalStock > 0 and totalStock < 5}" class="badge bg-warning text-dark" th:text="${totalStock + ' (Bajo)'}"></span>
+                            <span th:if="${totalStock >= 5}" class="badge bg-success" th:text="${totalStock + ' Unidades'}"></span>
                         </td>
                         <td>
                             <div class="btn-group shadow-sm">

@@ -25,4 +25,5 @@ public interface InventarioMovimientoService {
      * @return Una lista de DTOs con la información del historial.
      */
     List<HistorialDTO> getHistorialPorProducto(Integer productoId);
+
 }

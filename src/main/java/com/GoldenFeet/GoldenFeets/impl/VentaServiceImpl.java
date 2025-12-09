@@ -5,6 +5,7 @@ import com.GoldenFeet.GoldenFeets.entity.*;
 import com.GoldenFeet.GoldenFeets.repository.ProductoRepository;
 import com.GoldenFeet.GoldenFeets.repository.UsuarioRepository;
 import com.GoldenFeet.GoldenFeets.repository.VentaRepository;
+import com.GoldenFeet.GoldenFeets.repository.VarianteProductoRepository; // NUEVO IMPORT
 import com.GoldenFeet.GoldenFeets.service.EntregaService;
 import com.GoldenFeet.GoldenFeets.service.VentaService;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,7 +24,9 @@ import java.util.stream.Collectors;
 public class VentaServiceImpl implements VentaService {
 
     private final VentaRepository ventaRepository;
+    // Dependencias corregidas:
     private final ProductoRepository productoRepository;
+    private final VarianteProductoRepository varianteRepository; // NECESARIO PARA STOCK Y DETALLES
     private final UsuarioRepository usuarioRepository;
     private final EntregaService entregaService;
 
@@ -38,7 +41,7 @@ public class VentaServiceImpl implements VentaService {
         nuevaVenta.setFechaVenta(LocalDate.now());
         nuevaVenta.setEstado("En Camino");
 
-        // --- GUARDANDO DATOS DE ENVÍO (INCLUYENDO LOCALIDAD) ---
+        // --- GUARDANDO DATOS DE ENVÍO ---
         nuevaVenta.setDireccionEnvio(request.getDireccion());
         nuevaVenta.setCiudadEnvio(request.getCiudad() + ", " + request.getDepartamento());
         nuevaVenta.setMetodoPago(request.getMetodoPago());
@@ -49,30 +52,48 @@ public class VentaServiceImpl implements VentaService {
         BigDecimal totalVenta = BigDecimal.ZERO;
 
         for (ItemVentaDTO itemDTO : request.getItems()) {
-            // Aseguramos conversión a Long para el ID
-            Producto producto = productoRepository.findById(Long.valueOf(itemDTO.productoId()))
-                    .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado: " + itemDTO.productoId()));
 
-            // 1. Verificamos si hay stock suficiente
-            if (producto.getStock() < itemDTO.cantidad()) {
-                throw new IllegalStateException("Stock insuficiente para: " + producto.getNombre());
+            // 1. BUSCAR VARIANTE ESPECÍFICA (Color y Talla)
+            Long productoId = itemDTO.productoId();
+            Integer tallaRequerida;
+            try {
+                // Convertimos la talla del DTO (String) a Integer
+                tallaRequerida = Integer.parseInt(itemDTO.talla());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Talla inválida: " + itemDTO.talla());
+            }
+            String colorRequerido = itemDTO.color();
+
+            // Buscar la variante específica por producto_id, talla y color.
+            // CORRECCIÓN: Usamos findByProductoId
+            List<VarianteProducto> variantesDelProducto = varianteRepository.findByProductoId(productoId);
+            VarianteProducto variante = variantesDelProducto.stream()
+                    .filter(v -> v.getTalla().equals(tallaRequerida) && v.getColor().equalsIgnoreCase(colorRequerido))
+                    .findFirst()
+                    .orElseThrow(() -> new EntityNotFoundException("Variante no encontrada: Producto " + productoId + " (" + colorRequerido + " T" + tallaRequerida + ")"));
+
+            // 2. Verificamos y Descontamos Stock en la VARIANTE
+            if (variante.getStock() < itemDTO.cantidad()) {
+                throw new IllegalStateException("Stock insuficiente para la variante: " + variante.getSku());
             }
 
-            // 💥 CORRECCIÓN IMPORTANTE: Descontar stock y guardar el producto
-            int nuevoStock = producto.getStock() - itemDTO.cantidad();
-            producto.setStock(nuevoStock);
-            productoRepository.save(producto); // <--- ESTO FALTABA
-            // -----------------------------------------------------------
+            int nuevoStock = variante.getStock() - itemDTO.cantidad();
+            variante.setStock(nuevoStock);
+            varianteRepository.save(variante); // Guardamos la variante con stock actualizado
 
+            // 3. Crear DetalleVenta
             DetalleVenta detalle = new DetalleVenta();
-            detalle.setProducto(producto);
+            detalle.setVariante(variante); // CRÍTICO: Asignamos la variante
             detalle.setCantidad(itemDTO.cantidad());
 
-            // Convertir Double a BigDecimal de forma segura
-            BigDecimal precioUnitario = BigDecimal.valueOf(producto.getPrecio());
+            // 4. Asignar datos históricos (talla y color de la variante comprada)
+            detalle.setTalla(itemDTO.talla());
+            detalle.setColor(itemDTO.color());
+
+            // El precio se obtiene del Producto Padre de la variante
+            BigDecimal precioUnitario = BigDecimal.valueOf(variante.getProducto().getPrecio());
             detalle.setPrecioUnitario(precioUnitario);
 
-            // Usar el BigDecimal convertido para multiplicar
             BigDecimal subtotal = precioUnitario.multiply(new BigDecimal(itemDTO.cantidad()));
 
             detalle.setSubtotal(subtotal);
@@ -85,7 +106,7 @@ public class VentaServiceImpl implements VentaService {
         nuevaVenta.setDetallesVenta(detalles);
         Venta ventaGuardada = ventaRepository.save(nuevaVenta);
 
-        // --- CREANDO LA ENTREGA (CON LOCALIDAD) ---
+        // --- CREANDO LA ENTREGA ---
         Entrega nuevaEntrega = new Entrega();
         nuevaEntrega.setVenta(ventaGuardada);
         nuevaEntrega.setEstado("PENDIENTE");
@@ -96,6 +117,8 @@ public class VentaServiceImpl implements VentaService {
 
         return convertirAVentaResponseDTO(ventaGuardada);
     }
+
+    // El resto de los métodos se mantienen intactos ya que solo leen datos o usan consultas agregadas.
 
     @Override
     public long contarVentas() {
@@ -123,6 +146,7 @@ public class VentaServiceImpl implements VentaService {
 
     @Override
     public List<VentaResponseDTO> buscarVentasPorCliente(Long idCliente) {
+        // Mantenemos la conversión a Integer para el método subyacente si la base de datos usa Integer para los IDs de usuario
         return buscarVentasPorCliente(idCliente.intValue());
     }
 

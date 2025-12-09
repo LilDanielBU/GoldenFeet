@@ -1,13 +1,18 @@
 package com.GoldenFeet.GoldenFeets.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor; // ✔ Necesario para el constructor de 4 argumentos en DataSeeder
 import lombok.Data;
+import lombok.NoArgsConstructor; // ✔ Necesario para Hibernate
 import java.util.List;
+import java.io.Serializable;
 
-@Data
 @Entity
 @Table(name = "categorias")
-public class Categoria {
+@Data
+@NoArgsConstructor // Genera el constructor sin argumentos (requerido por JPA/Hibernate)
+@AllArgsConstructor // Genera el constructor con todos los argumentos (requerido por DataSeeder)
+public class Categoria implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,8 +23,6 @@ public class Categoria {
 
     private String descripcion;
 
-    // 💥 CAMBIO REALIZADO: De 'imagenUrl' a 'imagenNombre'
-    // Esto genera automáticamente los métodos getImagenNombre() y setImagenNombre() gracias a @Data
     @Column(name = "imagen_nombre")
     private String imagenNombre;
 

@@ -422,7 +422,7 @@
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <div class="stat-title">Referencias</div>
-                        <h3 class="stat-value" th:text="${totalProductos}">0</h3>
+                        <h3 class="stat-value" th:text="${totalVariantes}">0</h3>
                     </div>
                     <div class="icon-box bg-purple-soft">
                         <i class="fas fa-boxes"></i>
@@ -502,78 +502,92 @@
             </div>
         </div>
     </div>
-    </div>
+</div>
 
-    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
+<div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
 
-    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${errorMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
+<div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="${errorMessage}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
 
-    <div class="card card-main">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0" id="inventoryTable">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Marca</th>
-                        <th>Categoría</th>
-                        <th>Precio</th>
-                        <th>Stock</th>
-                        <th>Acciones</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="producto : ${productos}" th:data-stock="${producto.stock}">
-                        <td th:text="${producto.id}"></td>
-                        <td th:text="${producto.nombre}" class="fw-bold product-name"></td>
-                        <td th:text="${producto.marca}" class="product-brand"></td>
-                        <td th:text="${producto.nombreCategoria}" class="product-category"></td>
+<div class="card card-main">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="inventoryTable">
+                <thead>
+                <tr>
+                    <th>SKU ID</th> <th>Producto</th>
+                    <th>Marca</th>
+                    <th>Categoría</th>
+                    <th>Talla/Color</th> <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="producto : ${productos}" th:data-stock="${producto.stock}" th:data-name="${producto.producto.nombre}" th:data-brand="${producto.producto.marca}" th:data-category="${producto.producto.categoria.nombre}">
+                    <td th:text="${producto.id}"></td>
 
-                        <td th:text="'$' + ${#numbers.formatDecimal(producto.precio, 0, 'POINT', 0, 'COMMA')}"></td>
+                    <td th:text="${producto.producto.nombre}" class="fw-bold product-name"></td>
 
-                        <td>
-                            <span th:if="${producto.stock == 0}" class="badge bg-danger">Agotado</span>
-                            <span th:if="${producto.stock > 0 and producto.stock < 5}" class="badge bg-warning text-white" th:text="${producto.stock + ' (Bajo)'}"></span>
-                            <span th:if="${producto.stock >= 5}" class="badge bg-success" th:text="${producto.stock}"></span>
-                        </td>
-                        <td class="text-nowrap">
-                            <a th:href="@{/inventario/productos/editar/{id}(id=${producto.id})}" class="btn btn-warning btn-sm" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <form th:action="@{/inventario/productos/eliminar/{id}(id=${producto.id})}" method="post" class="d-inline" onsubmit="return confirm('¿Eliminar?');">
-                                <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
-                            <button class="btn btn-success btn-sm" th:data-producto-id="${producto.id}" th:data-producto-nombre="${producto.nombre}" data-bs-toggle="modal" data-bs-target="#ingresoModal" title="Ingreso">
-                                <i class="fas fa-arrow-up"></i>
+                    <td th:text="${producto.producto.marca}" class="product-brand"></td>
+
+                    <td th:text="${producto.producto.categoria.nombre}" class="product-category"></td>
+
+                    <td th:text="${producto.talla + ' / ' + producto.color}"></td>
+
+                    <td th:text="'$' + ${#numbers.formatDecimal(producto.producto.precio, 0, 'POINT', 0, 'COMMA')}"></td>
+
+                    <td>
+                        <span th:if="${producto.stock == 0}" class="badge bg-danger">Agotado</span>
+                        <span th:if="${producto.stock > 0 and producto.stock < 5}" class="badge bg-warning text-white" th:text="${producto.stock + ' (Bajo)'}"></span>
+                        <span th:if="${producto.stock >= 5}" class="badge bg-success" th:text="${producto.stock}"></span>
+                    </td>
+
+                    <td class="text-nowrap">
+                        <a th:href="@{/inventario/productos/editar/{id}(id=${producto.producto.id})}" class="btn btn-warning btn-sm" title="Editar Producto">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form th:action="@{/inventario/productos/eliminar/{id}(id=${producto.producto.id})}" method="post" class="d-inline" onsubmit="return confirm('¿Eliminar el producto padre y todas sus variantes?');">
+                            <button type="submit" class="btn btn-danger btn-sm" title="Eliminar Producto">
+                                <i class="fas fa-trash"></i>
                             </button>
-                            <button class="btn btn-secondary btn-sm" th:data-producto-id="${producto.id}" th:data-producto-nombre="${producto.nombre}" data-bs-toggle="modal" data-bs-target="#salidaModal" title="Salida">
-                                <i class="fas fa-arrow-down"></i>
-                            </button>
-                            <button class="btn btn-info btn-sm text-white" th:data-producto-id="${producto.id}" th:data-producto-nombre="${producto.nombre}" onclick="abrirModalHistorial(this)" data-bs-toggle="modal" data-bs-target="#historialModal" title="Historial">
-                                <i class="fas fa-history"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr th:if="${productos.isEmpty()}" id="noResultsRow">
-                        <td colspan="7" class="text-center py-5">
-                            <i class="fas fa-box-open fa-3x mb-3" style="color: var(--gray-300);"></i>
-                            <p class="text-muted" style="font-size: 1rem;">No se encontraron productos.</p>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
+                        </form>
+                        <button class="btn btn-success btn-sm"
+                                th:data-producto-id="${producto.id}"
+                                th:data-producto-nombre="${producto.producto.nombre + ' (' + producto.talla + ' / ' + producto.color + ')'}"
+                                data-bs-toggle="modal" data-bs-target="#ingresoModal" title="Ingreso Stock">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-sm"
+                                th:data-producto-id="${producto.id}"
+                                th:data-producto-nombre="${producto.producto.nombre + ' (' + producto.talla + ' / ' + producto.color + ')'}"
+                                data-bs-toggle="modal" data-bs-target="#salidaModal" title="Salida Stock">
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button class="btn btn-info btn-sm text-white"
+                                th:data-producto-id="${producto.id}"
+                                th:data-producto-nombre="${producto.producto.nombre + ' (' + producto.talla + ' / ' + producto.color + ')'}"
+                                onclick="abrirModalHistorial(this)" data-bs-toggle="modal" data-bs-target="#historialModal" title="Historial">
+                            <i class="fas fa-history"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr th:if="${productos.isEmpty()}" id="noResultsRow">
+                    <td colspan="8" class="text-center py-5">
+                        <i class="fas fa-box-open fa-3x mb-3" style="color: var(--gray-300);"></i>
+                        <p class="text-muted" style="font-size: 1rem;">No se encontraron productos.</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 </div>
 
 <div class="modal fade" id="ingresoModal" tabindex="-1" aria-hidden="true">
@@ -585,7 +599,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="productoIdInput" name="productoId" th:field="*{productoId}" />
+                    <input type="hidden" id="productoIdInput" name="varianteId" th:field="*{varianteId}" />
                     <div class="mb-3">
                         <label class="form-label">Cantidad</label>
                         <input type="number" class="form-control" name="cantidad" th:field="*{cantidad}" required min="1" />
@@ -613,7 +627,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="productoIdInputSalida" name="productoId" th:field="*{productoId}" />
+                    <input type="hidden" id="productoIdInputSalida" name="varianteId" th:field="*{varianteId}" />
                     <div class="mb-3">
                         <label class="form-label">Cantidad</label>
                         <input type="number" class="form-control" name="cantidad" th:field="*{cantidad}" required min="1" />
@@ -696,20 +710,25 @@
     function filterTable() {
         const searchTerm = searchInput.value.toLowerCase();
         const categoryTerm = filterCategory.value.toLowerCase();
+        let resultsFound = false;
 
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             if (row.id === 'noResultsRow') continue;
 
-            const name = row.querySelector('.product-name') ? row.querySelector('.product-name').textContent.toLowerCase() : '';
-            const brand = row.querySelector('.product-brand') ? row.querySelector('.product-brand').textContent.toLowerCase() : '';
-            const category = row.querySelector('.product-category') ? row.querySelector('.product-category').textContent.toLowerCase() : '';
+            // Usamos los data-attributes para el filtrado, que ya contienen los valores del producto padre
+            const name = row.getAttribute('data-name') ? row.getAttribute('data-name').toLowerCase() : '';
+            const brand = row.getAttribute('data-brand') ? row.getAttribute('data-brand').toLowerCase() : '';
+            const category = row.getAttribute('data-category') ? row.getAttribute('data-category').toLowerCase() : '';
+
+            // Usamos el SKU ID para la búsqueda
+            const skuId = row.cells[0].textContent.toLowerCase();
 
             // Obtener stock desde el atributo data (conversión a número)
             const stock = parseInt(row.getAttribute('data-stock')) || 0;
 
-            // Lógica de búsqueda por texto
-            const matchesSearch = name.includes(searchTerm) || brand.includes(searchTerm) || row.cells[0].textContent.includes(searchTerm);
+            // Lógica de búsqueda por texto (Buscamos en nombre, marca o SKU ID)
+            const matchesSearch = name.includes(searchTerm) || brand.includes(searchTerm) || skuId.includes(searchTerm);
 
             // Lógica de categoría
             const matchesCategory = categoryTerm === '' || category.includes(categoryTerm);
@@ -721,13 +740,19 @@
             } else if (currentStatusFilter === 'out') {
                 matchesStatus = (stock === 0);
             }
-            // Si es 'all', matchesStatus se queda en true
 
             if (matchesSearch && matchesCategory && matchesStatus) {
                 row.style.display = '';
+                resultsFound = true;
             } else {
                 row.style.display = 'none';
             }
+        }
+
+        // Mostrar/ocultar fila "No hay resultados"
+        const noResultsRow = document.getElementById('noResultsRow');
+        if (noResultsRow) {
+            noResultsRow.style.display = resultsFound ? 'none' : '';
         }
     }
 
@@ -735,31 +760,35 @@
     searchInput.addEventListener('keyup', filterTable);
     filterCategory.addEventListener('change', filterTable);
 
-    // MODAL LOGIC (Igual que antes)
+    // MODAL LOGIC
     var ingresoModal = document.getElementById('ingresoModal');
     ingresoModal.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
         ingresoModal.querySelector('#modal-producto-nombre').textContent = button.getAttribute('data-producto-nombre');
-        ingresoModal.querySelector('#productoIdInput').value = button.getAttribute('data-producto-id');
+        ingresoModal.querySelector('input[name="varianteId"]').value = button.getAttribute('data-producto-id');
     });
 
     var salidaModal = document.getElementById('salidaModal');
     salidaModal.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
         salidaModal.querySelector('#modal-producto-nombre-salida').textContent = button.getAttribute('data-producto-nombre');
-        salidaModal.querySelector('#productoIdInputSalida').value = button.getAttribute('data-producto-id');
+        salidaModal.querySelector('input[name="varianteId"]').value = button.getAttribute('data-producto-id');
     });
 
     async function abrirModalHistorial(buttonElement) {
-        const productoId = buttonElement.getAttribute('data-producto-id');
+        // El ID pasado es el ID de la Variante
+        const varianteId = buttonElement.getAttribute('data-producto-id');
         const productoNombre = buttonElement.getAttribute('data-producto-nombre');
         const tbody = document.getElementById('tablaHistorialBody');
         document.getElementById('historialModalTitle').textContent = ` Historial: ${productoNombre}`;
         tbody.innerHTML = '<tr><td colspan="4" class="text-center">Cargando...</td></tr>';
 
         try {
-            const response = await fetch(`/api/inventario/historial/${productoId}`);
-            if (!response.ok) throw new Error('Error');
+            // CORRECCIÓN AQUÍ: Usamos la ruta correcta definida en el InventarioController
+            // Antes tenías: /api/inventario/historial/variante/
+            const response = await fetch(`/inventario/historial/${varianteId}`);
+
+            if (!response.ok) throw new Error('Error al cargar historial.');
             const movimientos = await response.json();
             tbody.innerHTML = '';
 
@@ -773,6 +802,7 @@
                 });
             }
         } catch (error) {
+            console.error(error);
             tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Error al cargar.</td></tr>`;
         }
     }

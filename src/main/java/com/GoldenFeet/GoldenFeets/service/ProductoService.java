@@ -13,6 +13,10 @@ import java.util.Optional;
 
 public interface ProductoService {
 
+    // ==========================================
+    // MÉTODOS DE CONSULTA (DTOs y Entidades)
+    // ==========================================
+
     @Transactional(readOnly = true)
     Collection<Producto> listarProductos();
 
@@ -21,7 +25,11 @@ public interface ProductoService {
 
     List<ProductoDTO> listarTodos();
 
-    Optional<ProductoDTO> buscarPorId(Integer id);
+    // ID primario usando Long, consistente con JPA.
+    Optional<ProductoDTO> buscarPorId(Long id);
+
+    // --- NUEVO MÉTODO CRÍTICO PARA EL MODAL ---
+    ProductoDTO obtenerProductoConVariantes(Long id);
 
     List<CategoriaDTO> listarCategorias();
 
@@ -35,13 +43,23 @@ public interface ProductoService {
 
     List<String> listarMarcasDistintas();
 
-    List<ProductoDTO> listarPorIds(List<Integer> ids);
+    // Lista de IDs primarios usando Long.
+    List<ProductoDTO> listarPorIds(List<Long> ids);
 
     List<ProductoDTO> obtenerProductosRecientes(int cantidad);
 
+    // ==========================================
+    // MÉTODOS DE GESTIÓN (Crear, Editar, Eliminar)
+    // ==========================================
+
     Producto crearProducto(ProductoCreateDTO productoDTO);
 
-    Producto actualizarProducto(Integer id, ProductoUpdateDTO productoDTO);
+    // ID primario usando Long.
+    Producto actualizarProducto(Long id, ProductoUpdateDTO productoDTO);
 
-    void eliminarProducto(Integer id);
+    // ID primario usando Long.
+    void eliminarProducto(Long id);
+
+    // --- CORRECCIÓN: Método para eliminar la VARIANTE individual ---
+    void eliminarVariante(Long id);
 }

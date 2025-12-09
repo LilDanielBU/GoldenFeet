@@ -4,6 +4,8 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class ProductoCreateDTO {
@@ -22,13 +24,6 @@ public class ProductoCreateDTO {
 
     private BigDecimal originalPrice;
 
-    // --- NUEVOS CAMPOS ---
-    @NotNull(message = "La talla es obligatoria")
-    private Integer talla;
-
-    @NotBlank(message = "El color es obligatorio")
-    private String color;
-    // ---------------------
 
     private MultipartFile imagenArchivo;
 
@@ -40,6 +35,6 @@ public class ProductoCreateDTO {
 
     private boolean destacado;
 
-
+    private List<VarianteDTO> variantes = new ArrayList<>();
 
 }
