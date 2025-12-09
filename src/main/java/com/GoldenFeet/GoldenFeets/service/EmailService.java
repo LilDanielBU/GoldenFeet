@@ -1,48 +1,61 @@
 package com.GoldenFeet.GoldenFeets.service;
 
-import com.GoldenFeet.GoldenFeets.entity.DetalleVenta;
 import com.GoldenFeet.GoldenFeets.entity.Entrega;
 import com.GoldenFeet.GoldenFeets.entity.Venta;
-import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ByteArrayResource; // IMPORTANTE
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import com.resend.Resend;
+import com.resend.services.emails.model.Attachment;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.text.NumberFormat;
+import java.util.Base64;
 import java.util.Locale;
 
 @Service
-@RequiredArgsConstructor
 public class EmailService {
 
-    private final JavaMailSender javaMailSender;
+    // Inyectamos las variables desde application.properties
+    @Value("${resend.api.key}")
+    private String apiKey;
+
+    @Value("${resend.from.email}")
+    private String fromEmail;
 
     @Async
     public void enviarCorreoDeEntregaCompletada(Entrega entrega) {
         if (entrega.getVenta() == null || entrega.getVenta().getCliente() == null) return;
 
         try {
-            MimeMessage message = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            // 1. Inicializar Resend
+            Resend resend = new Resend(apiKey);
+            String emailCliente = entrega.getVenta().getCliente().getEmail();
 
-            helper.setTo(entrega.getVenta().getCliente().getEmail());
-            helper.setSubject("✅ ¡Tu pedido de Golden Feets ha sido entregado!");
-
-            // Construir HTML simple
+            // 2. Construir HTML
             StringBuilder html = new StringBuilder();
             html.append("<html><body>");
             html.append("<h1>¡Pedido #GF-").append(entrega.getVenta().getIdVenta()).append(" Entregado!</h1>");
             html.append("<p>Gracias por tu compra. Esperamos que disfrutes tus productos.</p>");
             html.append("</body></html>");
 
-            helper.setText(html.toString(), true);
-            javaMailSender.send(message);
+            // 3. Configurar parámetros
+            CreateEmailOptions params = CreateEmailOptions.builder()
+                    .from("Golden Feets <" + fromEmail + ">")
+                    .to(emailCliente)
+                    .subject("✅ ¡Tu pedido de Golden Feets ha sido entregado!")
+                    .html(html.toString())
+                    .build();
+
+            // 4. Enviar
+            resend.emails().send(params);
+            System.out.println("Correo de entrega enviado a: " + emailCliente);
+
         } catch (Exception e) {
             e.printStackTrace();
+            System.err.println("Error enviando correo entrega: " + e.getMessage());
         }
     }
 
@@ -51,11 +64,8 @@ public class EmailService {
         if (venta.getCliente() == null) return;
 
         try {
-            MimeMessage message = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setTo(venta.getCliente().getEmail());
-            helper.setSubject("🎉 ¡Pedido Confirmado! #GF-" + venta.getIdVenta());
+            Resend resend = new Resend(apiKey);
+            String emailCliente = venta.getCliente().getEmail();
 
             // HTML Resumen
             StringBuilder html = new StringBuilder();
@@ -68,21 +78,33 @@ public class EmailService {
             html.append("<h3>Total Pagado: ").append(formato.format(venta.getTotal())).append("</h3>");
             html.append("</body></html>");
 
-            helper.setText(html.toString(), true);
+            // Configuración básica del correo
+            CreateEmailOptions.Builder paramsBuilder = CreateEmailOptions.builder()
+                    .from("Golden Feets <" + fromEmail + ">")
+                    .to(emailCliente)
+                    .subject("🎉 ¡Pedido Confirmado! #GF-" + venta.getIdVenta())
+                    .html(html.toString());
 
-            // --- CORRECCIÓN CRÍTICA ---
+            // --- LÓGICA DE ADJUNTO (PDF) ---
             if (pdfStream != null) {
-                // Convertir Stream a ByteArrayResource para evitar error de flujo cerrado
-                byte[] bytes = pdfStream.readAllBytes();
-                ByteArrayResource pdfResource = new ByteArrayResource(bytes);
-                helper.addAttachment("Factura_GF_" + venta.getIdVenta() + ".pdf", pdfResource);
+                // Resend requiere el archivo en Base64
+                byte[] pdfBytes = pdfStream.readAllBytes();
+                String pdfBase64 = Base64.getEncoder().encodeToString(pdfBytes);
+
+                Attachment adjunto = Attachment.builder()
+                        .fileName("Factura_GF_" + venta.getIdVenta() + ".pdf")
+                        .content(pdfBase64) // Aquí va el string en Base64
+                        .build();
+
+                paramsBuilder.attachments(adjunto);
             }
 
-            javaMailSender.send(message);
-            System.out.println("Correo enviado a: " + venta.getCliente().getEmail());
+            // Enviar
+            CreateEmailResponse data = resend.emails().send(paramsBuilder.build());
+            System.out.println("Correo compra enviado con ID: " + data.getId());
 
         } catch (Exception e) {
-            System.err.println("Error enviando correo: " + e.getMessage());
+            System.err.println("Error enviando correo compra con Resend: " + e.getMessage());
             e.printStackTrace();
         }
     }
