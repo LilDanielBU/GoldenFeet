@@ -214,7 +214,7 @@ public class AdminApiController {
             return ResponseEntity.ok(historial);
 
         } catch (Exception e) {
-            e.printStackTrace(); // Mira la consola de IntelliJ si sale error aquí
+            e.printStackTrace(); 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al cargar historial: " + e.getMessage());
         }
