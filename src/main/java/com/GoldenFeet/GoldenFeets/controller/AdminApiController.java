@@ -55,7 +55,7 @@ public class AdminApiController {
         }
     }
 
-    // 3. ESTADÍSTICAS (¡ESTE ES EL IMPORTANTE!)
+    
     // 3. ESTADÍSTICAS GENERALES Y ACTIVIDAD
     @GetMapping("/stats")
     public ResponseEntity<?> obtenerEstadisticas() {
@@ -101,13 +101,13 @@ public class AdminApiController {
                 item.put("tipo", "venta");
                 item.put("titulo", "Nueva Venta #" + v.getIdVenta());
                 item.put("desc", "Total: $" + v.getTotal());
-                item.put("tiempo", "Reciente"); // Podrías calcular "Hace 2 horas" con la fecha real
+                item.put("tiempo", "Reciente"); 
                 actividad.add(item);
             }
 
             // 2. Últimos 2 Productos (Asumiendo que los últimos de la lista son los nuevos)
             List<Producto> listaProd = new ArrayList<>(productos);
-            // Si tienes un campo fechaCreacion en producto úsalo, si no, invertimos la lista
+            
             Collections.reverse(listaProd);
 
             for (int i = 0; i < Math.min(2, listaProd.size()); i++) {
@@ -158,8 +158,6 @@ public class AdminApiController {
         }
     }
     // --- 5. HISTORIAL DE VENTAS (TABLA) ---
-
-    // --- 5. HISTORIAL DE VENTAS (BLINDADO CONTRA ERRORES) ---
     @GetMapping("/ventas/historial")
     public ResponseEntity<?> obtenerHistorialVentas() {
         try {
