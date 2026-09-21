@@ -53,7 +53,7 @@ public class AdminController {
 
     @GetMapping("/panel")
     public String mostrarPanel(Model model) {
-        // Cargar datos iniciales básicos (El resto lo hace el JS con la API)
+        // Cargar datos iniciales básicos 
         long totalUsuarios = usuarioService.contarUsuarios();
         long usuariosActivos = usuarioService.contarUsuariosActivos();
         long usuariosInactivos = usuarioService.contarUsuariosInactivos();
@@ -72,7 +72,7 @@ public class AdminController {
         model.addAttribute("usuariosInactivos", usuariosInactivos);
         model.addAttribute("totalVentas", totalVentas);
         model.addAttribute("totalIngresos", totalIngresos);
-        model.addAttribute("productos", productos); // Importante para la tabla inicial
+        model.addAttribute("productos", productos); 
         model.addAttribute("valorInventario", valorInventario);
 
         return "admin-panel";
@@ -80,7 +80,7 @@ public class AdminController {
 
     @GetMapping("/usuarios")
     public String mostrarUsuarios(Model model) {
-        // Este método quizás ya no se use si todo es AJAX, pero lo dejamos por si acaso
+     
         List<Usuario> todosLosUsuarios = usuarioService.obtenerTodosLosUsuarios();
         List<Usuario> usuariosAdministrativos = todosLosUsuarios.stream()
                 .filter(usuario -> usuario.getRoles().stream()
@@ -88,7 +88,7 @@ public class AdminController {
                 .collect(Collectors.toList());
 
         model.addAttribute("usuarios", usuariosAdministrativos);
-        return "admin-usuarios"; // Asegúrate que esta vista exista si la usas
+        return "admin-usuarios"; 
     }
 
     @GetMapping("/usuarios/editar/{id}")
@@ -116,7 +116,7 @@ public class AdminController {
         return "admin-usuario-edit";
     }
 
-    // --- AQUÍ ESTÁN LAS CORRECCIONES CLAVE ---
+    
 
     @PostMapping("/usuarios/actualizar")
     public String actualizarUsuario(AdminUsuarioUpdateDTO usuarioDto, RedirectAttributes redirectAttributes) {
@@ -163,7 +163,7 @@ public class AdminController {
         return "redirect:/admin/panel?tab=usuarios";
     }
 
-    // Este método ya no es necesario si usas la API AJAX, pero lo dejamos por compatibilidad
+  
     @GetMapping("/compras")
     public String verComprasAdmin(Model model) {
         return "redirect:/admin/panel?tab=compras";
